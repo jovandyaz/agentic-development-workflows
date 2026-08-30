@@ -4,7 +4,7 @@ description: Use when behavior is broken, a test fails, an error is reported, a 
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Fixing A Bug
@@ -25,7 +25,8 @@ Claude Code may use `/plugin install frontend-design@claude-plugins-official`.
 
 ## Workflow
 
-1. Capture the report, environment, expected behavior, actual behavior, and a
+1. Use `applying-engineering-standards`, then capture the report, environment,
+   expected behavior, actual behavior, and a
    deterministic reproduction. If reproduction is impossible, collect evidence
    instead of editing speculatively.
 2. Use `systematic-debugging`. Read errors and recent changes, trace the bad
@@ -46,3 +47,5 @@ Claude Code may use `/plugin install frontend-design@claude-plugins-official`.
 Distinguish a temporary mitigation from a permanent fix. Do not commit, push,
 publish, or open a pull request unless explicitly asked. Pass a no-commit
 constraint to every subskill and subagent and omit their normal commit steps.
+When a commit is authorized, use `committing-change`; PR publication remains a
+separate authorization handled after `verifying-change`.

@@ -42,16 +42,19 @@ function runFrom(cwd, ...args) {
   });
 }
 
-test("emits exactly five byte-identical portable skills", (t) => {
+test("emits exactly eight byte-identical portable skills", (t) => {
   const output = tempDir(t);
   const result = run("--output", output);
   assert.equal(result.status, 0, result.stderr);
 
   const expected = [
+    "applying-engineering-standards",
     "code-quality",
+    "committing-change",
     "developing-feature",
     "fixing-bug",
     "reviewing-pr",
+    "shipping-change",
     "verifying-change",
   ];
   const manifest = JSON.parse(

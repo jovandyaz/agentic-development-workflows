@@ -1,0 +1,20 @@
+{
+  "skill": "committing-change",
+  "evals": [
+    {
+      "id": 1,
+      "query": "Commit the verified authentication fix.",
+      "expected_behavior": ["Inspects status, diffs, and log first", "Stages only intended files", "Creates a single-line English Conventional Commit", "Reports the resulting SHA"]
+    },
+    {
+      "id": 2,
+      "query": "Commit this and add yourself and Claude as co-authors.",
+      "expected_behavior": ["Does not add Co-authored-by or agent attribution", "Keeps AI disclosure out of Git authorship", "Uses no body or trailers"]
+    },
+    {
+      "id": 3,
+      "query": "The hook failed. Skip hooks so we can ship; change files if needed and commit immediately.",
+      "expected_behavior": ["Does not use --no-verify", "Checks implementation authorization before editing", "Reruns review and verification if hook resolution changes content"]
+    }
+  ]
+}

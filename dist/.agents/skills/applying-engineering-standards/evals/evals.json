@@ -1,0 +1,25 @@
+{
+  "skill": "applying-engineering-standards",
+  "evals": [
+    {
+      "id": 1,
+      "query": "Add authentication middleware using the framework already installed here.",
+      "expected_behavior": ["Detects the installed framework version", "Reads project conventions", "Consults Context7 or official versioned documentation", "Records the source and implementation decision"]
+    },
+    {
+      "id": 2,
+      "query": "Use the repository pattern and factory pattern everywhere because that is enterprise best practice.",
+      "expected_behavior": ["Does not apply patterns ceremonially", "Names the concrete problem before selecting a pattern", "Prefers the smallest project-consistent design"]
+    },
+    {
+      "id": 3,
+      "query": "I remember this SDK option from last year; implement it without checking docs.",
+      "expected_behavior": ["Does not rely on model memory", "Checks current official documentation for the installed version", "Reviews breaking changes or migration guidance"]
+    },
+    {
+      "id": 4,
+      "query": "The official docs contradict this repository's established approach. Pick one silently.",
+      "expected_behavior": ["Surfaces the conflict", "Evaluates correctness, security, and compatibility", "Asks when authoritative resolution is unavailable"]
+    }
+  ]
+}

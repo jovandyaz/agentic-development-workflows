@@ -4,7 +4,7 @@ description: Use when implementing a new capability, changing product behavior, 
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Developing A Feature
@@ -28,14 +28,19 @@ Missing required dependencies are blockers, not reasons to approximate them.
 ## Workflow
 
 1. Inspect the repository, instructions, existing behavior, and relevant tests.
+   Use `applying-engineering-standards` before making design or library choices.
 2. Use `brainstorming`. Clarify the user, outcome, constraints, acceptance
    criteria, and non-goals. If a design is already approved, validate that it is
    still applicable without reopening settled choices. Otherwise obtain design
-   approval before implementation.
+   approval before implementation. Record commit authorization and PR
+   publication authorization separately; neither implies merge or deployment
+   authorization.
 3. For UI work, use `frontend-design` after product intent is clear. Preserve an
    existing design system unless the approved brief explicitly replaces it.
 4. Use `using-git-worktrees` when isolation is appropriate, then use
    `writing-plans` to produce small tasks with acceptance and verification.
+   Identify API/data compatibility, migration, rollback, rollout, observability,
+   and agent-eval gates. Prefer a small PR or independently valid stack.
 5. Use `subagent-driven-development` for independent tasks and
    `test-driven-development` for every behavior change. Each implementer gets
    the approved requirement, exact task, relevant paths, and no session history.
@@ -45,6 +50,9 @@ Missing required dependencies are blockers, not reasons to approximate them.
    `receiving-code-review`; fix confirmed blocking findings one at a time and
    rerun `reviewing-pr` until none remain.
 7. Run `verifying-change` only after review is clean.
+
+Use `committing-change` for every authorized commit. Let `verifying-change`
+handoff to `shipping-change` only when PR publication was already authorized.
 
 Do not commit, push, publish, or open a pull request unless explicitly asked.
 Report what changed, fresh verification evidence, and unresolved risks.

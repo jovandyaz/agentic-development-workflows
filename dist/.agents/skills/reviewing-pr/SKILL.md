@@ -4,7 +4,7 @@ description: Use when reviewing a pull request, branch, commit range, staged cha
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Reviewing A Pull Request
@@ -14,6 +14,8 @@ Use independent contexts and evidence. The workflow is read-only by default.
 ## Dependency Gate
 
 Resolve Superpowers and Matt Pocock's `code-review` before inspecting the diff.
+Use `applying-engineering-standards` as required background for repository and
+official-documentation evidence.
 If Superpowers is missing, stop with the runtime-specific instruction at
 https://github.com/obra/superpowers#installation. Claude Code uses
 `/plugin install superpowers@claude-plugins-official`.

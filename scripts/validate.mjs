@@ -8,10 +8,13 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const plugin = join(root, "plugins", "workflows");
 const skillsRoot = join(plugin, "skills");
 const expectedSkills = [
+  "applying-engineering-standards",
   "code-quality",
+  "committing-change",
   "developing-feature",
   "fixing-bug",
   "reviewing-pr",
+  "shipping-change",
   "verifying-change",
 ];
 const allowedFields = new Set([
@@ -64,7 +67,19 @@ function parseFrontmatter(text, path) {
   return normalized.slice(4, end);
 }
 
-function validateSkill(path) {
+function metadataVersion(frontmatter) {
+  const lines = frontmatter.split("\n");
+  const start = lines.findIndex((line) => line === "metadata:");
+  if (start < 0) return null;
+  for (const line of lines.slice(start + 1)) {
+    if (/^[a-z]/.test(line)) break;
+    const match = line.match(/^  version:\s*["']?([^"']+?)["']?\s*$/);
+    if (match) return match[1];
+  }
+  return null;
+}
+
+function validateSkill(path, expectedVersion) {
   const text = readFileSync(path, "utf8");
   const metadata = parseFrontmatter(text, path);
   const location = relative(root, path);
@@ -83,6 +98,9 @@ function validateSkill(path) {
   }
   if (!description || description.length > 1024 || !description.startsWith("Use when")) {
     fail(`${location}: description must start with "Use when" and be at most 1024 characters`);
+  }
+  if (metadataVersion(metadata) !== expectedVersion) {
+    fail(`${location}: metadata version must equal ${expectedVersion}`);
   }
   if (text.split("\n").length > 500) fail(`${location}: exceeds 500 lines`);
 
@@ -109,6 +127,8 @@ function validateSkill(path) {
 
 const marketplace = readJson(join(root, ".claude-plugin", "marketplace.json"));
 const manifest = readJson(join(plugin, ".claude-plugin", "plugin.json"));
+const packageManifest = readJson(join(root, "package.json"));
+const expectedVersion = packageManifest?.version;
 if (marketplace?.plugins?.length !== 1 || marketplace.plugins[0]?.name !== "workflows") {
   fail("marketplace must register exactly the workflows plugin");
 }
@@ -117,6 +137,9 @@ if (marketplace?.plugins?.[0]?.source !== "./plugins/workflows") {
 }
 if (manifest?.name !== "workflows" || !/^\d+\.\d+\.\d+$/.test(manifest?.version ?? "")) {
   fail("plugin manifest must have name workflows and a strict semver version");
+}
+if (manifest?.version !== expectedVersion || marketplace?.metadata?.version !== expectedVersion) {
+  fail("package, marketplace, and plugin versions must match");
 }
 for (const field of ["description", "author", "license"]) {
   if (!manifest?.[field]) fail(`plugin manifest is missing ${field}`);
@@ -129,7 +152,9 @@ const actualSkills = readdirSync(skillsRoot, { withFileTypes: true })
 if (JSON.stringify(actualSkills) !== JSON.stringify(expectedSkills)) {
   fail(`expected skills ${expectedSkills.join(", ")}; found ${actualSkills.join(", ")}`);
 }
-for (const name of actualSkills) validateSkill(join(skillsRoot, name, "SKILL.md"));
+for (const name of actualSkills) {
+  validateSkill(join(skillsRoot, name, "SKILL.md"), expectedVersion);
+}
 
 const lock = readJson(join(root, "dependencies.lock.json"));
 for (const dependency of lock?.dependencies ?? []) {

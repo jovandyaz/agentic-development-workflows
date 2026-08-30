@@ -1,20 +1,29 @@
 {
   "source": "jovandyaz/agentic-development-workflows",
   "skills": {
+    "applying-engineering-standards": {
+      "integrity": "sha256-c39296ccd5a547d928a9317edc2a6620960447555447f44474cd39b743cae25b"
+    },
     "code-quality": {
-      "integrity": "sha256-854ac5d548b0813f4377fa2b13b19fe74a3ad9b14577b166fd6ce02311e671c7"
+      "integrity": "sha256-ee41d876f1ffae6bea8434c2b7bca09238cebbca6373cf467c8444e340edd9aa"
+    },
+    "committing-change": {
+      "integrity": "sha256-46171d180f6d3b09b3bd9e8656ba3a322aefc5e691d3992e19e0edcc57a0d354"
     },
     "developing-feature": {
-      "integrity": "sha256-398af83ec647e4e6a9778baeb0e3f706151c903b0305ee48a3f68fab9f26d5df"
+      "integrity": "sha256-750b226d4b9baa55a07ffb6bfb932125cfdba9094a4d3288f5f27330694ff675"
     },
     "fixing-bug": {
-      "integrity": "sha256-5cf2d119dd5df4307bb6ba1ea77f6df506a91039af723b69d8922d0d7bb30b45"
+      "integrity": "sha256-6924f10b3d1b9172a78732182b9a63b0af168cac05538e30cca3a35840328d14"
     },
     "reviewing-pr": {
-      "integrity": "sha256-dfafab2abaaf7be6d021edd3412c7cc4d0fc474c2e8281d17bfdcf994629b4f7"
+      "integrity": "sha256-7a9cf39db5e903ab09a8bcca67bebd86339a29bf079f84382c9cef3d8332862f"
+    },
+    "shipping-change": {
+      "integrity": "sha256-8db8eff65fe5b36676689091a1f37c9b97436ad317af737f0c3324a7775535b6"
     },
     "verifying-change": {
-      "integrity": "sha256-389d8e6956337dba2e1d2af331313c1815b5025fca02f0e94aeeaaf7eda49b1d"
+      "integrity": "sha256-99b7567812cde208f683c53653395dfb55d6d387e0263df9e2db46cbaa50a934"
     }
   }
 }

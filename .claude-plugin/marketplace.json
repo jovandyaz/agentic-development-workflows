@@ -7,13 +7,13 @@
   },
   "metadata": {
     "description": "Composable, multi-agent software development workflows",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "plugins": [
     {
       "name": "workflows",
       "source": "./plugins/workflows",
-      "description": "Strict feature, bug-fix, code-review, code-quality, and verification workflows.",
+      "description": "Strict feature, bug-fix, review, verification, commit, and delivery workflows.",
       "category": "development",
       "keywords": ["workflow", "code-review", "debugging", "verification"]
     }
