@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1] - 2026-08-30
+
+- Correct global and repository-scoped dependency installation guidance.
+- Record every installed third-party skill and its reviewed revision.
+- Reject symlinked owned skill roots before integrity checks or replacement.
+- Harden CI with immutable actions, read-only permissions, concurrency, and timeouts.
+
 ## [0.2.0] - 2026-08-30
 
 - Add `committing-change` with single-line Conventional Commit and no-coauthor defaults.

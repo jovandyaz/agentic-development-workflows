@@ -1,6 +1,6 @@
 {
   "name": "workflows",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Composable, multi-agent workflows for development, review, verification, commits, and pull-request delivery.",
   "author": {
     "name": "Jovan Diaz",

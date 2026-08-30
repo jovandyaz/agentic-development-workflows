@@ -1,5 +1,8 @@
 # Agentic Development Workflows
 
+[![validate](https://github.com/jovandyaz/agentic-development-workflows/actions/workflows/validate.yml/badge.svg)](https://github.com/jovandyaz/agentic-development-workflows/actions/workflows/validate.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Portable, multi-agent software development workflows that compose
 [Superpowers](https://github.com/obra/superpowers) with selected Agent Skills.
 They add a strict orchestration layer without copying upstream skill content.
@@ -56,6 +59,7 @@ prints installation guidance instead of silently approximating a missing skill.
 | Superpowers | Running any orchestrated workflow; standalone `code-quality` has no external dependency |
 | Anthropic `frontend-design` | A feature or bug fix changes UI |
 | Matt Pocock `code-review` | Running `reviewing-pr` |
+| Matt Pocock `setup-matt-pocock-skills` | Its `code-review` skill requests repository setup |
 | Anthropic `code-review` | Optional extra lens on Claude Code |
 | Playwright MCP | Verifying a user-visible web path |
 
@@ -64,12 +68,15 @@ Reviewed compatibility baselines and licenses are pinned in
 install a newer Superpowers release; the workflows fail if the required skills
 are unavailable. Use its [official runtime instructions](https://github.com/obra/superpowers#installation).
 
-Install the portable external skills:
+The pinned `skills` CLI requires Node.js 22.20 or newer. Install the portable
+dependencies globally when using the global workflow installation:
 
 ```bash
-pnpm dlx skills@1.5.23 add https://github.com/anthropics/skills/archive/3b3fad96af16a10759d930941b4520ba0c40edae.tar.gz --skill frontend-design
-pnpm dlx skills@1.5.23 add https://github.com/mattpocock/skills/archive/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76.tar.gz --skill code-review --skill setup-matt-pocock-skills
+pnpm dlx skills@1.5.23 add https://github.com/anthropics/skills/archive/3b3fad96af16a10759d930941b4520ba0c40edae.tar.gz --global --skill frontend-design
+pnpm dlx skills@1.5.23 add https://github.com/mattpocock/skills/archive/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76.tar.gz --global --skill code-review --skill setup-matt-pocock-skills
 ```
+
+Omit `--global` to install both dependencies into the current repository.
 
 Claude Code can install the official variants:
 
@@ -147,7 +154,9 @@ behavior.
 
 ## Development
 
-Requires Node.js 20 or newer. There are no runtime package dependencies.
+Repository development requires Node.js 20 or newer. Installing external Agent
+Skills with the pinned CLI requires Node.js 22.20 or newer. There are no runtime
+package dependencies.
 
 ```bash
 pnpm test
@@ -157,3 +166,6 @@ pnpm check
 
 `plugins/workflows/skills` is canonical. `pnpm build` generates the committed
 portable tree under `dist/.agents/skills`; `pnpm check` detects any drift.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for release and pull-request requirements
+and [SECURITY.md](SECURITY.md) for private vulnerability reporting.

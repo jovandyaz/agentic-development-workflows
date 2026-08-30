@@ -5,6 +5,7 @@ import {
   appendFileSync,
   cpSync,
   existsSync,
+  lstatSync,
   mkdtempSync,
   mkdirSync,
   readFileSync,
@@ -220,6 +221,47 @@ test("rejects a symlinked ownership manifest", (t) => {
   assert.equal(result.status, 1);
   assert.match(result.stderr, /ownership manifest must not be a symlink/);
   assert.match(readFileSync(external, "utf8"), /external/);
+});
+
+test("rejects a symlinked owned skill directory", (t) => {
+  const fixture = tempDir(t);
+  const target = join(fixture, "skills");
+  const external = join(fixture, "external-skill");
+  assert.equal(run("--install-dir", target).status, 0);
+  renameSync(join(target, "code-quality"), external);
+  symlinkSync(external, join(target, "code-quality"));
+
+  const result = run("--install-dir", target);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /symlinks are not supported/);
+  assert.equal(existsSync(join(external, "SKILL.md")), true);
+});
+
+test("rejects dangling manifest and owned skill symlinks without replacing them", (t) => {
+  const fixture = tempDir(t);
+  const manifestTarget = join(fixture, "manifest-target");
+  mkdirSync(manifestTarget);
+  const manifestLink = join(
+    manifestTarget,
+    ".agentic-workflows-manifest.json",
+  );
+  symlinkSync(join(fixture, "missing-manifest"), manifestLink);
+
+  const manifestResult = run("--install-dir", manifestTarget);
+  assert.equal(manifestResult.status, 1);
+  assert.match(manifestResult.stderr, /ownership manifest must not be a symlink/);
+  assert.equal(lstatSync(manifestLink).isSymbolicLink(), true);
+
+  const skillTarget = join(fixture, "skill-target");
+  assert.equal(run("--install-dir", skillTarget).status, 0);
+  const skillLink = join(skillTarget, "code-quality");
+  rmSync(skillLink, { recursive: true });
+  symlinkSync(join(fixture, "missing-skill"), skillLink);
+
+  const skillResult = run("--install-dir", skillTarget);
+  assert.equal(skillResult.status, 1);
+  assert.match(skillResult.stderr, /symlinks are not supported/);
+  assert.equal(lstatSync(skillLink).isSymbolicLink(), true);
 });
 
 test("rejects overlapping source and installation directories", (t) => {

@@ -257,7 +257,7 @@ test("all published versions stay synchronized", () => {
       "utf8",
     ),
   ).version;
-  assert.equal(packageVersion, "0.2.0");
+  assert.equal(packageVersion, "0.2.1");
   assert.equal(marketplaceVersion, packageVersion);
   assert.equal(pluginVersion, packageVersion);
   for (const name of [
@@ -270,7 +270,7 @@ test("all published versions stay synchronized", () => {
     "shipping-change",
     "verifying-change",
   ]) {
-    assert.match(skill(name), /version: "0\.2\.0"/);
+    assert.match(skill(name), /version: "0\.2\.1"/);
   }
 });
 
@@ -312,6 +312,7 @@ test("dependency lock pins every approved external dependency", () => {
       "superpowers",
       "anthropic-frontend-design",
       "mattpocock-code-review",
+      "mattpocock-setup",
       "anthropic-code-review",
       "playwright-mcp",
     ],
@@ -324,15 +325,18 @@ test("dependency lock pins every approved external dependency", () => {
 });
 
 test("portable install instructions use reviewed immutable artifacts", () => {
+  const readme = readFileSync(join(root, "README.md"), "utf8");
   const files = [
     skill("developing-feature"),
     skill("fixing-bug"),
     skill("reviewing-pr"),
     skill("verifying-change"),
-    readFileSync(join(root, "README.md"), "utf8"),
+    readme,
   ].join("\n");
   assert.doesNotMatch(files, /@latest/);
   assert.match(files, /3b3fad96af16a10759d930941b4520ba0c40edae\.tar\.gz/);
   assert.match(files, /6654f6b60cd9d5be8b54c6fafe44346dabeb3b76\.tar\.gz/);
   assert.match(files, /@playwright\/mcp@0\.0\.79/);
+  assert.match(readme, /skills@1\.5\.23 add .* --global/);
+  assert.match(readme, /Omit `--global` to install both dependencies/);
 });

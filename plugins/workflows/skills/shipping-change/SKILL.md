@@ -4,7 +4,7 @@ description: Use when verified work is authorized for publication as a pull requ
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.2.0"
+  version: "0.2.1"
 ---
 
 # Shipping A Change
