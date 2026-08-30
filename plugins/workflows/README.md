@@ -1,10 +1,13 @@
 # workflows
 
-Five composable Agent Skills for disciplined software delivery:
+Eight composable Agent Skills for disciplined software delivery:
 
+- `applying-engineering-standards`
+- `committing-change`
 - `developing-feature`
 - `fixing-bug`
 - `reviewing-pr`
+- `shipping-change`
 - `verifying-change`
 - `code-quality`
 

@@ -4,13 +4,16 @@ description: Use when reviewing changed code for maintainability, design smells,
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Code Quality
 
 Assess maintainability in context. A pattern is a problem only when it creates
 real cost, risk, or friction in this codebase.
+
+**REQUIRED BACKGROUND:** Use `applying-engineering-standards` to resolve project
+conventions and current official technical contracts before grading decisions.
 
 ## Scope
 

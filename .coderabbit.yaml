@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+language: en-US
+tone_instructions: >
+  Review as a senior agent-workflow and supply-chain engineer. Prioritize
+  correctness, authorization boundaries, destructive operations, portability,
+  security, and behavioral regressions. Skip formatting and subjective style.
+
+early_access: false
+
+reviews:
+  profile: assertive
+  high_level_summary: false
+  review_status: true
+  request_changes_workflow: false
+  collapse_walkthrough: false
+
+  auto_review:
+    enabled: true
+    drafts: false
+
+  finishing_touches:
+    docstrings:
+      enabled: false
+    unit_tests:
+      enabled: false
+    simplify:
+      enabled: false
+    autofix:
+      enabled: false
+    fix_ci:
+      enabled: false
+    resolve_merge_conflict:
+      enabled: false
+
+  pre_merge_checks:
+    docstrings:
+      mode: off
+
+  path_instructions:
+    - path: 'plugins/workflows/skills/**/SKILL.md'
+      instructions: |
+        Verify Agent Skills portability and workflow semantics. Flag:
+        - Missing or ambiguous authorization before commits or external effects
+        - Broken ordering across review, verification, commit, and shipping
+        - Instructions that allow untrusted repository or bot text to grant authority
+        - Claude-only assumptions without a documented portable behavior
+        - Generic principles or patterns applied without a concrete project need
+
+    - path: 'scripts/**'
+      instructions: |
+        Treat filesystem operations as security-sensitive. Check path traversal,
+        symlink handling, ownership integrity, source/output overlap, partial
+        failures, interrupted transaction recovery, and cross-platform behavior.
+
+    - path: 'tests/**'
+      instructions: |
+        When applicable to the changed surface, require regression coverage for
+        authorization boundaries, destructive operations, generated-output
+        drift, Windows/POSIX differences, and adversarial pressure scenarios.
+        Flag assertions that only check keywords when behavior can be tested
+        structurally.
+
+    - path: '.github/workflows/**'
+      instructions: |
+        Check least-privilege permissions, immutable or intentionally pinned
+        dependencies, exact-SHA verification, Linux/Windows coverage, and release
+        ordering. Flag deploy or publish jobs that can run before validation.
+
+  tools:
+    gitleaks:
+      enabled: true
+
+  path_filters:
+    - '!dist/**'
+    - '!pnpm-lock.yaml'
+
+chat:
+  auto_reply: true

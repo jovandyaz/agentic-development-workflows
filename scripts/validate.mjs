@@ -8,10 +8,13 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const plugin = join(root, "plugins", "workflows");
 const skillsRoot = join(plugin, "skills");
 const expectedSkills = [
+  "applying-engineering-standards",
   "code-quality",
+  "committing-change",
   "developing-feature",
   "fixing-bug",
   "reviewing-pr",
+  "shipping-change",
   "verifying-change",
 ];
 const allowedFields = new Set([
@@ -64,13 +67,37 @@ function parseFrontmatter(text, path) {
   return normalized.slice(4, end);
 }
 
-function validateSkill(path) {
+function topLevelField(line) {
+  return line.match(/^([A-Za-z0-9_-]+):(?:\s|$)/)?.[1] ?? null;
+}
+
+function metadataVersion(frontmatter) {
+  const lines = frontmatter.split("\n");
+  const start = lines.findIndex((line) => line === "metadata:");
+  if (start < 0) return null;
+  for (const line of lines.slice(start + 1)) {
+    if (topLevelField(line)) break;
+    if (line.trimStart().startsWith("#")) continue;
+    const match = line.match(/^  version:\s*["']?([^"']+?)["']?\s*$/);
+    if (match) return match[1];
+  }
+  return null;
+}
+
+function validateSkill(path, expectedVersion) {
   const text = readFileSync(path, "utf8");
   const metadata = parseFrontmatter(text, path);
   const location = relative(root, path);
-  const fields = Array.from(metadata.matchAll(/^([a-z][a-z0-9-]*):/gm), (match) =>
-    match[1],
-  );
+  const fields = [];
+  for (const line of metadata.split("\n")) {
+    if (!line || /^\s/.test(line) || line.startsWith("#")) continue;
+    const field = topLevelField(line);
+    if (!field) {
+      fail(`${location}: malformed top-level frontmatter line "${line}"`);
+      continue;
+    }
+    fields.push(field);
+  }
   for (const field of fields) {
     if (!allowedFields.has(field)) fail(`${location}: unsupported field ${field}`);
   }
@@ -83,6 +110,9 @@ function validateSkill(path) {
   }
   if (!description || description.length > 1024 || !description.startsWith("Use when")) {
     fail(`${location}: description must start with "Use when" and be at most 1024 characters`);
+  }
+  if (expectedVersion !== null && metadataVersion(metadata) !== expectedVersion) {
+    fail(`${location}: metadata version must equal ${expectedVersion}`);
   }
   if (text.split("\n").length > 500) fail(`${location}: exceeds 500 lines`);
 
@@ -109,6 +139,13 @@ function validateSkill(path) {
 
 const marketplace = readJson(join(root, ".claude-plugin", "marketplace.json"));
 const manifest = readJson(join(plugin, ".claude-plugin", "plugin.json"));
+const packageManifest = readJson(join(root, "package.json"));
+const expectedVersion = packageManifest?.version;
+const hasValidExpectedVersion =
+  typeof expectedVersion === "string" && /^\d+\.\d+\.\d+$/.test(expectedVersion);
+if (!hasValidExpectedVersion) {
+  fail("package.json: version must be a non-empty strict semver string");
+}
 if (marketplace?.plugins?.length !== 1 || marketplace.plugins[0]?.name !== "workflows") {
   fail("marketplace must register exactly the workflows plugin");
 }
@@ -117,6 +154,12 @@ if (marketplace?.plugins?.[0]?.source !== "./plugins/workflows") {
 }
 if (manifest?.name !== "workflows" || !/^\d+\.\d+\.\d+$/.test(manifest?.version ?? "")) {
   fail("plugin manifest must have name workflows and a strict semver version");
+}
+if (
+  hasValidExpectedVersion &&
+  (manifest?.version !== expectedVersion || marketplace?.metadata?.version !== expectedVersion)
+) {
+  fail("package, marketplace, and plugin versions must match");
 }
 for (const field of ["description", "author", "license"]) {
   if (!manifest?.[field]) fail(`plugin manifest is missing ${field}`);
@@ -129,7 +172,12 @@ const actualSkills = readdirSync(skillsRoot, { withFileTypes: true })
 if (JSON.stringify(actualSkills) !== JSON.stringify(expectedSkills)) {
   fail(`expected skills ${expectedSkills.join(", ")}; found ${actualSkills.join(", ")}`);
 }
-for (const name of actualSkills) validateSkill(join(skillsRoot, name, "SKILL.md"));
+for (const name of actualSkills) {
+  validateSkill(
+    join(skillsRoot, name, "SKILL.md"),
+    hasValidExpectedVersion ? expectedVersion : null,
+  );
+}
 
 const lock = readJson(join(root, "dependencies.lock.json"));
 for (const dependency of lock?.dependencies ?? []) {

@@ -8,9 +8,12 @@ They add a strict orchestration layer without copying upstream skill content.
 
 | Skill | Purpose |
 | --- | --- |
+| `applying-engineering-standards` | Ground decisions in project patterns and current official documentation. |
+| `committing-change` | Create one auditable Conventional Commit without coauthor trailers. |
 | `developing-feature` | Design, plan, implement with TDD, review, and verify a feature. |
 | `fixing-bug` | Reproduce, prove root cause, add a regression test, fix, review, and verify. |
 | `reviewing-pr` | Run independent review lenses in a fixed, read-only pipeline. |
+| `shipping-change` | Publish an authorized PR and follow latest-head review, CI, and deployment gates. |
 | `verifying-change` | Map claims to fresh UI, HTTP, test, typecheck, lint, and build evidence. |
 | `code-quality` | Grade maintainability and report evidence-backed design smells. |
 
@@ -30,7 +33,18 @@ developing-feature / fixing-bug
        verifying-change
               |
        failure: debug -> fix -> review -> verify
+              |
+       authorized: committing-change -> shipping-change
 ```
+
+Commits default to a single-line English Conventional Commit in imperative
+mood, with no body, trailers, or `Co-authored-by`. Pull requests carry any
+required AI-assistance disclosure without changing Git authorship.
+
+`applying-engineering-standards` is required throughout design, implementation,
+debugging, review, verification, and delivery. It detects actual installed
+versions, uses Context7 or official documentation, and applies programming
+principles and design patterns only when they solve a concrete project problem.
 
 ## Prerequisites
 
@@ -106,7 +120,7 @@ Install into one repository:
 node scripts/sync-portable.mjs --install-repo /path/to/repository
 ```
 
-The installer tracks only its own five directories and refuses to overwrite an
+The installer tracks only its own eight directories and refuses to overwrite an
 unowned or locally modified skill with the same name. It records an atomic
 transaction journal. If a process is interrupted, verify its PID is no longer
 running and repeat the same install command with `--recover`; then rerun the
@@ -120,8 +134,8 @@ runtime-specific:
 | Runtime | Explicit use |
 | --- | --- |
 | Claude Code marketplace | `/workflows:developing-feature`, `/workflows:code-quality` |
-| Claude Code standalone | `/developing-feature`, `/code-quality` |
-| Codex CLI | `$developing-feature`, `$code-quality` |
+| Claude Code standalone | `/developing-feature`, `/committing-change`, `/shipping-change` |
+| Codex CLI | `$developing-feature`, `$committing-change`, `$shipping-change` |
 | Cursor | Ask Agent to use `developing-feature` or `code-quality` |
 | Gemini CLI | Confirm discovery with `/skills`, then ask it to use the named skill |
 | OpenCode | Ask the agent to load and use the named skill |
