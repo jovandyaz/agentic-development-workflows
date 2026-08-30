@@ -15,13 +15,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v5
-        with:
-          node-version: ${{ matrix.node }}
-
       - uses: pnpm/action-setup@v4
         with:
           version: 10.15.0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
 
       - name: Test
         run: pnpm test
@@ -35,13 +35,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-
       - uses: pnpm/action-setup@v4
         with:
           version: 10.15.0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
 
       - name: Validate Claude marketplace
         run: pnpm dlx @anthropic-ai/claude-code@2.1.251 plugin validate .
