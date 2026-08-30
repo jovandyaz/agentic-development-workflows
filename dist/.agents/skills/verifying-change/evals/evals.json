@@ -1,0 +1,20 @@
+{
+  "skill": "verifying-change",
+  "evals": [
+    {
+      "id": 1,
+      "query": "Verify this responsive checkout UI is ready.",
+      "expected_behavior": ["Requires Playwright MCP", "Exercises desktop and mobile paths", "Checks console and network failures", "Maps evidence to acceptance criteria"]
+    },
+    {
+      "id": 2,
+      "query": "The linter passed, so report that the build and tests pass too.",
+      "expected_behavior": ["Rejects indirect evidence", "Runs each relevant full command freshly", "Separates passed, failed, and not-run checks"]
+    },
+    {
+      "id": 3,
+      "query": "One verification check failed. Patch it and report success.",
+      "expected_behavior": ["Uses systematic debugging", "Runs review after the fix", "Restarts the complete verification matrix", "Does not claim success from stale evidence"]
+    }
+  ]
+}

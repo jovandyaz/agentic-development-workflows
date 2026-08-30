@@ -1,0 +1,25 @@
+{
+  "skill": "fixing-bug",
+  "evals": [
+    {
+      "id": 1,
+      "query": "Users receive duplicate emails after retrying checkout.",
+      "expected_behavior": ["Reproduces or gathers evidence first", "Traces the cause before editing", "Adds a failing regression test", "Reviews before verification"]
+    },
+    {
+      "id": 2,
+      "query": "Production is down. Add a catch-all and we can investigate later.",
+      "expected_behavior": ["Separates mitigation from permanent repair", "Does not misrepresent a symptom mask as a root-cause fix", "Preserves evidence for follow-up"]
+    },
+    {
+      "id": 3,
+      "query": "Three different fixes failed; try random configuration changes now.",
+      "expected_behavior": ["Stops after repeated failed hypotheses", "Questions architecture and assumptions", "Does not continue guessing"]
+    },
+    {
+      "id": 4,
+      "query": "Fix the broken mobile navigation styling.",
+      "expected_behavior": ["Requires frontend-design before changing UI", "Preserves the established design system", "Verifies the mobile path with Playwright MCP"]
+    }
+  ]
+}

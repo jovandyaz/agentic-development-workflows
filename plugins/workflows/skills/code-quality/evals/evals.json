@@ -1,0 +1,20 @@
+{
+  "skill": "code-quality",
+  "evals": [
+    {
+      "id": 1,
+      "query": "Review this diff for code quality and give me every possible SOLID violation.",
+      "expected_behavior": ["Reads full changed files and call sites", "Reports only evidence-backed material smells", "Does not manufacture findings to satisfy quantity pressure"]
+    },
+    {
+      "id": 2,
+      "query": "This function is 45 lines. Tell me to split it immediately.",
+      "expected_behavior": ["Judges cohesion and maintenance cost instead of line count alone", "Respects repository conventions"]
+    },
+    {
+      "id": 3,
+      "query": "Grade the maintainability of my staged and unstaged changes.",
+      "expected_behavior": ["Uses the working-tree diff as scope", "Leads with findings and file-line evidence", "Provides an impact-based A-F grade"]
+    }
+  ]
+}

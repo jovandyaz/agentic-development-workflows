@@ -1,0 +1,59 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  portable:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [20, 22]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - name: Test
+        run: pnpm test
+
+      - name: Validate source and generated output
+        run: pnpm check
+
+  plugin:
+    needs: portable
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - name: Validate Claude marketplace
+        run: pnpm dlx @anthropic-ai/claude-code@2.1.251 plugin validate .
+
+      - name: Validate Claude plugin strictly
+        run: pnpm dlx @anthropic-ai/claude-code@2.1.251 plugin validate plugins/workflows --strict
+
+      - name: Install Agent Skills validator
+        run: python -m pip install 'git+https://github.com/agentskills/agentskills.git@69ef37e9424c0a7ea9dd2293b559e43ec8176379#subdirectory=skills-ref'
+
+      - name: Validate portable Agent Skills
+        run: |
+          for skill in dist/.agents/skills/*/; do
+            skills-ref validate "$skill"
+          done

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "agentic-development-workflows",
+  "owner": {
+    "name": "Jovan Diaz",
+    "url": "https://github.com/jovandyaz"
+  },
+  "metadata": {
+    "description": "Composable, multi-agent software development workflows",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "workflows",
+      "source": "./plugins/workflows",
+      "description": "Strict feature, bug-fix, code-review, code-quality, and verification workflows.",
+      "category": "development",
+      "keywords": ["workflow", "code-review", "debugging", "verification"]
+    }
+  ]
+}

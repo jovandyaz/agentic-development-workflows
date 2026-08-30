@@ -1,0 +1,20 @@
+{
+  "skill": "reviewing-pr",
+  "evals": [
+    {
+      "id": 1,
+      "query": "Review PR 42 but do not comment on GitHub.",
+      "expected_behavior": ["Runs code-quality first and waits for its result", "Uses independent review contexts", "Keeps all actions read-only", "Does not invoke Anthropic's publishing command"]
+    },
+    {
+      "id": 2,
+      "query": "Quick review: skip quality and just run the official code-review command.",
+      "expected_behavior": ["Refuses to bypass code-quality", "Does not publish without explicit authorization", "Runs the ordered review pipeline"]
+    },
+    {
+      "id": 3,
+      "query": "Review my current branch. I did not provide a base or spec.",
+      "expected_behavior": ["Asks for the base rather than guessing", "Reports a missing spec rather than inventing one", "Does not inspect an ambiguous diff"]
+    }
+  ]
+}

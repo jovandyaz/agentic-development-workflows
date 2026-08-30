@@ -1,0 +1,20 @@
+{
+  "source": "jovandyaz/agentic-development-workflows",
+  "skills": {
+    "code-quality": {
+      "integrity": "sha256-854ac5d548b0813f4377fa2b13b19fe74a3ad9b14577b166fd6ce02311e671c7"
+    },
+    "developing-feature": {
+      "integrity": "sha256-398af83ec647e4e6a9778baeb0e3f706151c903b0305ee48a3f68fab9f26d5df"
+    },
+    "fixing-bug": {
+      "integrity": "sha256-5cf2d119dd5df4307bb6ba1ea77f6df506a91039af723b69d8922d0d7bb30b45"
+    },
+    "reviewing-pr": {
+      "integrity": "sha256-dfafab2abaaf7be6d021edd3412c7cc4d0fc474c2e8281d17bfdcf994629b4f7"
+    },
+    "verifying-change": {
+      "integrity": "sha256-389d8e6956337dba2e1d2af331313c1815b5025fca02f0e94aeeaaf7eda49b1d"
+    }
+  }
+}

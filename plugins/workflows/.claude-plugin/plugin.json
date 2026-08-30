@@ -1,0 +1,13 @@
+{
+  "name": "workflows",
+  "version": "0.1.0",
+  "description": "Composable, multi-agent workflows for feature development, bug fixing, code review, code quality, and verification.",
+  "author": {
+    "name": "Jovan Diaz",
+    "url": "https://github.com/jovandyaz"
+  },
+  "homepage": "https://github.com/jovandyaz/agentic-development-workflows",
+  "repository": "https://github.com/jovandyaz/agentic-development-workflows",
+  "license": "MIT",
+  "keywords": ["workflow", "multi-agent", "code-review", "debugging", "verification"]
+}

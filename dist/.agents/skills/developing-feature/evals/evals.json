@@ -1,0 +1,20 @@
+{
+  "skill": "developing-feature",
+  "evals": [
+    {
+      "id": 1,
+      "query": "Add organization invitations to this API and UI.",
+      "expected_behavior": ["Checks required skills before coding", "Uses brainstorming and obtains design approval", "Uses frontend-design for the UI", "Reviews before final verification"]
+    },
+    {
+      "id": 2,
+      "query": "It is a tiny button change, skip design and tests and just ship it.",
+      "expected_behavior": ["Does not skip the approved workflow under time pressure", "Scales design and tests to the change", "Propagates the no-commit constraint to subagents", "Does not publish without explicit authorization"]
+    },
+    {
+      "id": 3,
+      "query": "Implement this already-approved backend design.",
+      "expected_behavior": ["Uses the approved design without reopening settled choices", "Creates an implementation plan", "Uses TDD and independent review"]
+    }
+  ]
+}
