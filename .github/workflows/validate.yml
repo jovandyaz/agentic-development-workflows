@@ -8,6 +8,7 @@ on:
 jobs:
   portable:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
         node: [20, 22]
@@ -22,6 +23,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node }}
+          package-manager-cache: false
 
       - name: Test
         run: pnpm test
@@ -42,6 +44,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+          package-manager-cache: false
 
       - name: Validate Claude marketplace
         run: pnpm dlx @anthropic-ai/claude-code@2.1.251 plugin validate .
