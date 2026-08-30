@@ -39,8 +39,9 @@ Missing required dependencies are blockers, not reasons to approximate them.
    existing design system unless the approved brief explicitly replaces it.
 4. Use `using-git-worktrees` when isolation is appropriate, then use
    `writing-plans` to produce small tasks with acceptance and verification.
-   Identify API/data compatibility, migration, rollback, rollout, observability,
-   and agent-eval gates. Prefer a small PR or independently valid stack.
+   When applicable, identify API/data compatibility, migration, rollback,
+   rollout, observability, and agent-eval gates for the affected boundaries.
+   Prefer a small PR or independently valid stack.
 5. Use `subagent-driven-development` for independent tasks and
    `test-driven-development` for every behavior change. Each implementer gets
    the approved requirement, exact task, relevant paths, and no session history.

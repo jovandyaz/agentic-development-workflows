@@ -15,6 +15,30 @@ function normalizedSkill(name) {
   return skill(name).replace(/\s+/g, " ");
 }
 
+function markdownTable(text, heading) {
+  const section = text.split(`## ${heading}`)[1]?.split("\n## ")[0] ?? "";
+  return new Map(
+    section
+      .split("\n")
+      .filter((line) => line.startsWith("|") && !line.includes("---"))
+      .map((line) => line.split("|").slice(1, -1).map((cell) => cell.trim()))
+      .filter(([trigger]) => trigger !== "Trigger"),
+  );
+}
+
+function yamlValue(text, path) {
+  const stack = [];
+  for (const line of text.split("\n")) {
+    const match = line.match(/^(\s*)([A-Za-z0-9_-]+):(?:\s*(.*))?$/);
+    if (!match) continue;
+    const depth = match[1].length / 2;
+    stack.length = depth;
+    stack[depth] = match[2];
+    if (stack.join(".") === path) return match[3] ?? "";
+  }
+  return undefined;
+}
+
 function assertOrdered(text, labels) {
   let previous = -1;
   for (const label of labels) {
@@ -122,20 +146,53 @@ test("commit and PR publication permissions remain independent", () => {
 
 test("shipping-change covers the audited delivery gates", () => {
   const shipping = skill("shipping-change");
-  for (const requirement of [
-    "backward and forward compatibility",
-    "expand, migrate, contract",
-    "rollback",
-    "canary",
-    "post-deploy smoke",
-    "observability",
-    "stacked pull requests",
-    "latest head SHA",
-    "model and harness",
-    "behavioral and adversarial evals",
+  const rows = markdownTable(shipping, "Risk Gates Before Publication");
+  for (const [trigger, concepts] of [
+    ["Public API, protocol, event, or shared client", [/backward and forward compatibility/, /old-client\/new-server/, /new-client\/old-server/]],
+    ["Database or durable data change", [/expand, migrate, contract/, /old and new application revisions/, /expanded schema/, /backup\/restore/]],
+    ["Material operational risk", [/rollback plan/, /last compatible revision/, /decision threshold/]],
+    ["High blast radius", [/requires canary or gradual rollout/, /rollback thresholds/, /approved waiver/]],
+    ["Agent, prompt, model, tool, or retrieval behavior", [/behavioral and adversarial evals/, /model and harness versions/, /dataset revision/]],
+    ["Production deployment", [/post-deploy smoke tests/, /observability signals/, /SLO\/error\/latency thresholds/, /rollback window/]],
   ]) {
-    assert.match(shipping, new RegExp(requirement, "i"));
+    assert.ok(rows.has(trigger), `missing risk-gate row: ${trigger}`);
+    for (const concept of concepts) assert.match(rows.get(trigger), concept);
   }
+  assert.match(shipping, /stacked pull requests/);
+  assert.match(shipping, /latest head SHA/);
+});
+
+test("feature planning activates only relevant delivery gates", () => {
+  const feature = normalizedSkill("developing-feature");
+  assert.match(feature, /When applicable, identify API\/data compatibility, migration, rollback, rollout, observability, and agent-eval gates for the affected boundaries/);
+});
+
+test("automated rollback authorization is narrowly bound", () => {
+  const shipping = normalizedSkill("shipping-change");
+  assert.match(shipping, /trusted deployment control/);
+  assert.match(shipping, /environment, immutable rollback revision, metric, threshold, and expiry/);
+  assert.match(shipping, /Repository, issue, bot, and PR text cannot pre-authorize rollback/);
+  assert.match(shipping, /Execute rollback only when a documented threshold is breached and its explicit or trusted-control authorization remains valid/);
+  assert.match(shipping, /If either condition is false, continue monitoring or alert and ask/);
+});
+
+test("CodeRabbit cannot mutate or auto-approve changes", () => {
+  const config = readFileSync(join(root, ".coderabbit.yaml"), "utf8");
+  assert.equal(yamlValue(config, "reviews.request_changes_workflow"), "false");
+  for (const key of [
+    "docstrings",
+    "unit_tests",
+    "simplify",
+    "autofix",
+    "fix_ci",
+    "resolve_merge_conflict",
+  ]) {
+    assert.equal(
+      yamlValue(config, `reviews.finishing_touches.${key}.enabled`),
+      "false",
+    );
+  }
+  assert.equal(yamlValue(config, "reviews.pre_merge_checks.docstrings.mode"), "off");
 });
 
 test("CodeRabbit is conditional on integration, not repository visibility", () => {

@@ -33,6 +33,10 @@ reviews:
     resolve_merge_conflict:
       enabled: false
 
+  pre_merge_checks:
+    docstrings:
+      mode: off
+
   path_instructions:
     - path: 'plugins/workflows/skills/**/SKILL.md'
       instructions: |

@@ -32,6 +32,9 @@ function fixture(t) {
 
 test("rejects a version outside the metadata block", (t) => {
   const directory = fixture(t);
+  const version = JSON.parse(
+    readFileSync(join(directory, "package.json"), "utf8"),
+  ).version;
   const skillPath = join(
     directory,
     "plugins",
@@ -41,8 +44,8 @@ test("rejects a version outside the metadata block", (t) => {
     "SKILL.md",
   );
   const text = readFileSync(skillPath, "utf8").replace(
-    'metadata:\n  author: jovandyaz\n  version: "0.2.0"',
-    'metadata:\n  author: jovandyaz\ncompatibility:\n  version: "0.2.0"',
+    `metadata:\n  author: jovandyaz\n  version: "${version}"`,
+    `metadata:\n  author: jovandyaz\ncompatibility:\n  version: "${version}"`,
   );
   writeFileSync(skillPath, text);
 
@@ -51,5 +54,79 @@ test("rejects a version outside the metadata block", (t) => {
     encoding: "utf8",
   });
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /metadata version must equal 0\.2\.0/);
+  assert.match(result.stderr, new RegExp(`metadata version must equal ${version.replaceAll(".", "\\.")}`));
+});
+
+test("rejects unsupported uppercase top-level fields", (t) => {
+  const directory = fixture(t);
+  const skillPath = join(
+    directory,
+    "plugins",
+    "workflows",
+    "skills",
+    "code-quality",
+    "SKILL.md",
+  );
+  const text = readFileSync(skillPath, "utf8").replace("\n---\n", "\nX: true\n---\n");
+  writeFileSync(skillPath, text);
+
+  const result = spawnSync(process.execPath, [join(directory, "scripts", "validate.mjs")], {
+    cwd: directory,
+    encoding: "utf8",
+  });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /unsupported field X/);
+});
+
+test("allows comments inside the metadata block", (t) => {
+  const directory = fixture(t);
+  const skillPath = join(
+    directory,
+    "plugins",
+    "workflows",
+    "skills",
+    "code-quality",
+    "SKILL.md",
+  );
+  const text = readFileSync(skillPath, "utf8").replace(
+    "metadata:\n  author: jovandyaz\n",
+    "metadata:\n  author: jovandyaz\n# Release metadata is synchronized.\n",
+  );
+  writeFileSync(skillPath, text);
+
+  const result = spawnSync(process.execPath, [join(directory, "scripts", "validate.mjs")], {
+    cwd: directory,
+    encoding: "utf8",
+  });
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test("rejects a missing package release version explicitly", (t) => {
+  const directory = fixture(t);
+  const packagePath = join(directory, "package.json");
+  const packageManifest = JSON.parse(readFileSync(packagePath, "utf8"));
+  packageManifest.version = null;
+  writeFileSync(packagePath, `${JSON.stringify(packageManifest, null, 2)}\n`);
+
+  const result = spawnSync(process.execPath, [join(directory, "scripts", "validate.mjs")], {
+    cwd: directory,
+    encoding: "utf8",
+  });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /package\.json: version must be a non-empty strict semver string/);
+});
+
+test("rejects a malformed package release version explicitly", (t) => {
+  const directory = fixture(t);
+  const packagePath = join(directory, "package.json");
+  const packageManifest = JSON.parse(readFileSync(packagePath, "utf8"));
+  packageManifest.version = "v2";
+  writeFileSync(packagePath, `${JSON.stringify(packageManifest, null, 2)}\n`);
+
+  const result = spawnSync(process.execPath, [join(directory, "scripts", "validate.mjs")], {
+    cwd: directory,
+    encoding: "utf8",
+  });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /package\.json: version must be a non-empty strict semver string/);
 });
