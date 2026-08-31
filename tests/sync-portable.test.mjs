@@ -9,6 +9,7 @@ import {
   mkdtempSync,
   mkdirSync,
   readFileSync,
+  readlinkSync,
   renameSync,
   rmSync,
   symlinkSync,
@@ -215,11 +216,15 @@ test("rejects a symlinked ownership manifest", (t) => {
   const external = join(fixture, "external.json");
   mkdirSync(target);
   writeFileSync(external, JSON.stringify({ source: "external", skills: {} }));
-  symlinkSync(external, join(target, ".agentic-workflows-manifest.json"));
+  const manifestLink = join(target, ".agentic-workflows-manifest.json");
+  symlinkSync(external, manifestLink);
+  const originalTarget = readlinkSync(manifestLink);
 
   const result = run("--install-dir", target);
   assert.equal(result.status, 1);
   assert.match(result.stderr, /ownership manifest must not be a symlink/);
+  assert.equal(lstatSync(manifestLink).isSymbolicLink(), true);
+  assert.equal(readlinkSync(manifestLink), originalTarget);
   assert.match(readFileSync(external, "utf8"), /external/);
 });
 
@@ -230,10 +235,14 @@ test("rejects a symlinked owned skill directory", (t) => {
   assert.equal(run("--install-dir", target).status, 0);
   renameSync(join(target, "code-quality"), external);
   symlinkSync(external, join(target, "code-quality"));
+  const skillLink = join(target, "code-quality");
+  const originalTarget = readlinkSync(skillLink);
 
   const result = run("--install-dir", target);
   assert.equal(result.status, 1);
   assert.match(result.stderr, /symlinks are not supported/);
+  assert.equal(lstatSync(skillLink).isSymbolicLink(), true);
+  assert.equal(readlinkSync(skillLink), originalTarget);
   assert.equal(existsSync(join(external, "SKILL.md")), true);
 });
 
@@ -246,22 +255,26 @@ test("rejects dangling manifest and owned skill symlinks without replacing them"
     ".agentic-workflows-manifest.json",
   );
   symlinkSync(join(fixture, "missing-manifest"), manifestLink);
+  const originalManifestTarget = readlinkSync(manifestLink);
 
   const manifestResult = run("--install-dir", manifestTarget);
   assert.equal(manifestResult.status, 1);
   assert.match(manifestResult.stderr, /ownership manifest must not be a symlink/);
   assert.equal(lstatSync(manifestLink).isSymbolicLink(), true);
+  assert.equal(readlinkSync(manifestLink), originalManifestTarget);
 
   const skillTarget = join(fixture, "skill-target");
   assert.equal(run("--install-dir", skillTarget).status, 0);
   const skillLink = join(skillTarget, "code-quality");
   rmSync(skillLink, { recursive: true });
   symlinkSync(join(fixture, "missing-skill"), skillLink);
+  const originalSkillTarget = readlinkSync(skillLink);
 
   const skillResult = run("--install-dir", skillTarget);
   assert.equal(skillResult.status, 1);
   assert.match(skillResult.stderr, /symlinks are not supported/);
   assert.equal(lstatSync(skillLink).isSymbolicLink(), true);
+  assert.equal(readlinkSync(skillLink), originalSkillTarget);
 });
 
 test("rejects overlapping source and installation directories", (t) => {
@@ -373,4 +386,45 @@ test("rolls back an interrupted directory and manifest swap", (t) => {
   assert.equal(readFileSync(skillPath, "utf8"), originalSkill);
   assert.equal(readFileSync(manifestPath, "utf8"), originalManifest);
   assert.equal(existsSync(stage), false);
+});
+
+test("restores dangling symlink backups during recovery", (t) => {
+  const target = tempDir(t);
+  const stageName = ".agentic-workflows-stage-dangling";
+  const stage = join(target, stageName);
+  const backupRoot = join(stage, "backup");
+  mkdirSync(backupRoot, { recursive: true });
+
+  const missingSkill = join(target, "missing-skill");
+  const missingManifest = join(target, "missing-manifest");
+  const skillBackup = join(backupRoot, "code-quality");
+  const manifestBackup = join(stage, "manifest.backup");
+  symlinkSync(missingSkill, skillBackup);
+  symlinkSync(missingManifest, manifestBackup);
+  const originalSkillTarget = readlinkSync(skillBackup);
+  const originalManifestTarget = readlinkSync(manifestBackup);
+
+  writeFileSync(
+    join(target, ".agentic-workflows-install.lock"),
+    JSON.stringify({
+      version: 1,
+      source: "jovandyaz/agentic-development-workflows",
+      pid: 2147483647,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      phase: "committing",
+      stage: stageName,
+      hadManifest: true,
+      expected: null,
+      swaps: [{ name: "code-quality", hadDestination: true }],
+    }),
+  );
+
+  const recovery = run("--install-dir", target, "--recover");
+  assert.equal(recovery.status, 0, recovery.stderr);
+  const restoredSkill = join(target, "code-quality");
+  const restoredManifest = join(target, ".agentic-workflows-manifest.json");
+  assert.equal(lstatSync(restoredSkill).isSymbolicLink(), true);
+  assert.equal(readlinkSync(restoredSkill), originalSkillTarget);
+  assert.equal(lstatSync(restoredManifest).isSymbolicLink(), true);
+  assert.equal(readlinkSync(restoredManifest), originalManifestTarget);
 });

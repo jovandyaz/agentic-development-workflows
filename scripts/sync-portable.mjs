@@ -391,7 +391,7 @@ function rollbackJournal(output, journal) {
   for (const swap of [...journal.swaps].reverse()) {
     const destination = join(output, swap.name);
     const backup = join(backupRoot, swap.name);
-    if (existsSync(backup)) {
+    if (lstatOrNull(backup)) {
       rmSync(destination, { recursive: true, force: true });
       renameSync(backup, destination);
     } else if (!swap.hadDestination) {
@@ -401,7 +401,7 @@ function rollbackJournal(output, journal) {
 
   const manifestPath = join(output, manifestName);
   const manifestBackup = join(stage, "manifest.backup");
-  if (existsSync(manifestBackup)) {
+  if (lstatOrNull(manifestBackup)) {
     rmSync(manifestPath, { force: true });
     renameSync(manifestBackup, manifestPath);
   } else if (!journal.hadManifest) {

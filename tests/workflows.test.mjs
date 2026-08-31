@@ -337,6 +337,11 @@ test("portable install instructions use reviewed immutable artifacts", () => {
   assert.match(files, /3b3fad96af16a10759d930941b4520ba0c40edae\.tar\.gz/);
   assert.match(files, /6654f6b60cd9d5be8b54c6fafe44346dabeb3b76\.tar\.gz/);
   assert.match(files, /@playwright\/mcp@0\.0\.79/);
-  assert.match(readme, /skills@1\.5\.23 add .* --global/);
-  assert.match(readme, /Omit `--global` to install both dependencies/);
+  const commands = readme.match(/^pnpm dlx skills@1\.5\.23 add .+$/gm) ?? [];
+  assert.deepEqual(commands, [
+    "pnpm dlx skills@1.5.23 add https://github.com/anthropics/skills/archive/3b3fad96af16a10759d930941b4520ba0c40edae.tar.gz --global --skill frontend-design",
+    "pnpm dlx skills@1.5.23 add https://github.com/mattpocock/skills/archive/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76.tar.gz --global --skill code-review --skill setup-matt-pocock-skills",
+    "pnpm dlx skills@1.5.23 add https://github.com/anthropics/skills/archive/3b3fad96af16a10759d930941b4520ba0c40edae.tar.gz --skill frontend-design",
+    "pnpm dlx skills@1.5.23 add https://github.com/mattpocock/skills/archive/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76.tar.gz --skill code-review --skill setup-matt-pocock-skills",
+  ]);
 });

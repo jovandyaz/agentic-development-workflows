@@ -76,7 +76,13 @@ pnpm dlx skills@1.5.23 add https://github.com/anthropics/skills/archive/3b3fad96
 pnpm dlx skills@1.5.23 add https://github.com/mattpocock/skills/archive/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76.tar.gz --global --skill code-review --skill setup-matt-pocock-skills
 ```
 
-Omit `--global` to install both dependencies into the current repository.
+Install the same dependencies into the current repository when using a
+repository-scoped workflow installation:
+
+```bash
+pnpm dlx skills@1.5.23 add https://github.com/anthropics/skills/archive/3b3fad96af16a10759d930941b4520ba0c40edae.tar.gz --skill frontend-design
+pnpm dlx skills@1.5.23 add https://github.com/mattpocock/skills/archive/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76.tar.gz --skill code-review --skill setup-matt-pocock-skills
+```
 
 Claude Code can install the official variants:
 
