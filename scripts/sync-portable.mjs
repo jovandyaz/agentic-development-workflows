@@ -34,6 +34,15 @@ function fail(message) {
   throw new UserError(message);
 }
 
+function lstatOrNull(path) {
+  try {
+    return lstatSync(path);
+  } catch (error) {
+    if (error.code === "ENOENT") return null;
+    throw error;
+  }
+}
+
 function parseArgs(args) {
   const options = {
     check: false,
@@ -102,6 +111,9 @@ function assertSeparatedPaths(source, output) {
 }
 
 function* walkFiles(directory) {
+  if (lstatSync(directory).isSymbolicLink()) {
+    fail(`${directory}: symlinks are not supported`);
+  }
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name);
     if (lstatSync(path).isSymbolicLink()) fail(`${path}: symlinks are not supported`);
@@ -178,8 +190,9 @@ function manifestText(skills) {
 
 function readOwnership(output) {
   const manifestPath = join(output, manifestName);
-  if (!existsSync(manifestPath)) return {};
-  if (lstatSync(manifestPath).isSymbolicLink()) {
+  const manifestStats = lstatOrNull(manifestPath);
+  if (!manifestStats) return {};
+  if (manifestStats.isSymbolicLink()) {
     fail(`${manifestPath}: ownership manifest must not be a symlink`);
   }
 
@@ -212,7 +225,7 @@ function readOwnership(output) {
       fail(`${manifestPath}: invalid ownership entry for "${name}"`);
     }
     const directory = join(output, name);
-    if (existsSync(directory) && hashDirectory(directory) !== entry.integrity) {
+    if (lstatOrNull(directory) && hashDirectory(directory) !== entry.integrity) {
       fail(`${directory}: integrity does not match ownership manifest`);
     }
   }
@@ -253,7 +266,7 @@ function check(skills, output) {
 
 function assertInstallable(skills, output, owned) {
   for (const name of skills.keys()) {
-    if (existsSync(join(output, name)) && !Object.hasOwn(owned, name)) {
+    if (lstatOrNull(join(output, name)) && !Object.hasOwn(owned, name)) {
       fail(`${join(output, name)} exists and is not owned by agentic-development-workflows`);
     }
   }
@@ -378,7 +391,7 @@ function rollbackJournal(output, journal) {
   for (const swap of [...journal.swaps].reverse()) {
     const destination = join(output, swap.name);
     const backup = join(backupRoot, swap.name);
-    if (existsSync(backup)) {
+    if (lstatOrNull(backup)) {
       rmSync(destination, { recursive: true, force: true });
       renameSync(backup, destination);
     } else if (!swap.hadDestination) {
@@ -388,7 +401,7 @@ function rollbackJournal(output, journal) {
 
   const manifestPath = join(output, manifestName);
   const manifestBackup = join(stage, "manifest.backup");
-  if (existsSync(manifestBackup)) {
+  if (lstatOrNull(manifestBackup)) {
     rmSync(manifestPath, { force: true });
     renameSync(manifestBackup, manifestPath);
   } else if (!journal.hadManifest) {
@@ -428,7 +441,7 @@ function install(skills, output, action) {
 
     stage = mkdtempSync(join(output, ".agentic-workflows-stage-"));
     journal.stage = basename(stage);
-    journal.hadManifest = existsSync(join(output, manifestName));
+    journal.hadManifest = Boolean(lstatOrNull(join(output, manifestName)));
     journal.phase = "staging";
     writeJournal(lockPath, journal);
     const stagedSkills = new Map();
@@ -457,7 +470,7 @@ function install(skills, output, action) {
     for (const name of targets) {
       const destination = join(output, name);
       const backup = join(backupRoot, name);
-      const hadDestination = existsSync(destination);
+      const hadDestination = Boolean(lstatOrNull(destination));
       journal.swaps.push({ name, hadDestination });
       writeJournal(lockPath, journal);
       if (hadDestination) renameSync(destination, backup);

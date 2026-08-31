@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-08-29",
+  "updated": "2026-08-30",
   "dependencies": [
     {
       "id": "superpowers",
@@ -24,6 +24,14 @@
       "revision": "6654f6b60cd9d5be8b54c6fafe44346dabeb3b76",
       "license": "MIT",
       "requirement": "when-reviewing",
+      "runtimes": ["claude-code", "codex", "cursor", "gemini-cli", "opencode"]
+    },
+    {
+      "id": "mattpocock-setup",
+      "source": "https://github.com/mattpocock/skills/tree/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76/skills/engineering/setup-matt-pocock-skills",
+      "revision": "6654f6b60cd9d5be8b54c6fafe44346dabeb3b76",
+      "license": "MIT",
+      "requirement": "when-code-review-requests-setup",
       "runtimes": ["claude-code", "codex", "cursor", "gemini-cli", "opencode"]
     },
     {

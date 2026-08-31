@@ -8,7 +8,8 @@ Exact reviewed revisions are recorded in `dependencies.lock.json`.
 - [Anthropic Agent Skills](https://github.com/anthropics/skills), selected
   `frontend-design` skill, Apache License 2.0.
 - [Matt Pocock Skills](https://github.com/mattpocock/skills), selected
-  `code-review` skill, copyright Matt Pocock, MIT License.
+  `code-review` and `setup-matt-pocock-skills` skills, copyright Matt Pocock,
+  MIT License.
 - [Anthropic Claude Code plugins](https://github.com/anthropics/claude-plugins-official),
   selected `code-review` plugin, Apache License 2.0.
 - [Playwright MCP](https://github.com/microsoft/playwright-mcp), used as an
