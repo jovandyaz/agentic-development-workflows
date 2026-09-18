@@ -4,7 +4,7 @@ description: Use when designing, implementing, fixing, reviewing, verifying, or 
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.2.1"
+  version: "0.3.0"
 ---
 
 # Applying Engineering Standards

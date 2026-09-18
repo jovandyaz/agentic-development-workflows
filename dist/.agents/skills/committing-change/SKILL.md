@@ -4,7 +4,7 @@ description: Use when the user has explicitly authorized creating a git commit f
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.2.1"
+  version: "0.3.0"
 ---
 
 # Committing A Change
