@@ -4,7 +4,7 @@ description: Use when implementing a new capability, changing product behavior, 
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Developing A Feature

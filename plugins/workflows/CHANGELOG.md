@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.0] - 2026-10-06
+
+- Drop the Matt Pocock `code-review` and `setup-matt-pocock-skills` dependencies.
+  `reviewing-pr` now runs its own parallel Spec and Standards subagents with the
+  pinned diff, keeps the two axes separate, and needs no repository setup.
+
 ## [0.3.0] - 2026-09-18
 
 - Require `shipping-change` to curate the branch history before PR creation and
