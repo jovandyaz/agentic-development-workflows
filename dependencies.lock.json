@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-08-30",
+  "updated": "2026-10-06",
   "dependencies": [
     {
       "id": "superpowers",
@@ -8,7 +8,13 @@
       "revision": "b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
       "license": "MIT",
       "requirement": "all-orchestrated-workflows",
-      "runtimes": ["claude-code", "codex", "cursor", "gemini-cli", "opencode"]
+      "runtimes": [
+        "claude-code",
+        "codex",
+        "cursor",
+        "gemini-cli",
+        "opencode"
+      ]
     },
     {
       "id": "anthropic-frontend-design",
@@ -16,23 +22,13 @@
       "revision": "3b3fad96af16a10759d930941b4520ba0c40edae",
       "license": "Apache-2.0",
       "requirement": "when-ui-changes",
-      "runtimes": ["claude-code", "codex", "cursor", "gemini-cli", "opencode"]
-    },
-    {
-      "id": "mattpocock-code-review",
-      "source": "https://github.com/mattpocock/skills/tree/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76/skills/engineering/code-review",
-      "revision": "6654f6b60cd9d5be8b54c6fafe44346dabeb3b76",
-      "license": "MIT",
-      "requirement": "when-reviewing",
-      "runtimes": ["claude-code", "codex", "cursor", "gemini-cli", "opencode"]
-    },
-    {
-      "id": "mattpocock-setup",
-      "source": "https://github.com/mattpocock/skills/tree/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76/skills/engineering/setup-matt-pocock-skills",
-      "revision": "6654f6b60cd9d5be8b54c6fafe44346dabeb3b76",
-      "license": "MIT",
-      "requirement": "when-code-review-requests-setup",
-      "runtimes": ["claude-code", "codex", "cursor", "gemini-cli", "opencode"]
+      "runtimes": [
+        "claude-code",
+        "codex",
+        "cursor",
+        "gemini-cli",
+        "opencode"
+      ]
     },
     {
       "id": "anthropic-code-review",
@@ -40,7 +36,9 @@
       "revision": "ed404106fcd80ba98ecb7c851e531dcb626d13b7",
       "license": "Apache-2.0",
       "requirement": "optional-claude-only",
-      "runtimes": ["claude-code"]
+      "runtimes": [
+        "claude-code"
+      ]
     },
     {
       "id": "playwright-mcp",
@@ -49,11 +47,23 @@
       "artifact": "@playwright/mcp@0.0.79",
       "license": "Apache-2.0",
       "requirement": "when-verifying-web-ui",
-      "runtimes": ["claude-code", "codex", "cursor", "gemini-cli", "opencode"]
+      "runtimes": [
+        "claude-code",
+        "codex",
+        "cursor",
+        "gemini-cli",
+        "opencode"
+      ]
     }
   ],
   "tooling": [
-    { "id": "skills-cli", "version": "1.5.23" },
-    { "id": "claude-code", "version": "2.1.251" }
+    {
+      "id": "skills-cli",
+      "version": "1.5.23"
+    },
+    {
+      "id": "claude-code",
+      "version": "2.1.251"
+    }
   ]
 }

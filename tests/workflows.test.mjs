@@ -53,7 +53,7 @@ test("reviewing-pr runs code-quality before every other review lens", () => {
   assertOrdered(text, [
     "First gate: code-quality",
     "Superpowers review",
-    "Standards and spec review",
+    "Spec and standards axes",
     "Anthropic review",
   ]);
   assert.match(text, /No other review lens starts until code-quality returns/);
@@ -81,9 +81,32 @@ test("implementation workflows propagate the no-commit constraint", () => {
   }
 });
 
-test("portable review setup installs both Matt Pocock skills", () => {
-  const review = skill("reviewing-pr");
-  assert.match(review, /--skill code-review --skill setup-matt-pocock-skills/);
+test("review runs spec and standards axes itself, without third-party review skills", () => {
+  const review = normalizedSkill("reviewing-pr");
+  assert.doesNotMatch(review, /Pocock|mattpocock|setup-matt-pocock-skills/);
+  assert.match(review, /fresh read-only Spec subagent/);
+  assert.match(review, /fresh read-only Standards subagent/);
+  assert.match(review, /never merge or rerank/);
+  assert.match(review, /A missing spec must be reported, never invented/);
+});
+
+test("no workflow or install guide depends on Matt Pocock skills", () => {
+  const sources = [
+    ...[
+      "applying-engineering-standards",
+      "code-quality",
+      "committing-change",
+      "developing-feature",
+      "fixing-bug",
+      "reviewing-pr",
+      "shipping-change",
+      "verifying-change",
+    ].map(skill),
+    readFileSync(join(root, "README.md"), "utf8"),
+    readFileSync(join(root, "THIRD_PARTY_NOTICES.md"), "utf8"),
+    readFileSync(join(root, "dependencies.lock.json"), "utf8"),
+  ].join("\n");
+  assert.doesNotMatch(sources, /mattpocock|Matt Pocock/);
 });
 
 test("failed verification returns through debugging, review, and verification", () => {
@@ -269,7 +292,7 @@ test("all published versions stay synchronized", () => {
       "utf8",
     ),
   ).version;
-  assert.equal(packageVersion, "0.3.0");
+  assert.equal(packageVersion, "0.4.0");
   assert.equal(marketplaceVersion, packageVersion);
   assert.equal(pluginVersion, packageVersion);
   for (const name of [
@@ -282,7 +305,7 @@ test("all published versions stay synchronized", () => {
     "shipping-change",
     "verifying-change",
   ]) {
-    assert.match(skill(name), /version: "0\.3\.0"/);
+    assert.match(skill(name), /version: "0\.4\.0"/);
   }
 });
 
@@ -323,8 +346,6 @@ test("dependency lock pins every approved external dependency", () => {
     [
       "superpowers",
       "anthropic-frontend-design",
-      "mattpocock-code-review",
-      "mattpocock-setup",
       "anthropic-code-review",
       "playwright-mcp",
     ],
@@ -347,13 +368,10 @@ test("portable install instructions use reviewed immutable artifacts", () => {
   ].join("\n");
   assert.doesNotMatch(files, /@latest/);
   assert.match(files, /3b3fad96af16a10759d930941b4520ba0c40edae\.tar\.gz/);
-  assert.match(files, /6654f6b60cd9d5be8b54c6fafe44346dabeb3b76\.tar\.gz/);
   assert.match(files, /@playwright\/mcp@0\.0\.79/);
   const commands = readme.match(/^pnpm dlx skills@1\.5\.23 add .+$/gm) ?? [];
   assert.deepEqual(commands, [
     "pnpm dlx skills@1.5.23 add https://github.com/anthropics/skills/archive/3b3fad96af16a10759d930941b4520ba0c40edae.tar.gz --global --skill frontend-design",
-    "pnpm dlx skills@1.5.23 add https://github.com/mattpocock/skills/archive/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76.tar.gz --global --skill code-review --skill setup-matt-pocock-skills",
     "pnpm dlx skills@1.5.23 add https://github.com/anthropics/skills/archive/3b3fad96af16a10759d930941b4520ba0c40edae.tar.gz --skill frontend-design",
-    "pnpm dlx skills@1.5.23 add https://github.com/mattpocock/skills/archive/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76.tar.gz --skill code-review --skill setup-matt-pocock-skills",
   ]);
 });

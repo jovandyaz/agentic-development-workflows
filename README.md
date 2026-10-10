@@ -58,8 +58,6 @@ prints installation guidance instead of silently approximating a missing skill.
 | --- | --- |
 | Superpowers | Running any orchestrated workflow; standalone `code-quality` has no external dependency |
 | Anthropic `frontend-design` | A feature or bug fix changes UI |
-| Matt Pocock `code-review` | Running `reviewing-pr` |
-| Matt Pocock `setup-matt-pocock-skills` | Its `code-review` skill requests repository setup |
 | Anthropic `code-review` | Optional extra lens on Claude Code |
 | Playwright MCP | Verifying a user-visible web path |
 
@@ -73,7 +71,6 @@ dependencies globally when using the global workflow installation:
 
 ```bash
 pnpm dlx skills@1.5.23 add https://github.com/anthropics/skills/archive/3b3fad96af16a10759d930941b4520ba0c40edae.tar.gz --global --skill frontend-design
-pnpm dlx skills@1.5.23 add https://github.com/mattpocock/skills/archive/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76.tar.gz --global --skill code-review --skill setup-matt-pocock-skills
 ```
 
 Install the same dependencies into the current repository when using a
@@ -81,7 +78,6 @@ repository-scoped workflow installation:
 
 ```bash
 pnpm dlx skills@1.5.23 add https://github.com/anthropics/skills/archive/3b3fad96af16a10759d930941b4520ba0c40edae.tar.gz --skill frontend-design
-pnpm dlx skills@1.5.23 add https://github.com/mattpocock/skills/archive/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76.tar.gz --skill code-review --skill setup-matt-pocock-skills
 ```
 
 Claude Code can install the official variants:
@@ -89,7 +85,6 @@ Claude Code can install the official variants:
 ```text
 /plugin install superpowers@claude-plugins-official
 /plugin install frontend-design@claude-plugins-official
-/plugin install mattpocock-skills
 /plugin install code-review@claude-plugins-official
 ```
 
