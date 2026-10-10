@@ -4,7 +4,7 @@ description: Use when reviewing changed code for maintainability, design smells,
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.2.1"
+  version: "0.3.0"
 ---
 
 # Code Quality

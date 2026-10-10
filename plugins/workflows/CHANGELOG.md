@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.0] - 2026-09-18
+
+- Require `shipping-change` to curate the branch history before PR creation and
+  again before merge, folding fix-up and review-round commits into the commits
+  they correct without changing content.
+
 ## [0.2.1] - 2026-08-30
 
 - Correct global and repository-scoped dependency installation guidance.

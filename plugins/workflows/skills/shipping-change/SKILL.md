@@ -4,7 +4,7 @@ description: Use when verified work is authorized for publication as a pull requ
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.2.1"
+  version: "0.3.0"
 ---
 
 # Shipping A Change
@@ -43,6 +43,30 @@ refactors, behavior changes, migrations, and generated artifacts when they can
 be reviewed independently. Use stacked pull requests only for genuinely
 dependent slices; every layer must build and test independently, state its base,
 and avoid merging a middle layer by itself.
+
+## Curate The Commit History
+
+The commit history is part of the deliverable. Before creating the PR, and again
+before requesting merge after review rounds, read `git log <base>..HEAD` and
+restructure the history when commits only fix, revert, rename, or finish work
+introduced earlier in the same branch, when review-round fixes outnumber the
+changes they correct, or when the commits cannot be read in order as the story
+of the change.
+
+1. Each resulting commit is one coherent concern that builds and passes tests on
+   its own, and its subject describes the final behavior, not the path to it.
+2. Fold each correction into the commit it corrects with
+   `git commit --fixup=<sha>` and a non-interactive autosquash
+   (`GIT_SEQUENCE_EDITOR=: git rebase -i --autosquash <base>`). When concerns
+   need regrouping, rebuild from `git reset --soft <base>` with pathspec commits.
+3. Restructuring creates commits, so it requires commit authorization and uses
+   `committing-change` for every resulting commit.
+4. The rewrite must not change content. Keep a backup ref of the old head,
+   confirm `git diff <old-head> <new-head>` is empty, and rerun
+   `verifying-change` on the new head before publishing it.
+5. Rewriting a pushed branch is a force operation and follows the force rule
+   below. In a stack, curate each layer against its own base from the bottom
+   layer up. Never rewrite commits already merged into a shared branch.
 
 ## Risk Gates Before Publication
 
@@ -103,6 +127,8 @@ For any confirmed finding or CI failure:
 3. Make a test-backed fix.
 4. Run `reviewing-pr`, then the complete `verifying-change` matrix.
 5. Use `committing-change`, push, and wait for review and CI on the new SHA.
+6. Before requesting merge, curate the history again so review-round fixes are
+   folded into the commits they correct.
 
 ## Pre-Merge, Merge, And Post-Deploy
 

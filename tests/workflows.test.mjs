@@ -162,6 +162,18 @@ test("shipping-change covers the audited delivery gates", () => {
   assert.match(shipping, /latest head SHA/);
 });
 
+test("shipping curates the branch history before PR and merge", () => {
+  const shipping = normalizedSkill("shipping-change");
+  assert.match(shipping, /## Curate The Commit History/);
+  assert.match(shipping, /commits only fix, revert, rename, or finish work introduced earlier in the same branch/);
+  assert.match(shipping, /builds and passes tests on its own/);
+  assert.match(shipping, /git rebase -i --autosquash <base>/);
+  assert.match(shipping, /requires commit authorization/);
+  assert.match(shipping, /confirm `git diff <old-head> <new-head>` is empty/);
+  assert.match(shipping, /Never rewrite commits already merged into a shared branch/);
+  assert.match(shipping, /Before requesting merge, curate the history again/);
+});
+
 test("feature planning activates only relevant delivery gates", () => {
   const feature = normalizedSkill("developing-feature");
   assert.match(feature, /When applicable, identify API\/data compatibility, migration, rollback, rollout, observability, and agent-eval gates for the affected boundaries/);
@@ -257,7 +269,7 @@ test("all published versions stay synchronized", () => {
       "utf8",
     ),
   ).version;
-  assert.equal(packageVersion, "0.2.1");
+  assert.equal(packageVersion, "0.3.0");
   assert.equal(marketplaceVersion, packageVersion);
   assert.equal(pluginVersion, packageVersion);
   for (const name of [
@@ -270,7 +282,7 @@ test("all published versions stay synchronized", () => {
     "shipping-change",
     "verifying-change",
   ]) {
-    assert.match(skill(name), /version: "0\.2\.1"/);
+    assert.match(skill(name), /version: "0\.3\.0"/);
   }
 });
 
