@@ -2,31 +2,31 @@
   "source": "jovandyaz/agentic-development-workflows",
   "skills": {
     "applying-engineering-standards": {
-      "integrity": "sha256-36c206bcb78aa090f6ac09103379ba0432bcad9f7e19b02ee10c1a18e2ae9673"
+      "integrity": "sha256-73856e322768c68c2fc7a42a41350b98f3d5f912c9662ef16e84ec89e87f5177"
     },
     "assessing-code-quality": {
-      "integrity": "sha256-c0f5e3533fb171b2c49c3a27c3ef91e7ce748bfba5fc993000885a26c29080dc"
+      "integrity": "sha256-18ab2e856178a99e10ff466ba31bb3bb35de19f7c18337189f68d41b5cd474d9"
     },
     "capturing-lessons": {
-      "integrity": "sha256-f2da1de582c1f1f6f23d58a861f6eba1b04315215ffac7723957acd1358a1cfa"
+      "integrity": "sha256-5978cf664f1d97e81d3e485489bc3f863e3b76e62c2c42914e3d256e1a5ad2cc"
     },
     "committing-change": {
-      "integrity": "sha256-201f8472b83711f385b268395dcc857ce9dd414f5ac5c412b9cb513a5a03a1ec"
+      "integrity": "sha256-01959d4ef46314732798abbaa69781fc8cb8d1f0080f7cf3cedf25fc52d3b9f3"
     },
     "developing-feature": {
-      "integrity": "sha256-1bb1d907e3a538dabe8b4bc1b154dc11f404c15d43daad31fbd9c45bbcd0d68b"
+      "integrity": "sha256-4c9bf92f6d06965f2c573b6b5db3dd24564372529e6108fdc44f9ed936c6f4ad"
     },
     "fixing-bug": {
-      "integrity": "sha256-f587430105c9e2ae863d82ab24464290a39b14e09a9443eec12ccd588931e85f"
+      "integrity": "sha256-ecfcb18494c54f085f14d25c6a7612c8d219121005fd4ea9da26fef9f65e0241"
     },
     "reviewing-change": {
-      "integrity": "sha256-a0497c2ad2e9ad929d7af7379de9c7bd8146a6afd42408f68a5a60a10d5775aa"
+      "integrity": "sha256-0b0c801efc76a375f039284f28d2aac1bcf04bc8540dea30f54506bde958477c"
     },
     "shipping-change": {
-      "integrity": "sha256-5814423a8b664e2960b22d13d59426f68481f12ede709897204c9e6015457b08"
+      "integrity": "sha256-2054f4cbdf73c56c586b75295b6eeeb34c7900b6a4b3578c6e54d90e4aae76c5"
     },
     "verifying-change": {
-      "integrity": "sha256-07a8df375a6652c2a7c7f0628940df276dcfba79736e998aebc9b2f9e899ea34"
+      "integrity": "sha256-f7a707df8bb78230b32568372e6f73fee838535d6dfef706e653e3c5e8b996d9"
     }
   }
 }
