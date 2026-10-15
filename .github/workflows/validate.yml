@@ -60,10 +60,10 @@ jobs:
           package-manager-cache: false
 
       - name: Validate Claude marketplace
-        run: pnpm dlx @anthropic-ai/claude-code@2.1.251 plugin validate .
+        run: pnpm dlx @anthropic-ai/claude-code@2.1.300 plugin validate .
 
       - name: Validate Claude plugin strictly
-        run: pnpm dlx @anthropic-ai/claude-code@2.1.251 plugin validate plugins/workflows --strict
+        run: pnpm dlx @anthropic-ai/claude-code@2.1.300 plugin validate plugins/workflows --strict
 
       - name: Install Agent Skills validator
         run: python -m pip install 'git+https://github.com/agentskills/agentskills.git@69ef37e9424c0a7ea9dd2293b559e43ec8176379#subdirectory=skills-ref'

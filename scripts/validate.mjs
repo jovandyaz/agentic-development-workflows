@@ -1,19 +1,23 @@
 #!/usr/bin/env node
 
 import { existsSync, lstatSync, readFileSync, readdirSync } from "node:fs";
-import { basename, dirname, join, relative, resolve } from "node:path";
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const plugin = join(root, "plugins", "workflows");
 const skillsRoot = join(plugin, "skills");
+const evalsRoot = join(plugin, "evals");
+const EVAL_RESULTS_DIRECTORY = "results";
+const MIN_EVAL_CASES = 3;
 const expectedSkills = [
   "applying-engineering-standards",
-  "code-quality",
+  "assessing-code-quality",
+  "capturing-lessons",
   "committing-change",
   "developing-feature",
   "fixing-bug",
-  "reviewing-pr",
+  "reviewing-change",
   "shipping-change",
   "verifying-change",
 ];
@@ -116,25 +120,105 @@ function validateSkill(path, expectedVersion) {
   }
   if (text.split("\n").length > 500) fail(`${location}: exceeds 500 lines`);
 
-  const evalPath = join(dirname(path), "evals", "evals.json");
-  if (!existsSync(evalPath)) {
-    fail(`${location}: missing evals/evals.json`);
+  if (existsSync(join(dirname(path), "evals"))) {
+    fail(`${location}: legacy evals directory; move cases to ${relative(root, join(evalsRoot, name))}`);
+  }
+}
+
+function isDirectory(path) {
+  return lstatSync(path).isDirectory();
+}
+
+function isFile(path) {
+  return existsSync(path) && lstatSync(path).isFile();
+}
+
+function yamlScalar(raw) {
+  const value = raw.trim();
+  return value.match(/^(["'])(.*)\1$/)?.[2] ?? value;
+}
+
+function caseYamlFields(path) {
+  const fields = { name: null, scaffoldScript: null };
+  let section = null;
+  for (const line of readFileSync(path, "utf8").replaceAll("\r\n", "\n").split("\n")) {
+    if (line.trimStart().startsWith("#")) continue;
+    const field = topLevelField(line);
+    if (field) {
+      section = field;
+      if (field === "name") fields.name = yamlScalar(line.slice(line.indexOf(":") + 1));
+      continue;
+    }
+    const scaffold = line.match(/^\s+scaffold_script:(.*)$/);
+    if (section === "context" && scaffold) fields.scaffoldScript = yamlScalar(scaffold[1]);
+  }
+  return fields;
+}
+
+function validateCaseYaml(directory, location) {
+  const path = join(directory, "case.yaml");
+  if (!existsSync(path)) return;
+  if (!isFile(path)) {
+    fail(`${location}: case.yaml must be a file`);
     return;
   }
-  const evals = readJson(evalPath);
-  if (!evals) return;
-  if (evals.skill !== name) fail(`${relative(root, evalPath)}: skill name mismatch`);
-  if (!Array.isArray(evals.evals) || evals.evals.length < 3) {
-    fail(`${relative(root, evalPath)}: expected at least three evals`);
+  const { name, scaffoldScript } = caseYamlFields(path);
+  if (name !== null && name !== basename(directory)) {
+    fail(`${location}: case.yaml name must match directory`);
   }
-  const ids = new Set();
-  for (const item of evals.evals ?? []) {
-    if (!item.id || ids.has(item.id)) fail(`${relative(root, evalPath)}: invalid or duplicate id`);
-    ids.add(item.id);
-    if (!item.query || !Array.isArray(item.expected_behavior) || item.expected_behavior.length === 0) {
-      fail(`${relative(root, evalPath)}: incomplete eval ${item.id ?? "unknown"}`);
-    }
+  if (scaffoldScript === null) return;
+  const script = resolve(directory, scaffoldScript);
+  const inside = relative(directory, script);
+  if (
+    isAbsolute(scaffoldScript) ||
+    isAbsolute(inside) ||
+    inside === ".." ||
+    inside.startsWith(`..${sep}`)
+  ) {
+    fail(`${location}: scaffold_script must be a relative path inside the case directory`);
+  } else if (!isFile(script)) {
+    fail(`${location}: scaffold_script ${scaffoldScript} not found in the case directory`);
   }
+}
+
+function validateEvalCase(directory) {
+  const location = relative(root, directory);
+  if (!existsSync(join(directory, "prompt.md")) && !existsSync(join(directory, "case.yaml"))) {
+    fail(`${location}: missing prompt.md or case.yaml`);
+  }
+  validateCaseYaml(directory, location);
+  const graders = join(directory, "graders");
+  if (existsSync(graders) && !isDirectory(graders)) {
+    fail(`${relative(root, graders)}: graders must be a directory`);
+    return;
+  }
+  const graderFiles = existsSync(graders)
+    ? readdirSync(graders).filter((file) => file.endsWith(".md"))
+    : [];
+  if (graderFiles.length === 0) fail(`${location}: expected at least one grader`);
+}
+
+function validateEvalSuite(name) {
+  const suite = join(evalsRoot, name);
+  const location = relative(root, suite);
+  if (!existsSync(suite)) {
+    fail(`${location}: missing eval suite`);
+    return;
+  }
+  if (!isDirectory(suite)) {
+    fail(`${location}: eval suite must be a directory`);
+    return;
+  }
+  const cases = [];
+  for (const entry of readdirSync(suite, { withFileTypes: true })) {
+    if (entry.name.startsWith(".")) continue;
+    if (entry.isDirectory()) cases.push(join(suite, entry.name));
+    else fail(`${relative(root, join(suite, entry.name))}: eval case must be a directory`);
+  }
+  if (cases.length < MIN_EVAL_CASES) {
+    fail(`${location}: expected at least ${MIN_EVAL_CASES} eval cases`);
+  }
+  for (const directory of cases) validateEvalCase(directory);
 }
 
 const marketplace = readJson(join(root, ".claude-plugin", "marketplace.json"));
@@ -177,6 +261,20 @@ for (const name of actualSkills) {
     join(skillsRoot, name, "SKILL.md"),
     hasValidExpectedVersion ? expectedVersion : null,
   );
+}
+
+if (!existsSync(evalsRoot)) {
+  fail(`${relative(root, evalsRoot)}: missing eval suite directory`);
+} else if (!isDirectory(evalsRoot)) {
+  fail(`${relative(root, evalsRoot)}: eval suite root must be a directory`);
+} else {
+  for (const entry of readdirSync(evalsRoot, { withFileTypes: true })) {
+    if (!entry.isDirectory() || entry.name === EVAL_RESULTS_DIRECTORY) continue;
+    if (!expectedSkills.includes(entry.name)) {
+      fail(`${relative(root, evalsRoot)}: unknown eval suite ${entry.name}`);
+    }
+  }
+  for (const name of expectedSkills) validateEvalSuite(name);
 }
 
 const lock = readJson(join(root, "dependencies.lock.json"));
