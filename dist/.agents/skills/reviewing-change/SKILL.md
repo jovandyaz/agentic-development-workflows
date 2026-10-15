@@ -91,3 +91,6 @@ fix or drop it silently. Report blocking findings first, then non-blocking
 findings, each by severity with location, impact, evidence, and smallest safe
 fix. Follow with open questions, the assessing-code-quality grade, lenses
 executed, and verification gaps. If no findings remain, state that explicitly.
+
+Use `capturing-lessons` for each confirmed blocking finding that reveals a
+mistake likely to recur, and include its report.

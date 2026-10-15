@@ -17,16 +17,16 @@
       "integrity": "sha256-1bb1d907e3a538dabe8b4bc1b154dc11f404c15d43daad31fbd9c45bbcd0d68b"
     },
     "fixing-bug": {
-      "integrity": "sha256-bcc5b32040744c3a124bbfd827938ab3f2916d0e02dc9e46fa36fde8ef6d6294"
+      "integrity": "sha256-f587430105c9e2ae863d82ab24464290a39b14e09a9443eec12ccd588931e85f"
     },
     "reviewing-change": {
-      "integrity": "sha256-d5aae542b9c13575e6e002558f641aef43a1e549e01b96fb01c9af677ad81aec"
+      "integrity": "sha256-a0497c2ad2e9ad929d7af7379de9c7bd8146a6afd42408f68a5a60a10d5775aa"
     },
     "shipping-change": {
-      "integrity": "sha256-285580d54c97ce09febd4f83d8eb00c4f10ce0a1aa4c5ccc53f14d1586e5fecb"
+      "integrity": "sha256-5814423a8b664e2960b22d13d59426f68481f12ede709897204c9e6015457b08"
     },
     "verifying-change": {
-      "integrity": "sha256-0591afa878f4c5b359a9c6c1904ee890a03f7d202f8c92e0f167de60b3a570c8"
+      "integrity": "sha256-07a8df375a6652c2a7c7f0628940df276dcfba79736e998aebc9b2f9e899ea34"
     }
   }
 }
