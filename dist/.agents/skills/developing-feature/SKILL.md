@@ -47,9 +47,9 @@ Missing required dependencies are blockers, not reasons to approximate them.
    the approved requirement, exact task, relevant paths, and no session history.
    Unless the user authorized commits, pass a no-commit constraint to every
    subskill and subagent and omit their commit steps.
-6. After implementation, run `reviewing-pr`. Validate every finding with
+6. After implementation, run `reviewing-change`. Validate every finding with
    `receiving-code-review`; fix confirmed blocking findings one at a time and
-   rerun `reviewing-pr` until none remain.
+   rerun `reviewing-change` until none remain.
 7. Run `verifying-change` only after review is clean.
 
 Use `committing-change` for every authorized commit. Let `verifying-change`

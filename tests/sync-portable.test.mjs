@@ -51,11 +51,11 @@ test("emits exactly eight byte-identical portable skills", (t) => {
 
   const expected = [
     "applying-engineering-standards",
-    "code-quality",
+    "assessing-code-quality",
     "committing-change",
     "developing-feature",
     "fixing-bug",
-    "reviewing-pr",
+    "reviewing-change",
     "shipping-change",
     "verifying-change",
   ];
@@ -76,14 +76,14 @@ test("check detects changed, missing, and unexpected files", (t) => {
   const output = tempDir(t);
   assert.equal(run("--output", output).status, 0);
 
-  appendFileSync(join(output, "code-quality", "SKILL.md"), "\ndrift\n");
+  appendFileSync(join(output, "assessing-code-quality", "SKILL.md"), "\ndrift\n");
   rmSync(join(output, "fixing-bug", "SKILL.md"));
   writeFileSync(join(output, "unexpected.txt"), "unexpected\n");
 
   const result = run("--check", "--output", output);
   assert.equal(result.status, 1);
   const stderr = result.stderr.replaceAll("\\", "/");
-  assert.match(stderr, /code-quality\/SKILL\.md: differs/);
+  assert.match(stderr, /assessing-code-quality\/SKILL\.md: differs/);
   assert.match(stderr, /fixing-bug\/SKILL\.md: missing/);
   assert.match(stderr, /unexpected\.txt: unexpected/);
 });
@@ -108,7 +108,7 @@ test("rejects unsafe skill names before replacing output", (t) => {
 
 test("refuses to overwrite unowned global skills", (t) => {
   const target = tempDir(t);
-  const existing = join(target, "code-quality");
+  const existing = join(target, "assessing-code-quality");
   mkdirSync(existing);
   writeFileSync(join(existing, "SKILL.md"), "unrelated\n");
 
@@ -121,7 +121,7 @@ test("refuses to overwrite unowned global skills", (t) => {
 test("check rejects an unexpected copied skill directory", (t) => {
   const output = tempDir(t);
   assert.equal(run("--output", output).status, 0);
-  cpSync(join(output, "code-quality"), join(output, "stale-skill"), {
+  cpSync(join(output, "assessing-code-quality"), join(output, "stale-skill"), {
     recursive: true,
   });
 
@@ -201,7 +201,7 @@ test("rejects a foreign ownership manifest", (t) => {
 test("refuses to overwrite a locally modified owned skill", (t) => {
   const target = tempDir(t);
   assert.equal(run("--install-dir", target).status, 0);
-  const installed = join(target, "code-quality", "SKILL.md");
+  const installed = join(target, "assessing-code-quality", "SKILL.md");
   appendFileSync(installed, "\nlocal change\n");
 
   const result = run("--install-dir", target);
@@ -233,9 +233,9 @@ test("rejects a symlinked owned skill directory", (t) => {
   const target = join(fixture, "skills");
   const external = join(fixture, "external-skill");
   assert.equal(run("--install-dir", target).status, 0);
-  renameSync(join(target, "code-quality"), external);
-  symlinkSync(external, join(target, "code-quality"));
-  const skillLink = join(target, "code-quality");
+  renameSync(join(target, "assessing-code-quality"), external);
+  symlinkSync(external, join(target, "assessing-code-quality"));
+  const skillLink = join(target, "assessing-code-quality");
   const originalTarget = readlinkSync(skillLink);
 
   const result = run("--install-dir", target);
@@ -265,7 +265,7 @@ test("rejects dangling manifest and owned skill symlinks without replacing them"
 
   const skillTarget = join(fixture, "skill-target");
   assert.equal(run("--install-dir", skillTarget).status, 0);
-  const skillLink = join(skillTarget, "code-quality");
+  const skillLink = join(skillTarget, "assessing-code-quality");
   rmSync(skillLink, { recursive: true });
   symlinkSync(join(fixture, "missing-skill"), skillLink);
   const originalSkillTarget = readlinkSync(skillLink);
@@ -352,17 +352,17 @@ test("requires explicit recovery for an abandoned installer lock", (t) => {
 test("rolls back an interrupted directory and manifest swap", (t) => {
   const target = tempDir(t);
   assert.equal(run("--install-dir", target).status, 0);
-  const skillPath = join(target, "code-quality", "SKILL.md");
+  const skillPath = join(target, "assessing-code-quality", "SKILL.md");
   const manifestPath = join(target, ".agentic-workflows-manifest.json");
   const originalSkill = readFileSync(skillPath, "utf8");
   const originalManifest = readFileSync(manifestPath, "utf8");
 
   const stageName = ".agentic-workflows-stage-test123";
   const stage = join(target, stageName);
-  const backup = join(stage, "backup", "code-quality");
+  const backup = join(stage, "backup", "assessing-code-quality");
   mkdirSync(join(stage, "backup"), { recursive: true });
-  renameSync(join(target, "code-quality"), backup);
-  mkdirSync(join(target, "code-quality"));
+  renameSync(join(target, "assessing-code-quality"), backup);
+  mkdirSync(join(target, "assessing-code-quality"));
   writeFileSync(skillPath, "interrupted replacement\n");
   renameSync(manifestPath, join(stage, "manifest.backup"));
   writeFileSync(manifestPath, JSON.stringify({ source: "incomplete", skills: {} }));
@@ -377,7 +377,7 @@ test("rolls back an interrupted directory and manifest swap", (t) => {
       stage: stageName,
       hadManifest: true,
       expected: null,
-      swaps: [{ name: "code-quality", hadDestination: true }],
+      swaps: [{ name: "assessing-code-quality", hadDestination: true }],
     }),
   );
 
@@ -397,7 +397,7 @@ test("restores dangling symlink backups during recovery", (t) => {
 
   const missingSkill = join(target, "missing-skill");
   const missingManifest = join(target, "missing-manifest");
-  const skillBackup = join(backupRoot, "code-quality");
+  const skillBackup = join(backupRoot, "assessing-code-quality");
   const manifestBackup = join(stage, "manifest.backup");
   symlinkSync(missingSkill, skillBackup);
   symlinkSync(missingManifest, manifestBackup);
@@ -415,13 +415,13 @@ test("restores dangling symlink backups during recovery", (t) => {
       stage: stageName,
       hadManifest: true,
       expected: null,
-      swaps: [{ name: "code-quality", hadDestination: true }],
+      swaps: [{ name: "assessing-code-quality", hadDestination: true }],
     }),
   );
 
   const recovery = run("--install-dir", target, "--recover");
   assert.equal(recovery.status, 0, recovery.stderr);
-  const restoredSkill = join(target, "code-quality");
+  const restoredSkill = join(target, "assessing-code-quality");
   const restoredManifest = join(target, ".agentic-workflows-manifest.json");
   assert.equal(lstatSync(restoredSkill).isSymbolicLink(), true);
   assert.equal(readlinkSync(restoredSkill), originalSkillTarget);

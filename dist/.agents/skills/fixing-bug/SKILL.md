@@ -39,7 +39,7 @@ Claude Code may use `/plugin install frontend-design@claude-plugins-official`.
    an established design system. Do not combine unrelated cleanup with the fix.
 5. If the hypothesis fails, return to evidence. After three failed hypotheses,
    stop and question the architecture or assumptions with the user.
-6. Run `reviewing-pr`. Validate feedback with `receiving-code-review`, fix each
+6. Run `reviewing-change`. Validate feedback with `receiving-code-review`, fix each
    confirmed blocker, and repeat review until clean.
 7. Run `verifying-change` to reproduce the original path and execute the broader
    checks justified by the affected surface.

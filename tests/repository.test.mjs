@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import test from "node:test";
@@ -35,4 +36,27 @@ test("agent instructions carry the rules agents cannot infer", () => {
 
 test("repository relies on AGENTS.md without a competing CLAUDE.md", () => {
   assert.equal(existsSync(join(root, "CLAUDE.md")), false);
+});
+
+const STALE_SKILL_NAMES = [/(?<!assessing-)\bcode-quality\b/, /\breviewing-pr\b/];
+const HISTORY_PATHS = ["plugins/workflows/CHANGELOG.md", "docs/superpowers/"];
+
+function trackedFiles() {
+  const result = spawnSync("git", ["ls-files", "-z"], { cwd: root, encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  return result.stdout.split("\0").filter(Boolean);
+}
+
+test("renamed skills leave no stale references outside history", () => {
+  const stale = [];
+  for (const location of trackedFiles()) {
+    if (HISTORY_PATHS.some((prefix) => location.startsWith(prefix))) continue;
+    const path = join(root, location);
+    if (!existsSync(path)) continue;
+    const text = readFileSync(path, "utf8");
+    for (const pattern of STALE_SKILL_NAMES) {
+      if (pattern.test(text)) stale.push(`${location}: ${pattern}`);
+    }
+  }
+  assert.deepEqual(stale, []);
 });

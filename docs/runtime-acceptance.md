@@ -12,10 +12,10 @@ Confirm all eight names are discoverable:
 - `committing-change`
 - `developing-feature`
 - `fixing-bug`
-- `reviewing-pr`
+- `reviewing-change`
 - `shipping-change`
 - `verifying-change`
-- `code-quality`
+- `assessing-code-quality`
 
 Use `/help` or the plugin manager in Claude Code, `$skill-name` in Codex,
 `/skills` in Gemini CLI, and each product's skill listing or agent context in
@@ -30,7 +30,7 @@ Cursor and OpenCode.
    no coordinator or subagent creates a commit.
 3. Introduce a deterministic defect and ask for a fix. Confirm reproduction,
    root-cause analysis, a red regression test, review, and verification.
-4. Ask for a review. Confirm a fresh `code-quality` subagent completes before
+4. Ask for a review. Confirm a fresh `assessing-code-quality` subagent completes before
    any other review lens starts and no GitHub state changes.
 5. Ask to verify a web UI. Confirm Playwright MCP covers desktop and mobile,
    console and network failures, and screenshots. Remove Playwright MCP and

@@ -9,11 +9,11 @@ const plugin = join(root, "plugins", "workflows");
 const skillsRoot = join(plugin, "skills");
 const expectedSkills = [
   "applying-engineering-standards",
-  "code-quality",
+  "assessing-code-quality",
   "committing-change",
   "developing-feature",
   "fixing-bug",
-  "reviewing-pr",
+  "reviewing-change",
   "shipping-change",
   "verifying-change",
 ];

@@ -40,7 +40,7 @@ test("rejects a version outside the metadata block", (t) => {
     "plugins",
     "workflows",
     "skills",
-    "code-quality",
+    "assessing-code-quality",
     "SKILL.md",
   );
   const text = readFileSync(skillPath, "utf8").replace(
@@ -64,7 +64,7 @@ test("rejects unsupported uppercase top-level fields", (t) => {
     "plugins",
     "workflows",
     "skills",
-    "code-quality",
+    "assessing-code-quality",
     "SKILL.md",
   );
   const text = readFileSync(skillPath, "utf8").replace("\n---\n", "\nX: true\n---\n");
@@ -85,7 +85,7 @@ test("allows comments inside the metadata block", (t) => {
     "plugins",
     "workflows",
     "skills",
-    "code-quality",
+    "assessing-code-quality",
     "SKILL.md",
   );
   const text = readFileSync(skillPath, "utf8").replace(

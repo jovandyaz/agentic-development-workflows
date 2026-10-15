@@ -6,10 +6,10 @@ Eight composable Agent Skills for disciplined software delivery:
 - `committing-change`
 - `developing-feature`
 - `fixing-bug`
-- `reviewing-pr`
+- `reviewing-change`
 - `shipping-change`
 - `verifying-change`
-- `code-quality`
+- `assessing-code-quality`
 
 The workflows orchestrate, but do not copy, Superpowers and selected external
 skills. See the repository README for prerequisites and installation.

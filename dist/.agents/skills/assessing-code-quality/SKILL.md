@@ -1,5 +1,5 @@
 ---
-name: code-quality
+name: assessing-code-quality
 description: Use when reviewing changed code for maintainability, design smells, unclear boundaries, unnecessary complexity, or violations of SOLID, DRY, YAGNI, and KISS.
 license: MIT
 metadata:
@@ -7,7 +7,7 @@ metadata:
   version: "0.4.0"
 ---
 
-# Code Quality
+# Assessing Code Quality
 
 Assess maintainability in context. A pattern is a problem only when it creates
 real cost, risk, or friction in this codebase.

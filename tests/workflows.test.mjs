@@ -48,20 +48,20 @@ function assertOrdered(text, labels) {
   }
 }
 
-test("reviewing-pr runs code-quality before every other review lens", () => {
-  const text = skill("reviewing-pr");
+test("reviewing-change runs assessing-code-quality before every other review lens", () => {
+  const text = skill("reviewing-change");
   assertOrdered(text, [
-    "First gate: code-quality",
+    "First gate: assessing-code-quality",
     "Superpowers review",
     "Spec and standards axes",
     "Anthropic review",
   ]);
-  assert.match(text, /No other review lens starts until code-quality returns/);
+  assert.match(text, /No other review lens starts until assessing-code-quality returns/);
 });
 
 test("feature and bug workflows review before final verification", () => {
   for (const name of ["developing-feature", "fixing-bug"]) {
-    assertOrdered(skill(name), ["reviewing-pr", "verifying-change"]);
+    assertOrdered(skill(name), ["reviewing-change", "verifying-change"]);
   }
 });
 
@@ -82,7 +82,7 @@ test("implementation workflows propagate the no-commit constraint", () => {
 });
 
 test("review runs spec and standards axes itself, without third-party review skills", () => {
-  const review = normalizedSkill("reviewing-pr");
+  const review = normalizedSkill("reviewing-change");
   assert.doesNotMatch(review, /Pocock|mattpocock|setup-matt-pocock-skills/);
   assert.match(review, /fresh read-only Spec subagent/);
   assert.match(review, /fresh read-only Standards subagent/);
@@ -94,11 +94,11 @@ test("no workflow or install guide depends on Matt Pocock skills", () => {
   const sources = [
     ...[
       "applying-engineering-standards",
-      "code-quality",
+      "assessing-code-quality",
       "committing-change",
       "developing-feature",
       "fixing-bug",
-      "reviewing-pr",
+      "reviewing-change",
       "shipping-change",
       "verifying-change",
     ].map(skill),
@@ -112,7 +112,7 @@ test("no workflow or install guide depends on Matt Pocock skills", () => {
 test("failed verification returns through debugging, review, and verification", () => {
   assertOrdered(skill("verifying-change"), [
     "Use systematic-debugging",
-    "Run reviewing-pr",
+    "Run reviewing-change",
     "Run verifying-change again",
   ]);
 });
@@ -297,11 +297,11 @@ test("all published versions stay synchronized", () => {
   assert.equal(pluginVersion, packageVersion);
   for (const name of [
     "applying-engineering-standards",
-    "code-quality",
+    "assessing-code-quality",
     "committing-change",
     "developing-feature",
     "fixing-bug",
-    "reviewing-pr",
+    "reviewing-change",
     "shipping-change",
     "verifying-change",
   ]) {
@@ -328,8 +328,8 @@ test("engineering standards apply from design through delivery", () => {
   for (const name of [
     "developing-feature",
     "fixing-bug",
-    "code-quality",
-    "reviewing-pr",
+    "assessing-code-quality",
+    "reviewing-change",
     "verifying-change",
     "shipping-change",
   ]) {
@@ -362,7 +362,7 @@ test("portable install instructions use reviewed immutable artifacts", () => {
   const files = [
     skill("developing-feature"),
     skill("fixing-bug"),
-    skill("reviewing-pr"),
+    skill("reviewing-change"),
     skill("verifying-change"),
     readme,
   ].join("\n");
