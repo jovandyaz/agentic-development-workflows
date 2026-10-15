@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.1] - 2026-10-15
+
+- `shipping-change`, `applying-engineering-standards`, and
+  `assessing-code-quality` now trigger on the requests users actually make:
+  merging, deploying, or answering review comments; version-dependent library
+  questions, docs that contradict the code, or pattern pressure; and whether to
+  split or refactor existing code.
+- Document how to update the plugin in Claude Code, for teams, and for portable
+  installs.
+- CI rejects a skill change that does not raise the version, and each new
+  version on `main` publishes a GitHub release with its changelog entry.
+
 ## [0.5.0] - 2026-10-15
 
 - **Breaking:** rename `code-quality` to `assessing-code-quality` and
