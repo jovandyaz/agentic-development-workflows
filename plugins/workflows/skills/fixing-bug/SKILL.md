@@ -4,7 +4,7 @@ description: Use when behavior is broken, a test fails, an error is reported, a 
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Fixing A Bug
@@ -39,9 +39,14 @@ Claude Code may use `/plugin install frontend-design@claude-plugins-official`.
    an established design system. Do not combine unrelated cleanup with the fix.
 5. If the hypothesis fails, return to evidence. After three failed hypotheses,
    stop and question the architecture or assumptions with the user.
-6. Run `reviewing-pr`. Validate feedback with `receiving-code-review`, fix each
-   confirmed blocker, and repeat review until clean.
-7. Run `verifying-change` to reproduce the original path and execute the broader
+6. Once the fix passes, use `capturing-lessons` when the proven cause reveals a
+   mistake likely to recur, once per finding; reuse a lesson report that
+   `reviewing-change` already produced.
+7. Run `reviewing-change`. Validate feedback with `receiving-code-review`, fix
+   each confirmed blocking finding, and repeat review until no blocking findings
+   remain. Report non-blocking findings and open questions and leave them to the
+   user.
+8. Run `verifying-change` to reproduce the original path and execute the broader
    checks justified by the affected surface.
 
 Distinguish a temporary mitigation from a permanent fix. Do not commit, push,

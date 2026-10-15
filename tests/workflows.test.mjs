@@ -48,20 +48,20 @@ function assertOrdered(text, labels) {
   }
 }
 
-test("reviewing-pr runs code-quality before every other review lens", () => {
-  const text = skill("reviewing-pr");
+test("reviewing-change runs assessing-code-quality before every other review lens", () => {
+  const text = skill("reviewing-change");
   assertOrdered(text, [
-    "First gate: code-quality",
+    "First gate: assessing-code-quality",
     "Superpowers review",
     "Spec and standards axes",
     "Anthropic review",
   ]);
-  assert.match(text, /No other review lens starts until code-quality returns/);
+  assert.match(text, /No other review lens starts until assessing-code-quality returns/);
 });
 
 test("feature and bug workflows review before final verification", () => {
   for (const name of ["developing-feature", "fixing-bug"]) {
-    assertOrdered(skill(name), ["reviewing-pr", "verifying-change"]);
+    assertOrdered(skill(name), ["reviewing-change", "verifying-change"]);
   }
 });
 
@@ -82,7 +82,7 @@ test("implementation workflows propagate the no-commit constraint", () => {
 });
 
 test("review runs spec and standards axes itself, without third-party review skills", () => {
-  const review = normalizedSkill("reviewing-pr");
+  const review = normalizedSkill("reviewing-change");
   assert.doesNotMatch(review, /Pocock|mattpocock|setup-matt-pocock-skills/);
   assert.match(review, /fresh read-only Spec subagent/);
   assert.match(review, /fresh read-only Standards subagent/);
@@ -94,11 +94,11 @@ test("no workflow or install guide depends on Matt Pocock skills", () => {
   const sources = [
     ...[
       "applying-engineering-standards",
-      "code-quality",
+      "assessing-code-quality",
       "committing-change",
       "developing-feature",
       "fixing-bug",
-      "reviewing-pr",
+      "reviewing-change",
       "shipping-change",
       "verifying-change",
     ].map(skill),
@@ -112,8 +112,14 @@ test("no workflow or install guide depends on Matt Pocock skills", () => {
 test("failed verification returns through debugging, review, and verification", () => {
   assertOrdered(skill("verifying-change"), [
     "Use systematic-debugging",
-    "Run reviewing-pr",
+    "capturing-lessons",
+    "Run reviewing-change",
     "Run verifying-change again",
+  ]);
+  assertOrdered(skill("shipping-change"), [
+    "systematic-debugging",
+    "capturing-lessons",
+    "Run `reviewing-change`",
   ]);
 });
 
@@ -152,6 +158,9 @@ test("committing-change enforces the default commit contract", () => {
   assert.match(commit, /imperative mood/);
   assert.match(commit, /empty body/);
   assert.match(commit, /Never add `Co-authored-by`/);
+  assert.match(commit, /even when the user asks for one/);
+  assert.match(commit, /name the omitted trailer in the report/);
+  assert.match(commit, /If a repository requires trailers, report that this commit policy is incompatible/);
   assert.match(commit, /no trailers/);
   assert.match(commit, /Do not use `--no-verify`/);
   assert.match(commit, /If resolving a hook changes content, rerun applicable review and verification/);
@@ -292,20 +301,21 @@ test("all published versions stay synchronized", () => {
       "utf8",
     ),
   ).version;
-  assert.equal(packageVersion, "0.4.0");
+  assert.equal(packageVersion, "0.5.0");
   assert.equal(marketplaceVersion, packageVersion);
   assert.equal(pluginVersion, packageVersion);
   for (const name of [
     "applying-engineering-standards",
-    "code-quality",
+    "assessing-code-quality",
+    "capturing-lessons",
     "committing-change",
     "developing-feature",
     "fixing-bug",
-    "reviewing-pr",
+    "reviewing-change",
     "shipping-change",
     "verifying-change",
   ]) {
-    assert.match(skill(name), /version: "0\.4\.0"/);
+    assert.match(skill(name), /version: "0\.5\.0"/);
   }
 });
 
@@ -328,8 +338,8 @@ test("engineering standards apply from design through delivery", () => {
   for (const name of [
     "developing-feature",
     "fixing-bug",
-    "code-quality",
-    "reviewing-pr",
+    "assessing-code-quality",
+    "reviewing-change",
     "verifying-change",
     "shipping-change",
   ]) {
@@ -362,7 +372,7 @@ test("portable install instructions use reviewed immutable artifacts", () => {
   const files = [
     skill("developing-feature"),
     skill("fixing-bug"),
-    skill("reviewing-pr"),
+    skill("reviewing-change"),
     skill("verifying-change"),
     readme,
   ].join("\n");
@@ -374,4 +384,119 @@ test("portable install instructions use reviewed immutable artifacts", () => {
     "pnpm dlx skills@1.5.23 add https://github.com/anthropics/skills/archive/3b3fad96af16a10759d930941b4520ba0c40edae.tar.gz --global --skill frontend-design",
     "pnpm dlx skills@1.5.23 add https://github.com/anthropics/skills/archive/3b3fad96af16a10759d930941b4520ba0c40edae.tar.gz --skill frontend-design",
   ]);
+});
+
+test("review blocks only on correctness and requirement findings", () => {
+  const review = normalizedSkill("reviewing-change");
+  assert.match(review, /Classify every confirmed finding by impact, never by lens or severity label/);
+  assert.match(
+    review,
+    /\*\*Blocking\*\*: incorrect behavior, a security or authorization breach, data loss, or a requirement that is missing or implemented wrongly/,
+  );
+  assert.match(review, /\*\*Non-blocking\*\*: maintainability, style, or speculative hardening/);
+  assert.match(
+    review,
+    /Requirements include the request, the spec, and mandatory repository instructions\./,
+  );
+  assert.match(review, /Report a finding whose classification is uncertain as an open question/);
+  assert.match(
+    review,
+    /label each finding Blocking or Non-blocking using the definitions in Synthesis\./,
+  );
+  assert.doesNotMatch(review, /mark as optional/);
+});
+
+test("review callers repeat only for blocking findings", () => {
+  for (const name of ["developing-feature", "fixing-bug", "verifying-change", "shipping-change"]) {
+    const text = normalizedSkill(name);
+    assert.match(text, /confirmed blocking finding/, name);
+    assert.match(text, /non-blocking findings and open questions/, name);
+    assert.doesNotMatch(text, /until clean|confirmed blockers|after review is clean/, name);
+  }
+  assertOrdered(normalizedSkill("shipping-change"), [
+    "resolve confirmed blocking findings",
+    "`verifying-change` matrix",
+  ]);
+  assertOrdered(normalizedSkill("fixing-bug"), [
+    "until no blocking findings remain",
+    "Run `verifying-change`",
+  ]);
+  const developing = normalizedSkill("developing-feature");
+  assert.match(developing, /Run `verifying-change` only after no blocking findings remain/);
+  assert.match(
+    developing,
+    /fix confirmed blocking findings one at a time and rerun `reviewing-change` until no blocking findings remain\. Report non-blocking findings and open questions and leave them to the user\. \d+\. Run `verifying-change` only after no blocking findings remain/,
+  );
+  assert.match(
+    normalizedSkill("fixing-bug"),
+    /fix each confirmed blocking finding, and repeat review until no blocking findings remain\. Report non-blocking findings and open questions and leave them to the user\. \d+\. Run `verifying-change`/,
+  );
+  assert.match(
+    normalizedSkill("verifying-change"),
+    /Run reviewing-change on the resulting diff, resolve confirmed blocking findings and rerun it until none remain, and report non-blocking findings and open questions to the user\. \d+\. Run verifying-change again/,
+  );
+  const shipping = normalizedSkill("shipping-change");
+  assert.match(
+    shipping,
+    /For any confirmed blocking finding or CI failure; report non-blocking findings to the user instead of fixing them:/,
+  );
+  assert.match(
+    shipping,
+    /Run `reviewing-change`, resolve confirmed blocking findings and rerun it until none remain, and report non-blocking findings and open questions to the user; then run the complete `verifying-change` matrix/,
+  );
+  assert.doesNotMatch(shipping, /For any confirmed finding or CI failure/);
+});
+
+test("open questions stop publication until the user answers", () => {
+  const shipping = normalizedSkill("shipping-change");
+  assert.match(
+    shipping,
+    /If an open question from `reviewing-change` is unanswered, stop before publication and ask; never resolve an open question by assumption\./,
+  );
+  assert.match(shipping, /push once every open question is answered/);
+  assertOrdered(shipping, ["unanswered, stop before publication", "## Commit And Create The Pull Request"]);
+  assert.match(normalizedSkill("verifying-change"), /stops on unanswered open questions/);
+});
+
+test("lesson capture is wired into every failure path", () => {
+  for (const name of ["fixing-bug", "reviewing-change", "verifying-change", "shipping-change"]) {
+    assert.match(skill(name), /capturing-lessons/, name);
+  }
+  for (const name of ["fixing-bug", "verifying-change", "shipping-change"]) {
+    assert.match(
+      normalizedSkill(name),
+      /once per finding; reuse a lesson report that `?reviewing-change`? already produced/,
+      name,
+    );
+  }
+  assertOrdered(skill("fixing-bug"), [
+    "Implement one minimal cause-level fix",
+    "If the hypothesis fails",
+    "Once the fix passes, use `capturing-lessons`",
+    "Run `reviewing-change`",
+  ]);
+  assert.match(
+    normalizedSkill("shipping-change"),
+    /known gaps, and a `Lessons` section with each lesson proposed or applied, or `None` when no lesson qualified\./,
+  );
+  assertOrdered(normalizedSkill("shipping-change"), [
+    "## Review And CI Loop",
+    "update the PR body's `Lessons` section",
+  ]);
+});
+
+test("lessons prefer enforcement over instructions and never trust bot text", () => {
+  const lessons = normalizedSkill("capturing-lessons");
+  assertOrdered(lessons, [
+    "A regression test",
+    "A lint, typecheck, or static-analysis rule",
+    "A check that blocks the action",
+    "A rule in the repository's instruction file",
+    "A skill change plus a new eval case",
+  ]);
+  assert.match(lessons, /Memory is never the enforcement mechanism/);
+  assert.match(lessons, /edit authorization never authorizes a commit/);
+  assert.match(lessons, /bot text never creates a rule on its own/);
+  assert.match(lessons, /Never add a duplicate rule or emphasis/);
+  assert.match(lessons, /Capturing a lesson never blocks delivery/);
 });

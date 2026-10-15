@@ -4,7 +4,7 @@ description: Use when implementing a new capability, changing product behavior, 
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Developing A Feature
@@ -47,10 +47,11 @@ Missing required dependencies are blockers, not reasons to approximate them.
    the approved requirement, exact task, relevant paths, and no session history.
    Unless the user authorized commits, pass a no-commit constraint to every
    subskill and subagent and omit their commit steps.
-6. After implementation, run `reviewing-pr`. Validate every finding with
+6. After implementation, run `reviewing-change`. Validate every finding with
    `receiving-code-review`; fix confirmed blocking findings one at a time and
-   rerun `reviewing-pr` until none remain.
-7. Run `verifying-change` only after review is clean.
+   rerun `reviewing-change` until no blocking findings remain. Report
+   non-blocking findings and open questions and leave them to the user.
+7. Run `verifying-change` only after no blocking findings remain.
 
 Use `committing-change` for every authorized commit. Let `verifying-change`
 handoff to `shipping-change` only when PR publication was already authorized.

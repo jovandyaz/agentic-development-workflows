@@ -12,23 +12,25 @@ They add a strict orchestration layer without copying upstream skill content.
 | Skill | Purpose |
 | --- | --- |
 | `applying-engineering-standards` | Ground decisions in project patterns and current official documentation. |
+| `capturing-lessons` | Turn confirmed recurring mistakes into enforced tests, checks, or rules. |
 | `committing-change` | Create one auditable Conventional Commit without coauthor trailers. |
 | `developing-feature` | Design, plan, implement with TDD, review, and verify a feature. |
 | `fixing-bug` | Reproduce, prove root cause, add a regression test, fix, review, and verify. |
-| `reviewing-pr` | Run independent review lenses in a fixed, read-only pipeline. |
+| `reviewing-change` | Run independent review lenses in a fixed, read-only pipeline. |
 | `shipping-change` | Publish an authorized PR and follow latest-head review, CI, and deployment gates. |
 | `verifying-change` | Map claims to fresh UI, HTTP, test, typecheck, lint, and build evidence. |
-| `code-quality` | Grade maintainability and report evidence-backed design smells. |
+| `assessing-code-quality` | Grade maintainability and report evidence-backed design smells. |
 
-`reviewing-pr` always runs the custom `code-quality` skill first and waits for
-its result before starting Superpowers, standards/spec, or Anthropic lenses.
+`reviewing-change` always runs the custom `assessing-code-quality` skill first
+and waits for its result before starting Superpowers, standards/spec, or
+Anthropic lenses.
 
 ```text
 developing-feature / fixing-bug
               |
               v
-        reviewing-pr
-     code-quality first
+       reviewing-change
+ assessing-code-quality first
               |
         fix and repeat
               |
@@ -56,7 +58,7 @@ prints installation guidance instead of silently approximating a missing skill.
 
 | Dependency | Required when |
 | --- | --- |
-| Superpowers | Running any orchestrated workflow; standalone `code-quality` has no external dependency |
+| Superpowers | Running any orchestrated workflow; standalone `assessing-code-quality` has no external dependency |
 | Anthropic `frontend-design` | A feature or bug fix changes UI |
 | Anthropic `code-review` | Optional extra lens on Claude Code |
 | Playwright MCP | Verifying a user-visible web path |
@@ -104,7 +106,7 @@ workflows never invoke that side effect without explicit user authorization.
 /plugin install workflows@agentic-development-workflows
 ```
 
-Plugin skills are namespaced, for example `/workflows:code-quality`.
+Plugin skills are namespaced, for example `/workflows:assessing-code-quality`.
 
 ### Global portable skills
 
@@ -115,8 +117,9 @@ Codex CLI, Cursor, Gemini CLI, and OpenCode:
 node scripts/sync-portable.mjs --install-global
 ```
 
-For an unnamespaced `/code-quality` in Claude Code, install the standalone
-skills into `~/.claude/skills` instead of installing the marketplace plugin:
+For an unnamespaced `/assessing-code-quality` in Claude Code, install the
+standalone skills into `~/.claude/skills` instead of installing the marketplace
+plugin:
 
 ```bash
 node scripts/sync-portable.mjs --install-claude-global
@@ -128,7 +131,7 @@ Install into one repository:
 node scripts/sync-portable.mjs --install-repo /path/to/repository
 ```
 
-The installer tracks only its own eight directories and refuses to overwrite an
+The installer tracks only its own nine directories and refuses to overwrite an
 unowned or locally modified skill with the same name. It records an atomic
 transaction journal. If a process is interrupted, verify its PID is no longer
 running and repeat the same install command with `--recover`; then rerun the
@@ -141,17 +144,17 @@ runtime-specific:
 
 | Runtime | Explicit use |
 | --- | --- |
-| Claude Code marketplace | `/workflows:developing-feature`, `/workflows:code-quality` |
+| Claude Code marketplace | `/workflows:developing-feature`, `/workflows:assessing-code-quality` |
 | Claude Code standalone | `/developing-feature`, `/committing-change`, `/shipping-change` |
 | Codex CLI | `$developing-feature`, `$committing-change`, `$shipping-change` |
-| Cursor | Ask Agent to use `developing-feature` or `code-quality` |
+| Cursor | Ask Agent to use `developing-feature` or `assessing-code-quality` |
 | Gemini CLI | Confirm discovery with `/skills`, then ask it to use the named skill |
 | OpenCode | Ask the agent to load and use the named skill |
 
 See [`docs/runtime-acceptance.md`](docs/runtime-acceptance.md) for discovery and
-behavioral smoke tests. JSON evals are executable contracts for a future
-credentialed agent harness; CI currently validates their structure, not model
-behavior.
+behavioral smoke tests. Each skill also has a behavioral eval suite under
+`plugins/workflows/evals/`, run with `claude plugin eval` against a no-plugin
+baseline; see [CONTRIBUTING.md](CONTRIBUTING.md#evals).
 
 ## Development
 

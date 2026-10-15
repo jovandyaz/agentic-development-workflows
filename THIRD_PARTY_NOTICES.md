@@ -12,5 +12,5 @@ Exact reviewed revisions are recorded in `dependencies.lock.json`.
 - [Playwright MCP](https://github.com/microsoft/playwright-mcp), used as an
   external verification tool under its own license.
 
-The workflow ordering and custom `code-quality` skill in this repository are
-original work licensed under this repository's MIT License.
+The workflow ordering and custom `assessing-code-quality` skill in this
+repository are original work licensed under this repository's MIT License.
