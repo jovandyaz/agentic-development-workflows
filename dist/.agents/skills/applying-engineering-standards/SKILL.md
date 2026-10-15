@@ -1,6 +1,6 @@
 ---
 name: applying-engineering-standards
-description: Use when designing, implementing, fixing, reviewing, verifying, or shipping code and technical decisions must follow current project and industry guidance.
+description: Use when choosing a library, framework, API, or design pattern; when the right answer depends on the installed version of a dependency; when project docs, instructions, and code disagree; or when someone pushes a pattern or "best practice" the project may not need.
 license: MIT
 metadata:
   author: jovandyaz

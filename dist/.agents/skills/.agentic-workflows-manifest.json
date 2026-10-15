@@ -2,10 +2,10 @@
   "source": "jovandyaz/agentic-development-workflows",
   "skills": {
     "applying-engineering-standards": {
-      "integrity": "sha256-73856e322768c68c2fc7a42a41350b98f3d5f912c9662ef16e84ec89e87f5177"
+      "integrity": "sha256-674e94c37e47cdb45b5dd7bb71b6d4b6b77e78a2e454e257bfa071892a1f3c0a"
     },
     "assessing-code-quality": {
-      "integrity": "sha256-18ab2e856178a99e10ff466ba31bb3bb35de19f7c18337189f68d41b5cd474d9"
+      "integrity": "sha256-dfb450e61f819cebc3cbf291ba20157bbdd44947a9e6b644a884fa6995915993"
     },
     "capturing-lessons": {
       "integrity": "sha256-5978cf664f1d97e81d3e485489bc3f863e3b76e62c2c42914e3d256e1a5ad2cc"
@@ -23,7 +23,7 @@
       "integrity": "sha256-0b0c801efc76a375f039284f28d2aac1bcf04bc8540dea30f54506bde958477c"
     },
     "shipping-change": {
-      "integrity": "sha256-2054f4cbdf73c56c586b75295b6eeeb34c7900b6a4b3578c6e54d90e4aae76c5"
+      "integrity": "sha256-dd212989a31d1b44a33658e29e17b293891e3085e3cb51b300b89d105cd8dd85"
     },
     "verifying-change": {
       "integrity": "sha256-f7a707df8bb78230b32568372e6f73fee838535d6dfef706e653e3c5e8b996d9"

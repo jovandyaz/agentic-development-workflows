@@ -1,6 +1,6 @@
 ---
 name: assessing-code-quality
-description: Use when reviewing changed code for maintainability, design smells, unclear boundaries, unnecessary complexity, or violations of SOLID, DRY, YAGNI, and KISS.
+description: Use when judging code for maintainability, design smells, unclear boundaries, or unnecessary complexity; when asked whether to split, extract, or refactor code; or when checking it against SOLID, DRY, YAGNI, and KISS.
 license: MIT
 metadata:
   author: jovandyaz

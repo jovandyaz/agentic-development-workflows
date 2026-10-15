@@ -48,6 +48,26 @@ function assertOrdered(text, labels) {
   }
 }
 
+function description(name) {
+  return skill(name).match(/^description: (.+)$/m)?.[1] ?? "";
+}
+
+test("descriptions name the situations a user asks about, not the skill's own gates", () => {
+  const shipping = description("shipping-change");
+  assert.doesNotMatch(shipping, /authorized/, "the skill checks authorization; the trigger must not assume it");
+  for (const situation of [/push/, /pull request/, /review or bot comments/, /merge/, /deploy/, /release/, /CI/]) {
+    assert.match(shipping, situation);
+  }
+  const standards = description("applying-engineering-standards");
+  for (const situation of [/installed version/, /disagree/, /pattern or "best practice"/, /library, framework, API/]) {
+    assert.match(standards, situation);
+  }
+  assert.doesNotMatch(standards, /designing, implementing, fixing, reviewing, verifying, or shipping/);
+  const quality = description("assessing-code-quality");
+  assert.doesNotMatch(quality, /changed code/);
+  assert.match(quality, /split, extract, or refactor/);
+});
+
 test("reviewing-change runs assessing-code-quality before every other review lens", () => {
   const text = skill("reviewing-change");
   assertOrdered(text, [
