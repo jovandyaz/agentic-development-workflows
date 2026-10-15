@@ -12,6 +12,7 @@ They add a strict orchestration layer without copying upstream skill content.
 | Skill | Purpose |
 | --- | --- |
 | `applying-engineering-standards` | Ground decisions in project patterns and current official documentation. |
+| `capturing-lessons` | Turn confirmed recurring mistakes into enforced tests, checks, or rules. |
 | `committing-change` | Create one auditable Conventional Commit without coauthor trailers. |
 | `developing-feature` | Design, plan, implement with TDD, review, and verify a feature. |
 | `fixing-bug` | Reproduce, prove root cause, add a regression test, fix, review, and verify. |
@@ -130,7 +131,7 @@ Install into one repository:
 node scripts/sync-portable.mjs --install-repo /path/to/repository
 ```
 
-The installer tracks only its own eight directories and refuses to overwrite an
+The installer tracks only its own nine directories and refuses to overwrite an
 unowned or locally modified skill with the same name. It records an atomic
 transaction journal. If a process is interrupted, verify its PID is no longer
 running and repeat the same install command with `--recover`; then rerun the
@@ -151,9 +152,9 @@ runtime-specific:
 | OpenCode | Ask the agent to load and use the named skill |
 
 See [`docs/runtime-acceptance.md`](docs/runtime-acceptance.md) for discovery and
-behavioral smoke tests. JSON evals are executable contracts for a future
-credentialed agent harness; CI currently validates their structure, not model
-behavior.
+behavioral smoke tests. Each skill also has a behavioral eval suite under
+`plugins/workflows/evals/`, run with `claude plugin eval` against a no-plugin
+baseline; see [CONTRIBUTING.md](CONTRIBUTING.md#evals).
 
 ## Development
 

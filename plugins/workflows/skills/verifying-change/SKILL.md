@@ -4,7 +4,7 @@ description: Use when implementation or review is complete, before claiming succ
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Verifying A Change
@@ -71,9 +71,14 @@ If any check fails:
 1. Before fixing a failed check, confirm implementation or remediation
    authorization covers the required edit. Otherwise report the failure and ask.
 2. Use systematic-debugging to prove the cause.
-3. Make the smallest test-backed fix.
-4. Run reviewing-change on the resulting diff and resolve confirmed blockers.
-5. Run verifying-change again from the full matrix; do not resume from the
+3. Use capturing-lessons when the proven cause reveals a mistake likely to
+   recur, once per finding; reuse a lesson report that reviewing-change already
+   produced.
+4. Make the smallest test-backed fix.
+5. Run reviewing-change on the resulting diff, resolve confirmed blocking
+   findings and rerun it until none remain, and report non-blocking findings
+   and open questions to the user.
+6. Run verifying-change again from the full matrix; do not resume from the
    failed check or reuse stale evidence.
 
 Report passed, failed, and not-run checks separately. Never soften a failure
@@ -82,7 +87,8 @@ into a success claim.
 If every check passes, apply authorization independently:
 
 - If PR publication is authorized, run `shipping-change`; it separately checks
-  whether a commit is needed and authorized.
+  whether a commit is needed and authorized and stops on unanswered open
+  questions.
 - If only commit is authorized, run `committing-change` and stop without
   pushing or opening a PR.
 - If neither is authorized, ask before committing or publishing anything.

@@ -4,7 +4,7 @@ description: Use when reviewing a pull request, branch, commit range, staged cha
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Reviewing A Change
@@ -28,6 +28,9 @@ For local work without a supplied base, ask rather than guessing. Never edit
 code, post comments, approve, merge, or change pull-request state.
 
 ## Ordered Review Pipeline
+
+Tell every reviewer subagent to label each finding Blocking or Non-blocking
+using the definitions in Synthesis.
 
 ### 1. First gate: assessing-code-quality
 
@@ -75,6 +78,19 @@ optional Claude-only phase never blocks other runtimes.
 
 Deduplicate only findings with the same cause and impact. Validate file and line
 references, exclude pre-existing issues, and retain the strongest evidence.
-Report findings first by severity with location, impact, evidence, and smallest
-safe fix. Follow with open questions, the assessing-code-quality grade, lenses
+
+Classify every confirmed finding by impact, never by lens or severity label:
+
+- **Blocking**: incorrect behavior, a security or authorization breach, data
+  loss, or a requirement that is missing or implemented wrongly. Requirements
+  include the request, the spec, and mandatory repository instructions.
+- **Non-blocking**: maintainability, style, or speculative hardening.
+
+Report a finding whose classification is uncertain as an open question; never
+fix or drop it silently. Report blocking findings first, then non-blocking
+findings, each by severity with location, impact, evidence, and smallest safe
+fix. Follow with open questions, the assessing-code-quality grade, lenses
 executed, and verification gaps. If no findings remain, state that explicitly.
+
+Use `capturing-lessons` for each confirmed blocking finding that reveals a
+mistake likely to recur, and include its report.
