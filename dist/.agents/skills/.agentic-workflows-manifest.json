@@ -7,6 +7,9 @@
     "assessing-code-quality": {
       "integrity": "sha256-c0f5e3533fb171b2c49c3a27c3ef91e7ce748bfba5fc993000885a26c29080dc"
     },
+    "capturing-lessons": {
+      "integrity": "sha256-f2da1de582c1f1f6f23d58a861f6eba1b04315215ffac7723957acd1358a1cfa"
+    },
     "committing-change": {
       "integrity": "sha256-48c347a94657bfc16d8463962f3e9e97a741ec0fa9812e036f70d600a8c32699"
     },

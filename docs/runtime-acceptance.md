@@ -9,9 +9,10 @@ remote; the scenarios below cover that behavior.
 
 ## Discovery
 
-Confirm all eight names are discoverable:
+Confirm all nine names are discoverable:
 
 - `applying-engineering-standards`
+- `capturing-lessons`
 - `committing-change`
 - `developing-feature`
 - `fixing-bug`

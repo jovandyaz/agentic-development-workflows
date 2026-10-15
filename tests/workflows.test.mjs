@@ -298,6 +298,7 @@ test("all published versions stay synchronized", () => {
   for (const name of [
     "applying-engineering-standards",
     "assessing-code-quality",
+    "capturing-lessons",
     "committing-change",
     "developing-feature",
     "fixing-bug",

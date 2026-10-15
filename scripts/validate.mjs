@@ -13,6 +13,7 @@ const MIN_EVAL_CASES = 3;
 const expectedSkills = [
   "applying-engineering-standards",
   "assessing-code-quality",
+  "capturing-lessons",
   "committing-change",
   "developing-feature",
   "fixing-bug",
