@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.5.0] - 2026-10-15
+
+- **Breaking:** rename `code-quality` to `assessing-code-quality` and
+  `reviewing-pr` to `reviewing-change`. Reinstall portable skills to remove the
+  old directories, and update explicit invocations such as
+  `/workflows:code-quality`.
+- Add `capturing-lessons`, which turns confirmed recurring mistakes into the
+  strongest available enforcement: a test, a lint rule, a blocking check, an
+  instruction rule, or a skill change with an eval case.
+- Repeat review loops only for blocking findings: incorrect behavior, security
+  or authorization breaches, data loss, or unmet requirements.
+- Replace structural `evals.json` files with a `claude plugin eval` suite that
+  runs against a no-plugin baseline.
+- Add a root `AGENTS.md` with the repository rules agents cannot infer.
+- `committing-change` refuses co-author and attribution trailers even when the
+  user asks for them.
+
 ## [0.4.0] - 2026-10-06
 
 - Drop the Matt Pocock `code-review` and `setup-matt-pocock-skills` dependencies.

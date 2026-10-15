@@ -1,0 +1,113 @@
+name: evals
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_cost_usd:
+        description: Cost ceiling in USD for one suite run, at most 50
+        required: true
+        default: 30
+        type: number
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+env:
+  CLAUDE_CODE_VERSION: 2.1.300
+  EVAL_MODEL: claude-sonnet-5-5
+  JUDGE_MODEL: claude-haiku-5-5
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      MAX_COST_USD: ${{ inputs.max_cost_usd }}
+    steps:
+      - name: Validate cost ceiling
+        env:
+          MAX_COST_LIMIT_USD: 50
+        run: |
+          if [[ ! "$MAX_COST_USD" =~ ^[0-9]+([.][0-9]+)?$ ]] ||
+            ! awk -v cost="$MAX_COST_USD" -v limit="$MAX_COST_LIMIT_USD" \
+              'BEGIN { exit !(cost + 0 > 0 && cost + 0 <= limit + 0) }'; then
+            echo "max_cost_usd must be a positive number no greater than $MAX_COST_LIMIT_USD" >&2
+            exit 1
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 10.15.0
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Install sandbox prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bubblewrap socat
+          if [ "$(sysctl -n kernel.apparmor_restrict_unprivileged_userns 2>/dev/null || echo 0)" = "1" ]; then
+            sudo tee /etc/apparmor.d/bwrap > /dev/null <<'EOF'
+          abi <abi/4.0>,
+          include <tunables/global>
+
+          profile bwrap /usr/bin/bwrap flags=(unconfined) {
+            userns,
+            include if exists <local/bwrap>
+          }
+          EOF
+            sudo systemctl reload apparmor
+          fi
+
+      - name: Record harness version
+        run: pnpm dlx "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" --version
+
+      - name: Run evals
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: >-
+          pnpm dlx "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
+          plugin eval plugins/workflows
+          --scaffold
+          --allow-tools Bash Edit Write
+          --trust-plugin
+          --no-publish
+          --model "$EVAL_MODEL"
+          --judge-model "$JUDGE_MODEL"
+          --max-cost-usd "$MAX_COST_USD"
+          --output-dir eval-output
+          --json eval-output/results.json
+
+      - name: Check results for leaked credentials
+        if: always()
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          [ -n "$ANTHROPIC_API_KEY" ] || exit 0
+          encoded="$(printf '%s' "$ANTHROPIC_API_KEY" | base64 | tr -d '\n')"
+          for needle in "$ANTHROPIC_API_KEY" "${ANTHROPIC_API_KEY: -24}" "${encoded%????}"; do
+            if grep -rqF -- "$needle" eval-output/ 2>/dev/null; then
+              echo "credential found in eval output" >&2
+              rm -rf eval-output
+              exit 1
+            fi
+          done
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: eval-results
+          path: eval-output/
+          if-no-files-found: warn
+          retention-days: 30
