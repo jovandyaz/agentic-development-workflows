@@ -4,7 +4,7 @@ description: Use when choosing a library, framework, API, or design pattern; whe
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.5.1"
+  version: "0.5.2"
 ---
 
 # Applying Engineering Standards

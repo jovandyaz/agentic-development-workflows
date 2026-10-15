@@ -4,7 +4,7 @@ description: Use when reviewing a pull request, branch, commit range, staged cha
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.5.1"
+  version: "0.5.2"
 ---
 
 # Reviewing A Change

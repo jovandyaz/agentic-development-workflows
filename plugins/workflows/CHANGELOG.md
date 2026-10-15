@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.5.2] - 2026-10-15
+
+- Workflows never hand off to Superpowers `finishing-a-development-branch`,
+  whose merge, push, and pull-request options bypassed the commit and
+  publication authorization checks.
+- Review-fix loops stop after three rounds, counted once across the whole
+  workflow, and report the remaining blocking findings instead of repeating
+  without limit.
+- Findings injected by hooks, such as security-guidance reviews, follow the
+  review loop and never amend or fold into the commit they flag, including
+  during history curation.
+- `developing-feature` reports any worktree it creates and removes it only when
+  asked, since branch finishing no longer cleans it up.
+- `reviewing-change` drops the optional Anthropic `code-review` phase, which
+  posts to GitHub on its own; `fixing-bug` delegates debugging to
+  `systematic-debugging` instead of restating it.
+
 ## [0.5.1] - 2026-10-15
 
 - `shipping-change`, `applying-engineering-standards`, and
