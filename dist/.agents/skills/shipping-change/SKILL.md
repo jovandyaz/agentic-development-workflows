@@ -1,10 +1,10 @@
 ---
 name: shipping-change
-description: Use when verified work is authorized for publication as a pull request, when preparing a branch for review, or when following a change through CI and deployment.
+description: Use when asked or expected to push a branch, open or update a pull request, address review or bot comments on a pull request, merge, deploy, or release, or when following a change through CI.
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.5.0"
+  version: "0.5.1"
 ---
 
 # Shipping A Change

@@ -156,6 +156,60 @@ test("the eval leak check removes output holding the key, its suffix, or its bas
   }
 });
 
+function validateWorkflow() {
+  return readFileSync(join(root, ".github", "workflows", "validate.yml"), "utf8");
+}
+
+function runScripts(text) {
+  const lines = text.split("\n");
+  return lines.flatMap((line, index) => {
+    const run = line.match(/^(\s+)(?:- )?run:(.*)$/);
+    if (!run) return [];
+    const indent = run[1].length;
+    const body = [];
+    for (const next of lines.slice(index + 1)) {
+      if (next.trim() && next.search(/\S/) <= indent) break;
+      body.push(next);
+    }
+    return [[run[2], ...body].join("\n")];
+  });
+}
+
+function workflowJob(text, name) {
+  const lines = text.split("\n");
+  const start = lines.indexOf(`  ${name}:`);
+  assert.ok(start > 0, `validate.yml has a ${name} job`);
+  const end = lines.findIndex((line, index) => index > start && /^  \S/.test(line));
+  return lines.slice(start, end === -1 ? undefined : end).join("\n");
+}
+
+test("pull requests must bump the version before shipped skills change", () => {
+  const plugin = workflowJob(validateWorkflow(), "plugin");
+  assert.match(plugin, /fetch-depth: 0/);
+  const step = plugin.split("- name: Require a version bump for shipped skill changes\n")[1]?.split("\n\n")[0] ?? "";
+  assert.match(step, /if: github\.event_name == 'pull_request'/);
+  assert.match(step, /BASE_REF: \$\{\{ github\.base_ref \}\}/);
+  assert.match(step, /run: node scripts\/release\.mjs check "origin\/\$BASE_REF"/);
+});
+
+test("releases publish only from main, after validation, with the only write permission", () => {
+  const workflow = validateWorkflow();
+  const release = workflowJob(workflow, "release");
+  assert.match(release, /needs: \[portable, plugin\]/);
+  assert.match(release, /if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/);
+  assert.match(release, /permissions:\n {6}contents: write/);
+  assert.equal(workflow.match(/contents: write/g)?.length, 1);
+  assert.match(release, /node scripts\/release\.mjs notes "\$version"/);
+  assert.match(release, /gh release view "v\$version"/);
+  for (const script of runScripts(workflow)) {
+    assert.doesNotMatch(script, /\$\{\{/, `no expression interpolation in run: ${script.trim()}`);
+  }
+});
+
+test("main pushes never cancel an in-progress release", () => {
+  assert.match(validateWorkflow(), /cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}/);
+});
+
 test("validation, eval workflows, the eval script, and the lock use the same Claude Code version", () => {
   const lock = JSON.parse(readFileSync(join(root, "dependencies.lock.json"), "utf8"));
   const locked = lock.tooling.find((entry) => entry.id === "claude-code")?.version;

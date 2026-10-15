@@ -43,6 +43,11 @@ Use strict semantic versioning. Keep `package.json`, marketplace metadata, the
 plugin manifest, skill metadata, generated output, and the latest changelog
 entry on the same version.
 
+Installed plugins update only when the version changes, so a pull request that
+changes `plugins/workflows/skills/` must raise the version; CI rejects it
+otherwise. Merging a new version to `main` publishes the `vX.Y.Z` GitHub release
+with that changelog entry as its notes.
+
 ## Pull requests
 
 - Keep changes focused and include regression tests for behavior changes.
