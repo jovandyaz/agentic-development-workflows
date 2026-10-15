@@ -151,9 +151,10 @@ runtime-specific:
 | OpenCode | Ask the agent to load and use the named skill |
 
 See [`docs/runtime-acceptance.md`](docs/runtime-acceptance.md) for discovery and
-behavioral smoke tests. JSON evals are executable contracts for a future
-credentialed agent harness; CI currently validates their structure, not model
-behavior.
+behavioral smoke tests. Each skill also has a behavioral eval suite under
+`plugins/workflows/evals/`,
+run with `claude plugin eval` against a no-plugin baseline; see
+[CONTRIBUTING.md](CONTRIBUTING.md#evals).
 
 ## Development
 

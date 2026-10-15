@@ -60,3 +60,33 @@ test("renamed skills leave no stale references outside history", () => {
   }
   assert.deepEqual(stale, []);
 });
+
+test("the eval script grants the tools that edit graders need", () => {
+  const { scripts } = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+  assert.match(scripts.eval, /^claude plugin eval plugins\/workflows /);
+  assert.match(scripts.eval, /--scaffold/);
+  assert.match(scripts.eval, /--allow-tools Bash Edit Write/);
+});
+
+test("the eval workflow runs only on manual dispatch with pinned inputs", () => {
+  const workflow = readFileSync(join(root, ".github", "workflows", "evals.yml"), "utf8");
+  assert.match(workflow, /on:\n  workflow_dispatch:/);
+  assert.doesNotMatch(workflow, /pull_request|push:/);
+  assert.match(workflow, /permissions:\n  contents: read/);
+  assert.match(workflow, /CLAUDE_CODE_VERSION: 2\.1\.300/);
+  assert.match(workflow, /--trust-plugin/);
+  assert.match(workflow, /--max-cost-usd "\$MAX_COST_USD"/);
+  const inputUses = workflow.match(/\$\{\{\s*inputs\.\w+\s*\}\}/g) ?? [];
+  assert.deepEqual(inputUses, ["${{ inputs.max_cost_usd }}"]);
+  assert.match(workflow, /MAX_COST_USD: \$\{\{ inputs\.max_cost_usd \}\}/);
+});
+
+test("validation and eval workflows use the same Claude Code version", () => {
+  const validate = readFileSync(join(root, ".github", "workflows", "validate.yml"), "utf8");
+  assert.doesNotMatch(validate, /claude-code@2\.1\.251/);
+  assert.match(validate, /claude-code@2\.1\.300/);
+});
+
+test("agent instructions point eval cases at the native suite", () => {
+  assert.match(agentsInstructions(), /plugins\/workflows\/evals\/<skill>\//);
+});
