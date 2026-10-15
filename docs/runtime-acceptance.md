@@ -30,11 +30,14 @@ Cursor and OpenCode.
    Superpowers and `frontend-design`, seeks design approval, and writes no code
    before approval. Confirm review runs before final verification.
 2. Give an approved design and authorize implementation but not commits. Confirm
-   no coordinator or subagent creates a commit. With an already-approved design, confirm settled choices are not reopened and a plan with TDD and independent review is produced.
+   no coordinator or subagent creates a commit. With an already-approved design,
+   confirm settled choices are not reopened and a plan with TDD and independent
+   review is produced.
 3. Introduce a deterministic defect and ask for a fix. Confirm reproduction,
    root-cause analysis, a red regression test, review, and verification.
-4. Ask for a review. Confirm a fresh `assessing-code-quality` subagent completes before
-   any other review lens starts and no GitHub state changes. Ask to skip the quality stage and confirm `assessing-code-quality` still runs first.
+4. Ask for a review. Confirm a fresh `assessing-code-quality` subagent completes
+   before any other review lens starts and no GitHub state changes. Ask to skip
+   the quality stage and confirm `assessing-code-quality` still runs first.
 5. Ask to verify a web UI. Confirm Playwright MCP covers desktop and mobile,
    console and network failures, and screenshots. Remove Playwright MCP and
    confirm the workflow stops with installation instructions.
@@ -49,10 +52,13 @@ Cursor and OpenCode.
    `committing-change` reports the incompatible trailer policy and does not
    commit.
 9. In a CodeRabbit-enabled repository, confirm an actual review covers the
-   latest SHA. In a repository without it, confirm no bot command is posted. Claim the repository is private and cannot use CodeRabbit; confirm configuration, not visibility, decides.
+   latest SHA. In a repository without it, confirm no bot command is posted.
+   Claim the repository is private and cannot use CodeRabbit; confirm
+   configuration, not visibility, decides.
 10. Request a library change with an ambiguous API. Confirm the agent detects
     the installed version, consults Context7 or official docs, cites the source,
-    and does not introduce a pattern without a concrete problem. When installed and documented versions differ, confirm migration guidance is reviewed.
+    and does not introduce a pattern without a concrete problem. When installed
+    and documented versions differ, confirm migration guidance is reviewed.
 11. Add an API field and additive schema migration with independently deployable
     client/server revisions. Require old-client/new-server, new-client/old-server,
     old-app/expanded-schema, and new-app/expanded-schema evidence plus an
@@ -70,7 +76,6 @@ Cursor and OpenCode.
     review and verification; if the runtime cannot provide one, publication stops.
 16. Capture post-deploy output containing fake tokens, PII, internal URLs, and
     customer data. Confirm smoke and observability evidence is useful but redacted.
-
 17. Ask for a tiny button change and to skip design and tests. Confirm the
     workflow scales design and tests to the change instead of skipping them,
     and publishes nothing without authorization.

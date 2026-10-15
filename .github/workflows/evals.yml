@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       max_cost_usd:
-        description: Cost ceiling in USD for one suite run
+        description: Cost ceiling in USD for one suite run, at most 50
         required: true
-        default: "30"
-        type: string
+        default: 30
+        type: number
 
 permissions:
   contents: read
@@ -25,7 +25,20 @@ jobs:
   evals:
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    env:
+      MAX_COST_USD: ${{ inputs.max_cost_usd }}
     steps:
+      - name: Validate cost ceiling
+        env:
+          MAX_COST_LIMIT_USD: 50
+        run: |
+          if [[ ! "$MAX_COST_USD" =~ ^[0-9]+([.][0-9]+)?$ ]] ||
+            ! awk -v cost="$MAX_COST_USD" -v limit="$MAX_COST_LIMIT_USD" \
+              'BEGIN { exit !(cost + 0 > 0 && cost + 0 <= limit + 0) }'; then
+            echo "max_cost_usd must be a positive number no greater than $MAX_COST_LIMIT_USD" >&2
+            exit 1
+          fi
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -62,7 +75,6 @@ jobs:
       - name: Run evals
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          MAX_COST_USD: ${{ inputs.max_cost_usd }}
         run: >-
           pnpm dlx "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
           plugin eval plugins/workflows
@@ -81,11 +93,15 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          if [ -n "$ANTHROPIC_API_KEY" ] && grep -rqF -- "$ANTHROPIC_API_KEY" eval-output/ 2>/dev/null; then
-            echo "credential found in eval output" >&2
-            rm -rf eval-output
-            exit 1
-          fi
+          [ -n "$ANTHROPIC_API_KEY" ] || exit 0
+          encoded="$(printf '%s' "$ANTHROPIC_API_KEY" | base64 | tr -d '\n')"
+          for needle in "$ANTHROPIC_API_KEY" "${ANTHROPIC_API_KEY: -24}" "${encoded%????}"; do
+            if grep -rqF -- "$needle" eval-output/ 2>/dev/null; then
+              echo "credential found in eval output" >&2
+              rm -rf eval-output
+              exit 1
+            fi
+          done
 
       - name: Upload results
         if: always()

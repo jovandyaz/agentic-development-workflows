@@ -6,7 +6,7 @@
   "scripts": {
     "build": "node scripts/sync-portable.mjs",
     "check": "node scripts/validate.mjs && node scripts/sync-portable.mjs --check",
-    "eval": "claude plugin eval plugins/workflows --scaffold --allow-tools Bash Edit Write",
+    "eval": "pnpm dlx @anthropic-ai/claude-code@2.1.300 plugin eval plugins/workflows --scaffold --allow-tools Bash Edit Write",
     "test": "node --test"
   },
   "engines": {

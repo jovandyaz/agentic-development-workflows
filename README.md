@@ -152,9 +152,8 @@ runtime-specific:
 
 See [`docs/runtime-acceptance.md`](docs/runtime-acceptance.md) for discovery and
 behavioral smoke tests. Each skill also has a behavioral eval suite under
-`plugins/workflows/evals/`,
-run with `claude plugin eval` against a no-plugin baseline; see
-[CONTRIBUTING.md](CONTRIBUTING.md#evals).
+`plugins/workflows/evals/`, run with `claude plugin eval` against a no-plugin
+baseline; see [CONTRIBUTING.md](CONTRIBUTING.md#evals).
 
 ## Development
 

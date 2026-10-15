@@ -23,9 +23,11 @@ model call billed to your account.
     pnpm run eval
 
 Run it on macOS, Linux, or WSL2; native Windows has no sandbox backend for the
-granted shell tools. On macOS, the eval sandbox blocks the `/usr/bin/git` Xcode shim, so install git from Homebrew or run the suite on Linux. Iterate on one case with `--case <name> --runs 1
---ablation none`. Before a release, also dispatch the `evals` workflow, which
-needs the `ANTHROPIC_API_KEY` repository secret.
+granted shell tools. On macOS, the eval sandbox blocks the `/usr/bin/git` Xcode
+shim, so install git from Homebrew or run the suite on Linux. Iterate on one
+case with `--case <name> --runs 1 --ablation none`. Before a release, also
+dispatch the `evals` workflow, which needs the `ANTHROPIC_API_KEY` repository
+secret.
 
 Behavior that isolated runs cannot observe, such as anything that needs
 Superpowers or a real remote, stays in `docs/runtime-acceptance.md`.
