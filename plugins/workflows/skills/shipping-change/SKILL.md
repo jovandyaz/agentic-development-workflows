@@ -125,7 +125,9 @@ For any confirmed finding or CI failure:
    before editing.
 2. Use `systematic-debugging` when the cause is not proven.
 3. Make a test-backed fix.
-4. Run `reviewing-change`, then the complete `verifying-change` matrix.
+4. Run `reviewing-change`, resolve confirmed blocking findings, and report
+   non-blocking findings to the user; then run the complete `verifying-change`
+   matrix.
 5. Use `committing-change`, push, and wait for review and CI on the new SHA.
 6. Before requesting merge, curate the history again so review-round fixes are
    folded into the commits they correct.

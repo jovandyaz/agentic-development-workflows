@@ -375,3 +375,29 @@ test("portable install instructions use reviewed immutable artifacts", () => {
     "pnpm dlx skills@1.5.23 add https://github.com/anthropics/skills/archive/3b3fad96af16a10759d930941b4520ba0c40edae.tar.gz --skill frontend-design",
   ]);
 });
+
+test("review blocks only on correctness and requirement findings", () => {
+  const review = normalizedSkill("reviewing-change");
+  assert.match(review, /Classify every confirmed finding by impact, never by lens or severity label/);
+  assert.match(
+    review,
+    /\*\*Blocking\*\*: incorrect behavior, a security or authorization breach, data loss, or a requirement that is missing or implemented wrongly/,
+  );
+  assert.match(review, /\*\*Non-blocking\*\*: maintainability, style, or speculative hardening/);
+  assert.match(review, /Report a finding whose classification is uncertain as an open question/);
+  assert.match(
+    review,
+    /mark as optional only findings that cause no incorrect behavior, security or authorization breach, data loss, or unmet requirement\./,
+  );
+});
+
+test("review callers repeat only for blocking findings", () => {
+  for (const name of ["developing-feature", "fixing-bug", "verifying-change", "shipping-change"]) {
+    const text = normalizedSkill(name);
+    assert.match(text, /confirmed blocking finding/, name);
+    assert.match(text, /non-blocking findings/, name);
+  }
+  for (const name of ["developing-feature", "fixing-bug"]) {
+    assert.match(normalizedSkill(name), /until no blocking findings remain/, name);
+  }
+});

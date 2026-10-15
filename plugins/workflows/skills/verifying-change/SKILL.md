@@ -72,7 +72,8 @@ If any check fails:
    authorization covers the required edit. Otherwise report the failure and ask.
 2. Use systematic-debugging to prove the cause.
 3. Make the smallest test-backed fix.
-4. Run reviewing-change on the resulting diff and resolve confirmed blockers.
+4. Run reviewing-change on the resulting diff, resolve confirmed blocking
+   findings, and report non-blocking findings to the user.
 5. Run verifying-change again from the full matrix; do not resume from the
    failed check or reuse stale evidence.
 

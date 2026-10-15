@@ -29,6 +29,10 @@ code, post comments, approve, merge, or change pull-request state.
 
 ## Ordered Review Pipeline
 
+Tell every reviewer subagent to mark as optional only findings that cause no
+incorrect behavior, security or authorization breach, data loss, or unmet
+requirement.
+
 ### 1. First gate: assessing-code-quality
 
 **No other review lens starts until assessing-code-quality returns.** Dispatch
@@ -75,6 +79,15 @@ optional Claude-only phase never blocks other runtimes.
 
 Deduplicate only findings with the same cause and impact. Validate file and line
 references, exclude pre-existing issues, and retain the strongest evidence.
-Report findings first by severity with location, impact, evidence, and smallest
-safe fix. Follow with open questions, the assessing-code-quality grade, lenses
+
+Classify every confirmed finding by impact, never by lens or severity label:
+
+- **Blocking**: incorrect behavior, a security or authorization breach, data
+  loss, or a requirement that is missing or implemented wrongly.
+- **Non-blocking**: maintainability, style, or speculative hardening.
+
+Report a finding whose classification is uncertain as an open question; never
+fix or drop it silently. Report blocking findings first, then non-blocking
+findings, each by severity with location, impact, evidence, and smallest safe
+fix. Follow with open questions, the assessing-code-quality grade, lenses
 executed, and verification gaps. If no findings remain, state that explicitly.
