@@ -73,7 +73,8 @@ If any check fails:
 2. Use systematic-debugging to prove the cause.
 3. Make the smallest test-backed fix.
 4. Run reviewing-change on the resulting diff, resolve confirmed blocking
-   findings, and report non-blocking findings to the user.
+   findings and rerun it until none remain, and report non-blocking findings
+   and open questions to the user.
 5. Run verifying-change again from the full matrix; do not resume from the
    failed check or reuse stale evidence.
 
@@ -83,7 +84,8 @@ into a success claim.
 If every check passes, apply authorization independently:
 
 - If PR publication is authorized, run `shipping-change`; it separately checks
-  whether a commit is needed and authorized.
+  whether a commit is needed and authorized and stops on unanswered open
+  questions.
 - If only commit is authorized, run `committing-change` and stop without
   pushing or opening a PR.
 - If neither is authorized, ask before committing or publishing anything.

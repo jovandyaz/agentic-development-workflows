@@ -29,9 +29,8 @@ code, post comments, approve, merge, or change pull-request state.
 
 ## Ordered Review Pipeline
 
-Tell every reviewer subagent to mark as optional only findings that cause no
-incorrect behavior, security or authorization breach, data loss, or unmet
-requirement.
+Tell every reviewer subagent to label each finding Blocking or Non-blocking
+using the definitions in Synthesis.
 
 ### 1. First gate: assessing-code-quality
 
@@ -83,7 +82,8 @@ references, exclude pre-existing issues, and retain the strongest evidence.
 Classify every confirmed finding by impact, never by lens or severity label:
 
 - **Blocking**: incorrect behavior, a security or authorization breach, data
-  loss, or a requirement that is missing or implemented wrongly.
+  loss, or a requirement that is missing or implemented wrongly. Requirements
+  include the request, the spec, and mandatory repository instructions.
 - **Non-blocking**: maintainability, style, or speculative hardening.
 
 Report a finding whose classification is uncertain as an open question; never

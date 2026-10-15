@@ -384,20 +384,67 @@ test("review blocks only on correctness and requirement findings", () => {
     /\*\*Blocking\*\*: incorrect behavior, a security or authorization breach, data loss, or a requirement that is missing or implemented wrongly/,
   );
   assert.match(review, /\*\*Non-blocking\*\*: maintainability, style, or speculative hardening/);
+  assert.match(
+    review,
+    /Requirements include the request, the spec, and mandatory repository instructions\./,
+  );
   assert.match(review, /Report a finding whose classification is uncertain as an open question/);
   assert.match(
     review,
-    /mark as optional only findings that cause no incorrect behavior, security or authorization breach, data loss, or unmet requirement\./,
+    /label each finding Blocking or Non-blocking using the definitions in Synthesis\./,
   );
+  assert.doesNotMatch(review, /mark as optional/);
 });
 
 test("review callers repeat only for blocking findings", () => {
   for (const name of ["developing-feature", "fixing-bug", "verifying-change", "shipping-change"]) {
     const text = normalizedSkill(name);
     assert.match(text, /confirmed blocking finding/, name);
-    assert.match(text, /non-blocking findings/, name);
+    assert.match(text, /non-blocking findings and open questions/, name);
+    assert.doesNotMatch(text, /until clean|confirmed blockers|after review is clean/, name);
   }
-  for (const name of ["developing-feature", "fixing-bug"]) {
-    assert.match(normalizedSkill(name), /until no blocking findings remain/, name);
-  }
+  assertOrdered(normalizedSkill("shipping-change"), [
+    "resolve confirmed blocking findings",
+    "`verifying-change` matrix",
+  ]);
+  assertOrdered(normalizedSkill("fixing-bug"), [
+    "until no blocking findings remain",
+    "Run `verifying-change`",
+  ]);
+  const developing = normalizedSkill("developing-feature");
+  assert.match(developing, /Run `verifying-change` only after no blocking findings remain/);
+  assert.match(
+    developing,
+    /fix confirmed blocking findings one at a time and rerun `reviewing-change` until no blocking findings remain\. Report non-blocking findings and open questions and leave them to the user\. \d+\. Run `verifying-change` only after no blocking findings remain/,
+  );
+  assert.match(
+    normalizedSkill("fixing-bug"),
+    /fix each confirmed blocking finding, and repeat review until no blocking findings remain\. Report non-blocking findings and open questions and leave them to the user\. \d+\. Run `verifying-change`/,
+  );
+  assert.match(
+    normalizedSkill("verifying-change"),
+    /Run reviewing-change on the resulting diff, resolve confirmed blocking findings and rerun it until none remain, and report non-blocking findings and open questions to the user\. \d+\. Run verifying-change again/,
+  );
+  const shipping = normalizedSkill("shipping-change");
+  assert.match(
+    shipping,
+    /For any confirmed blocking finding or CI failure; report non-blocking findings to the user instead of fixing them:/,
+  );
+  assert.match(
+    shipping,
+    /Run `reviewing-change`, resolve confirmed blocking findings and rerun it until none remain, and report non-blocking findings and open questions to the user; then run the complete `verifying-change` matrix/,
+  );
+  assert.doesNotMatch(shipping, /For any confirmed finding or CI failure/);
 });
+
+test("open questions stop publication until the user answers", () => {
+  const shipping = normalizedSkill("shipping-change");
+  assert.match(
+    shipping,
+    /If an open question from `reviewing-change` is unanswered, stop before publication and ask; never resolve an open question by assumption\./,
+  );
+  assert.match(shipping, /push once every open question is answered/);
+  assertOrdered(shipping, ["unanswered, stop before publication", "## Commit And Create The Pull Request"]);
+  assert.match(normalizedSkill("verifying-change"), /stops on unanswered open questions/);
+});
+

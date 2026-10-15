@@ -50,8 +50,8 @@ Missing required dependencies are blockers, not reasons to approximate them.
 6. After implementation, run `reviewing-change`. Validate every finding with
    `receiving-code-review`; fix confirmed blocking findings one at a time and
    rerun `reviewing-change` until no blocking findings remain. Report
-   non-blocking findings and leave them to the user.
-7. Run `verifying-change` only after review is clean.
+   non-blocking findings and open questions and leave them to the user.
+7. Run `verifying-change` only after no blocking findings remain.
 
 Use `committing-change` for every authorized commit. Let `verifying-change`
 handoff to `shipping-change` only when PR publication was already authorized.

@@ -84,6 +84,9 @@ Apply only the rows triggered by the change, but document every applicable row:
 If a risky row has no credible mitigation, stop before publication and ask for a
 decision. Do not invent a rollback for an irreversible migration.
 
+If an open question from `reviewing-change` is unanswered, stop before
+publication and ask; never resolve an open question by assumption.
+
 ## Commit And Create The Pull Request
 
 1. Use `committing-change` for every authorized commit.
@@ -118,17 +121,20 @@ needed. Do not spam repeated commands.
 Before posting, confirm that posting a CodeRabbit command was included in the
 user's authorization. Otherwise report that review is pending and ask.
 
-For any confirmed finding or CI failure:
+For any confirmed blocking finding or CI failure; report non-blocking findings
+to the user instead of fixing them:
 
 1. Confirm existing implementation authorization covers the remediation and
    remains within the approved scope. Otherwise report the finding and ask
    before editing.
 2. Use `systematic-debugging` when the cause is not proven.
 3. Make a test-backed fix.
-4. Run `reviewing-change`, resolve confirmed blocking findings, and report
-   non-blocking findings to the user; then run the complete `verifying-change`
-   matrix.
-5. Use `committing-change`, push, and wait for review and CI on the new SHA.
+4. Run `reviewing-change`, resolve confirmed blocking findings and rerun it
+   until none remain, and report non-blocking findings and open questions to
+   the user; then run the complete
+   `verifying-change` matrix.
+5. Use `committing-change`, push once every open question is answered, and wait
+   for review and CI on the new SHA.
 6. Before requesting merge, curate the history again so review-round fixes are
    folded into the commits they correct.
 
