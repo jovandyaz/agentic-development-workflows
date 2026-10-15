@@ -31,16 +31,6 @@
       ]
     },
     {
-      "id": "anthropic-code-review",
-      "source": "https://github.com/anthropics/claude-plugins-official/tree/ed404106fcd80ba98ecb7c851e531dcb626d13b7/plugins/code-review",
-      "revision": "ed404106fcd80ba98ecb7c851e531dcb626d13b7",
-      "license": "Apache-2.0",
-      "requirement": "optional-claude-only",
-      "runtimes": [
-        "claude-code"
-      ]
-    },
-    {
       "id": "playwright-mcp",
       "source": "https://github.com/microsoft/playwright-mcp",
       "revision": "d0c29a5658b93b6e62435ceaf362a7d7dfc3522d",

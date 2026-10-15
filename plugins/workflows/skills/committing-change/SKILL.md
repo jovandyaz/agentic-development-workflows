@@ -49,7 +49,8 @@ fails, determine whether resolution edits content. Commit authorization alone
 does not authorize editing files. Confirm implementation or remediation
 authorization before editing; otherwise report the hook failure and ask. If
 resolving a hook changes content, rerun applicable review and verification
-before creating the commit.
+before creating the commit. A hook finding about the new commit is not a request
+to amend it; report the finding.
 
 Afterward, inspect the new commit and worktree. Report its SHA, subject, included
 scope, and any remaining changes. Do not claim a clean worktree unless verified.

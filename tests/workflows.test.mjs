@@ -74,9 +74,73 @@ test("reviewing-change runs assessing-code-quality before every other review len
     "First gate: assessing-code-quality",
     "Superpowers review",
     "Spec and standards axes",
-    "Anthropic review",
   ]);
   assert.match(text, /No other review lens starts until assessing-code-quality returns/);
+});
+
+test("review never delegates to a command that publishes on its own", () => {
+  const review = normalizedSkill("reviewing-change");
+  assert.doesNotMatch(review, /Anthropic review|`code-review` plugin/);
+  assert.doesNotMatch(review, /publishes a GitHub comment/);
+});
+
+test("workflows never hand off to the unguarded branch-finishing skill", () => {
+  for (const name of ["developing-feature", "fixing-bug", "verifying-change", "shipping-change"]) {
+    assert.match(
+      normalizedSkill(name),
+      /Never use `finishing-a-development-branch`: its merge, push, and pull-request options bypass these authorization checks\./,
+      name,
+    );
+  }
+  assert.match(
+    normalizedSkill("developing-feature"),
+    /When a subskill hands off to `finishing-a-development-branch`, skip that skill and continue with step 6\./,
+  );
+});
+
+test("review-fix loops stop after three rounds and report", () => {
+  for (const name of ["developing-feature", "fixing-bug", "verifying-change", "shipping-change"]) {
+    const text = normalizedSkill(name);
+    assert.match(text, /for at most three review rounds/, name);
+    assert.match(
+      text,
+      /If a blocking finding remains after the third round, stop and report it with the fixes attempted\./,
+      name,
+    );
+  }
+});
+
+test("hook-injected findings follow the review loop and never amend commits", () => {
+  const verifying = normalizedSkill("verifying-change");
+  assert.match(
+    verifying,
+    /Treat a finding injected by a hook, such as a security-guidance warning, as a review finding: validate it with `receiving-code-review` and fix it only under step 1's authorization check\./,
+  );
+  assert.match(
+    verifying,
+    /never amend, fold a fixup into, or otherwise rewrite that commit unless the user asks after seeing the report\./,
+  );
+  assert.match(
+    normalizedSkill("shipping-change"),
+    /A finding injected by a hook, such as a security-guidance review, follows this same loop; never amend, fold a fixup into, or otherwise rewrite the commit it flags, including during history curation, unless the user asks after seeing the report\./,
+  );
+  assert.match(
+    normalizedSkill("committing-change"),
+    /A hook finding about the new commit is not a request to amend it; report the finding\./,
+  );
+});
+
+test("review rounds are counted once across the whole workflow", () => {
+  assert.match(
+    normalizedSkill("reviewing-change"),
+    /Each run of this review is one round, starting at 1\. The count spans the whole workflow, including nested `verifying-change` loops, and resets only when the user explicitly asks for more rounds after the stop report\./,
+  );
+});
+
+test("bug fixing delegates debugging discipline instead of restating it", () => {
+  const bug = normalizedSkill("fixing-bug");
+  assert.match(bug, /Use `systematic-debugging` to prove the cause before any fix\./);
+  assert.doesNotMatch(bug, /three failed hypotheses|trace the bad state backward/);
 });
 
 test("feature and bug workflows review before final verification", () => {
@@ -376,7 +440,6 @@ test("dependency lock pins every approved external dependency", () => {
     [
       "superpowers",
       "anthropic-frontend-design",
-      "anthropic-code-review",
       "playwright-mcp",
     ],
   );
@@ -445,15 +508,15 @@ test("review callers repeat only for blocking findings", () => {
   assert.match(developing, /Run `verifying-change` only after no blocking findings remain/);
   assert.match(
     developing,
-    /fix confirmed blocking findings one at a time and rerun `reviewing-change` until no blocking findings remain\. Report non-blocking findings and open questions and leave them to the user\. \d+\. Run `verifying-change` only after no blocking findings remain/,
+    /fix confirmed blocking findings one at a time and rerun `reviewing-change` until no blocking findings remain, for at most three review rounds\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. Report non-blocking findings and open questions and leave them to the user\. \d+\. Run `verifying-change` only after no blocking findings remain/,
   );
   assert.match(
     normalizedSkill("fixing-bug"),
-    /fix each confirmed blocking finding, and repeat review until no blocking findings remain\. Report non-blocking findings and open questions and leave them to the user\. \d+\. Run `verifying-change`/,
+    /fix each confirmed blocking finding, and repeat review until no blocking findings remain, for at most three review rounds\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. Report non-blocking findings and open questions and leave them to the user\. \d+\. Run `verifying-change`/,
   );
   assert.match(
     normalizedSkill("verifying-change"),
-    /Run reviewing-change on the resulting diff, resolve confirmed blocking findings and rerun it until none remain, and report non-blocking findings and open questions to the user\. \d+\. Run verifying-change again/,
+    /Run reviewing-change on the resulting diff, resolve confirmed blocking findings and rerun it until none remain, for at most three review rounds, and report non-blocking findings and open questions to the user\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. \d+\. Run verifying-change again/,
   );
   const shipping = normalizedSkill("shipping-change");
   assert.match(
@@ -462,7 +525,7 @@ test("review callers repeat only for blocking findings", () => {
   );
   assert.match(
     shipping,
-    /Run `reviewing-change`, resolve confirmed blocking findings and rerun it until none remain, and report non-blocking findings and open questions to the user; then run the complete `verifying-change` matrix/,
+    /Run `reviewing-change`, resolve confirmed blocking findings and rerun it until none remain, for at most three review rounds\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. Report non-blocking findings and open questions to the user; then run the complete `verifying-change` matrix/,
   );
   assert.doesNotMatch(shipping, /For any confirmed finding or CI failure/);
 });
@@ -491,7 +554,6 @@ test("lesson capture is wired into every failure path", () => {
   }
   assertOrdered(skill("fixing-bug"), [
     "Implement one minimal cause-level fix",
-    "If the hypothesis fails",
     "Once the fix passes, use `capturing-lessons`",
     "Run `reviewing-change`",
   ]);

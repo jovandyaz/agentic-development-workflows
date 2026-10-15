@@ -37,7 +37,8 @@ Missing required dependencies are blockers, not reasons to approximate them.
    authorization.
 3. For UI work, use `frontend-design` after product intent is clear. Preserve an
    existing design system unless the approved brief explicitly replaces it.
-4. Use `using-git-worktrees` when isolation is appropriate, then use
+4. Use `using-git-worktrees` when isolation is appropriate, report the worktree
+   path, and remove it only when the user asks. Then use
    `writing-plans` to produce small tasks with acceptance and verification.
    When applicable, identify API/data compatibility, migration, rollback,
    rollout, observability, and agent-eval gates for the affected boundaries.
@@ -46,15 +47,20 @@ Missing required dependencies are blockers, not reasons to approximate them.
    `test-driven-development` for every behavior change. Each implementer gets
    the approved requirement, exact task, relevant paths, and no session history.
    Unless the user authorized commits, pass a no-commit constraint to every
-   subskill and subagent and omit their commit steps.
+   subskill and subagent and omit their commit steps. When a subskill hands off
+   to `finishing-a-development-branch`, skip that skill and continue with step 6.
 6. After implementation, run `reviewing-change`. Validate every finding with
    `receiving-code-review`; fix confirmed blocking findings one at a time and
-   rerun `reviewing-change` until no blocking findings remain. Report
-   non-blocking findings and open questions and leave them to the user.
+   rerun `reviewing-change` until no blocking findings remain, for at most
+   three review rounds. If a blocking finding remains after the third round,
+   stop and report it with the fixes attempted. Report non-blocking findings
+   and open questions and leave them to the user.
 7. Run `verifying-change` only after no blocking findings remain.
 
 Use `committing-change` for every authorized commit. Let `verifying-change`
 handoff to `shipping-change` only when PR publication was already authorized.
+Never use `finishing-a-development-branch`: its merge, push, and pull-request
+options bypass these authorization checks.
 
 Do not commit, push, publish, or open a pull request unless explicitly asked.
 Report what changed, fresh verification evidence, and unresolved risks.
