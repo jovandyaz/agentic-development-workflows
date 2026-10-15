@@ -158,6 +158,9 @@ test("committing-change enforces the default commit contract", () => {
   assert.match(commit, /imperative mood/);
   assert.match(commit, /empty body/);
   assert.match(commit, /Never add `Co-authored-by`/);
+  assert.match(commit, /even when the user asks for one/);
+  assert.match(commit, /name the omitted trailer in the report/);
+  assert.match(commit, /If a repository requires trailers, report that this commit policy is incompatible/);
   assert.match(commit, /no trailers/);
   assert.match(commit, /Do not use `--no-verify`/);
   assert.match(commit, /If resolving a hook changes content, rerun applicable review and verification/);

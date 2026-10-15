@@ -35,10 +35,11 @@ fix(auth): prevent duplicate verification emails
 ```
 
 Never add `Co-authored-by`, agent attribution, model attribution, or any other
-automatic trailer. AI-assistance disclosure belongs in the pull request when
-repository or organization policy requires it, not in Git authorship. If a
-repository requires trailers, report that this commit policy is incompatible
-and stop without committing.
+trailer, even when the user asks for one; explain the policy, commit without
+it, and name the omitted trailer in the report. AI-assistance disclosure belongs in the pull request when repository or
+organization policy requires it, not in Git authorship. If a repository requires
+trailers, report that this commit policy is incompatible and stop without
+committing.
 
 ## Commit And Confirm
 
