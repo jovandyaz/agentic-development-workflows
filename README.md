@@ -137,6 +137,63 @@ transaction journal. If a process is interrupted, verify its PID is no longer
 running and repeat the same install command with `--recover`; then rerun the
 original install command.
 
+## Update
+
+Each release has a version, a [changelog entry](plugins/workflows/CHANGELOG.md),
+and a [GitHub release](https://github.com/jovandyaz/agentic-development-workflows/releases).
+Watch the repository for releases to get notified. Entries that need action
+start with **Breaking:**.
+
+### Claude Code
+
+Third-party marketplaces start with auto-update off. Turn it on once: run
+`/plugin`, open **Marketplaces**, select `agentic-development-workflows`, and
+choose **Enable auto-update**. Claude Code then updates the plugin in the
+background after startup and prints
+`Plugin updated: workflows · Run /reload-plugins to apply`.
+
+To update by hand:
+
+```bash
+claude plugin update workflows@agentic-development-workflows
+```
+
+Then run `/reload-plugins` or start a new session. `claude plugin details workflows`
+shows the installed version.
+
+### Teams
+
+Commit this to the repository's `.claude/settings.json` to register the
+marketplace, enable the plugin, and keep it updated for everyone who trusts the
+folder:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "agentic-development-workflows": {
+      "source": { "source": "github", "repo": "jovandyaz/agentic-development-workflows" },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": { "workflows@agentic-development-workflows": true }
+}
+```
+
+An entry with the same marketplace name in `.claude/settings.local.json`
+replaces this one, including `autoUpdate`.
+
+### Portable skills
+
+Pull the clone and repeat the install command you used, for example:
+
+```bash
+git pull
+node scripts/sync-portable.mjs --install-global
+```
+
+The installer updates its own directories, removes skills that left the set,
+and refuses to overwrite a skill you modified locally.
+
 ## Use
 
 Skills activate automatically from their descriptions. Explicit invocation is
