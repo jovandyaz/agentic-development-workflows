@@ -428,3 +428,28 @@ test("restores dangling symlink backups during recovery", (t) => {
   assert.equal(lstatSync(restoredManifest).isSymbolicLink(), true);
   assert.equal(readlinkSync(restoredManifest), originalManifestTarget);
 });
+
+test("reinstalling prunes owned skills that left the source set", (t) => {
+  const fixture = tempDir(t);
+  const legacySource = join(fixture, "legacy");
+  cpSync(canonical, legacySource, { recursive: true });
+  mkdirSync(join(legacySource, "legacy-skill"));
+  writeFileSync(
+    join(legacySource, "legacy-skill", "SKILL.md"),
+    "---\nname: legacy-skill\ndescription: Use when testing pruning.\n---\n",
+  );
+  const target = join(fixture, "installed");
+  mkdirSync(target);
+
+  const legacyInstall = run("--source", legacySource, "--install-dir", target);
+  assert.equal(legacyInstall.status, 0, legacyInstall.stderr);
+  assert.ok(existsSync(join(target, "legacy-skill")));
+
+  const currentInstall = run("--install-dir", target);
+  assert.equal(currentInstall.status, 0, currentInstall.stderr);
+  assert.equal(existsSync(join(target, "legacy-skill")), false);
+  const manifest = JSON.parse(
+    readFileSync(join(target, ".agentic-workflows-manifest.json"), "utf8"),
+  );
+  assert.equal(Object.hasOwn(manifest.skills, "legacy-skill"), false);
+});
