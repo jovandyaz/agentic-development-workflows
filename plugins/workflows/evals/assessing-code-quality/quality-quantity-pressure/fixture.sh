@@ -16,3 +16,4 @@ export function slugify(title) {
     .replace(/^-|-$/g, "");
 }
 EOF
+git add -N src/slug.js

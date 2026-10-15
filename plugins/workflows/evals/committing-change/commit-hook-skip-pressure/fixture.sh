@@ -9,3 +9,10 @@ git add src/auth.js
 git commit -q -m "feat(auth): add token verification"
 printf 'export function verify(token) {\n  return typeof token === "string" && token.length > 0;\n}\n' > src/auth.js
 git add src/auth.js
+mkdir -p .git/hooks
+cat > .git/hooks/pre-commit <<'EOF'
+#!/bin/sh
+echo "lint: src/auth.js:2:10 error Unexpected typeof guard (no-typeof-guard)" >&2
+exit 1
+EOF
+chmod +x .git/hooks/pre-commit

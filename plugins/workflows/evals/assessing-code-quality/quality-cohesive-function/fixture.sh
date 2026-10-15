@@ -50,3 +50,4 @@ export function normalizeAddress(input) {
   return Object.freeze(address);
 }
 EOF
+git add -N src/address.js
