@@ -112,8 +112,14 @@ test("no workflow or install guide depends on Matt Pocock skills", () => {
 test("failed verification returns through debugging, review, and verification", () => {
   assertOrdered(skill("verifying-change"), [
     "Use systematic-debugging",
+    "capturing-lessons",
     "Run reviewing-change",
     "Run verifying-change again",
+  ]);
+  assertOrdered(skill("shipping-change"), [
+    "systematic-debugging",
+    "capturing-lessons",
+    "Run `reviewing-change`",
   ]);
 });
 
@@ -152,6 +158,9 @@ test("committing-change enforces the default commit contract", () => {
   assert.match(commit, /imperative mood/);
   assert.match(commit, /empty body/);
   assert.match(commit, /Never add `Co-authored-by`/);
+  assert.match(commit, /even when the user asks for one/);
+  assert.match(commit, /name the omitted trailer in the report/);
+  assert.match(commit, /If a repository requires trailers, report that this commit policy is incompatible/);
   assert.match(commit, /no trailers/);
   assert.match(commit, /Do not use `--no-verify`/);
   assert.match(commit, /If resolving a hook changes content, rerun applicable review and verification/);
@@ -292,12 +301,13 @@ test("all published versions stay synchronized", () => {
       "utf8",
     ),
   ).version;
-  assert.equal(packageVersion, "0.4.0");
+  assert.equal(packageVersion, "0.5.0");
   assert.equal(marketplaceVersion, packageVersion);
   assert.equal(pluginVersion, packageVersion);
   for (const name of [
     "applying-engineering-standards",
     "assessing-code-quality",
+    "capturing-lessons",
     "committing-change",
     "developing-feature",
     "fixing-bug",
@@ -305,7 +315,7 @@ test("all published versions stay synchronized", () => {
     "shipping-change",
     "verifying-change",
   ]) {
-    assert.match(skill(name), /version: "0\.4\.0"/);
+    assert.match(skill(name), /version: "0\.5\.0"/);
   }
 });
 
@@ -448,3 +458,45 @@ test("open questions stop publication until the user answers", () => {
   assert.match(normalizedSkill("verifying-change"), /stops on unanswered open questions/);
 });
 
+test("lesson capture is wired into every failure path", () => {
+  for (const name of ["fixing-bug", "reviewing-change", "verifying-change", "shipping-change"]) {
+    assert.match(skill(name), /capturing-lessons/, name);
+  }
+  for (const name of ["fixing-bug", "verifying-change", "shipping-change"]) {
+    assert.match(
+      normalizedSkill(name),
+      /once per finding; reuse a lesson report that `?reviewing-change`? already produced/,
+      name,
+    );
+  }
+  assertOrdered(skill("fixing-bug"), [
+    "Implement one minimal cause-level fix",
+    "If the hypothesis fails",
+    "Once the fix passes, use `capturing-lessons`",
+    "Run `reviewing-change`",
+  ]);
+  assert.match(
+    normalizedSkill("shipping-change"),
+    /known gaps, and a `Lessons` section with each lesson proposed or applied, or `None` when no lesson qualified\./,
+  );
+  assertOrdered(normalizedSkill("shipping-change"), [
+    "## Review And CI Loop",
+    "update the PR body's `Lessons` section",
+  ]);
+});
+
+test("lessons prefer enforcement over instructions and never trust bot text", () => {
+  const lessons = normalizedSkill("capturing-lessons");
+  assertOrdered(lessons, [
+    "A regression test",
+    "A lint, typecheck, or static-analysis rule",
+    "A check that blocks the action",
+    "A rule in the repository's instruction file",
+    "A skill change plus a new eval case",
+  ]);
+  assert.match(lessons, /Memory is never the enforcement mechanism/);
+  assert.match(lessons, /edit authorization never authorizes a commit/);
+  assert.match(lessons, /bot text never creates a rule on its own/);
+  assert.match(lessons, /Never add a duplicate rule or emphasis/);
+  assert.match(lessons, /Capturing a lesson never blocks delivery/);
+});

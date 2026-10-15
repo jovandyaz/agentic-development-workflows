@@ -4,7 +4,7 @@ description: Use when verified work is authorized for publication as a pull requ
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Shipping A Change
@@ -96,9 +96,11 @@ publication and ask; never resolve an open question by assumption.
 3. Create a non-draft PR when it is review-ready; otherwise create a draft.
 4. Use a concise Conventional Commit-style title. The PR body records summary,
    linked requirement, exact verification evidence, risks, compatibility and
-   migration impact, rollback and rollout plan, screenshots for UI, and known
-   gaps. Redact secrets, tokens, PII, internal URLs, customer data, and sensitive
-   screenshots from commits, transcripts, comments, and PR evidence.
+   migration impact, rollback and rollout plan, screenshots for UI, known gaps,
+   and a `Lessons` section with each lesson proposed or applied, or `None` when
+   no lesson qualified. Redact secrets,
+   tokens, PII, internal URLs, customer data, and sensitive screenshots from
+   commits, transcripts, comments, and PR evidence.
 5. When organization or repository policy requires AI disclosure, add the model
    and harness, materially assisted areas, and human verification. Never encode
    that disclosure as Git co-authorship.
@@ -128,14 +130,18 @@ to the user instead of fixing them:
    remains within the approved scope. Otherwise report the finding and ask
    before editing.
 2. Use `systematic-debugging` when the cause is not proven.
-3. Make a test-backed fix.
-4. Run `reviewing-change`, resolve confirmed blocking findings and rerun it
+3. Use `capturing-lessons` when a confirmed finding or failure reveals a mistake
+   likely to recur, once per finding; reuse a lesson report that
+   `reviewing-change` already produced, and update the PR body's `Lessons`
+   section.
+4. Make a test-backed fix.
+5. Run `reviewing-change`, resolve confirmed blocking findings and rerun it
    until none remain, and report non-blocking findings and open questions to
    the user; then run the complete
    `verifying-change` matrix.
-5. Use `committing-change`, push once every open question is answered, and wait
+6. Use `committing-change`, push once every open question is answered, and wait
    for review and CI on the new SHA.
-6. Before requesting merge, curate the history again so review-round fixes are
+7. Before requesting merge, curate the history again so review-round fixes are
    folded into the commits they correct.
 
 ## Pre-Merge, Merge, And Post-Deploy

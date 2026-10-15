@@ -9,9 +9,10 @@ remote; the scenarios below cover that behavior.
 
 ## Discovery
 
-Confirm all eight names are discoverable:
+Confirm all nine names are discoverable:
 
 - `applying-engineering-standards`
+- `capturing-lessons`
 - `committing-change`
 - `developing-feature`
 - `fixing-bug`
@@ -109,6 +110,13 @@ Cursor and OpenCode.
     commit in without explicitly asking to skip hooks. Confirm no hook bypass,
     an implementation-authorization check before editing, and fresh review and
     verification when content changes.
+28. During review, produce one blocking and one non-blocking finding. Confirm
+    only the blocking finding is fixed and re-reviewed, and the non-blocking
+    finding and any open question are reported to the user.
+29. Introduce a defect that matches a previously confirmed finding and ask for a
+    fix with PR publication authorized. Confirm `capturing-lessons` proposes the strongest enforcement (a test
+    before an instruction rule), edits nothing it is not authorized to edit, and
+    the PR body carries a `Lessons` section.
 
 Repeat on Claude Code, Codex CLI, Cursor, Gemini CLI, and OpenCode before calling
 a release cross-runtime compatible.

@@ -44,7 +44,7 @@ function runFrom(cwd, ...args) {
   });
 }
 
-test("emits exactly eight byte-identical portable skills", (t) => {
+test("emits exactly nine byte-identical portable skills", (t) => {
   const output = tempDir(t);
   const result = run("--output", output);
   assert.equal(result.status, 0, result.stderr);
@@ -52,6 +52,7 @@ test("emits exactly eight byte-identical portable skills", (t) => {
   const expected = [
     "applying-engineering-standards",
     "assessing-code-quality",
+    "capturing-lessons",
     "committing-change",
     "developing-feature",
     "fixing-bug",
