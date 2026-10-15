@@ -3,7 +3,7 @@ type: regex
 target:
   source: file
   path: AGENTS.md
-pattern: 'runtime dependenc'
-flags: i
+pattern: '^- .*(dependenc|package\.json)'
+flags: im
 match: "count:1"
 ---
