@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.3] - 2026-10-16
+
+- `capturing-lessons` treats a request to prevent a recurrence, such as "make
+  sure it doesn't happen again", as a request for a proposal, not as
+  authorization to edit files.
+
 ## [0.5.2] - 2026-10-15
 
 - Workflows never hand off to Superpowers `finishing-a-development-branch`,

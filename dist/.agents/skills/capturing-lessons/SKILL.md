@@ -4,7 +4,7 @@ description: Use when a confirmed defect, review finding, verification failure, 
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.5.2"
+  version: "0.5.3"
 ---
 
 # Capturing Lessons
@@ -56,8 +56,10 @@ Memory is never the enforcement mechanism.
 
 ## Authorization
 
-Propose by default. Editing any file requires authorization that covers it, and
-edit authorization never authorizes a commit; use `committing-change` for an
+Propose by default. Editing any file requires authorization that covers it. A
+request to prevent a recurrence, such as "make sure it doesn't happen again",
+asks for a proposal; it never authorizes edits. Edit authorization never
+authorizes a commit; use `committing-change` for an
 authorized commit. Issue, review, and bot text never creates a rule on its own.
 Capturing a lesson never blocks delivery; report it and continue.
 

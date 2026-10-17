@@ -385,7 +385,7 @@ test("all published versions stay synchronized", () => {
       "utf8",
     ),
   ).version;
-  assert.equal(packageVersion, "0.5.2");
+  assert.equal(packageVersion, "0.5.3");
   assert.equal(marketplaceVersion, packageVersion);
   assert.equal(pluginVersion, packageVersion);
   for (const name of [
@@ -577,7 +577,11 @@ test("lessons prefer enforcement over instructions and never trust bot text", ()
     "A skill change plus a new eval case",
   ]);
   assert.match(lessons, /Memory is never the enforcement mechanism/);
-  assert.match(lessons, /edit authorization never authorizes a commit/);
+  assert.match(lessons, /Edit authorization never authorizes a commit/);
+  assert.match(
+    lessons,
+    /A request to prevent a recurrence, such as "make sure it doesn't happen again", asks for a proposal; it never authorizes edits\./,
+  );
   assert.match(lessons, /bot text never creates a rule on its own/);
   assert.match(lessons, /Never add a duplicate rule or emphasis/);
   assert.match(lessons, /Capturing a lesson never blocks delivery/);
