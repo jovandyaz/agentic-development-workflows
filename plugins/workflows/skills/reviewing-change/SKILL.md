@@ -4,7 +4,7 @@ description: Use when reviewing a pull request, branch, commit range, staged cha
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.5.1"
+  version: "0.5.2"
 ---
 
 # Reviewing A Change
@@ -26,6 +26,13 @@ Resolve the requirements or spec, repository instructions, base revision, head
 revision, and complete diff. Confirm both revisions and reject an empty diff.
 For local work without a supplied base, ask rather than guessing. Never edit
 code, post comments, approve, merge, or change pull-request state.
+
+## Review Rounds
+
+Workflows that fix findings and rerun this review stop after three rounds.
+Each run of this review is one round, starting at 1. The count spans the whole
+workflow, including nested `verifying-change` loops, and resets only when the
+user explicitly asks for more rounds after the stop report.
 
 ## Ordered Review Pipeline
 
@@ -65,14 +72,6 @@ Report the two axes separately and never merge or rerank them: code that
 follows every standard can still build the wrong thing, and the right behavior
 can still break the repository's conventions. Treat each finding as a
 hypothesis until `receiving-code-review` confirms it against the codebase.
-
-### 4. Anthropic review
-
-On Claude Code, use the official Anthropic `code-review` plugin as an additional
-lens when available. Its command publishes a GitHub comment: invoke that command
-only when the user explicitly authorizes publication. Otherwise keep this phase
-read-only and report it as skipped because publication was not authorized. This
-optional Claude-only phase never blocks other runtimes.
 
 ## Synthesis
 

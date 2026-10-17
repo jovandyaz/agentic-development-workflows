@@ -4,7 +4,7 @@ description: Use when behavior is broken, a test fails, an error is reported, a 
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.5.1"
+  version: "0.5.2"
 ---
 
 # Fixing A Bug
@@ -29,28 +29,27 @@ Claude Code may use `/plugin install frontend-design@claude-plugins-official`.
    expected behavior, actual behavior, and a
    deterministic reproduction. If reproduction is impossible, collect evidence
    instead of editing speculatively.
-2. Use `systematic-debugging`. Read errors and recent changes, trace the bad
-   state backward to its origin, compare a working path, and state one testable
-   hypothesis.
+2. Use `systematic-debugging` to prove the cause before any fix.
 3. Use `test-driven-development` to add the smallest regression test. Observe
    it fail for the expected reason before changing production code.
 4. Implement one minimal cause-level fix. Run the regression test, then relevant
    neighboring tests. For UI fixes, apply `frontend-design` without replacing
    an established design system. Do not combine unrelated cleanup with the fix.
-5. If the hypothesis fails, return to evidence. After three failed hypotheses,
-   stop and question the architecture or assumptions with the user.
-6. Once the fix passes, use `capturing-lessons` when the proven cause reveals a
+5. Once the fix passes, use `capturing-lessons` when the proven cause reveals a
    mistake likely to recur, once per finding; reuse a lesson report that
    `reviewing-change` already produced.
-7. Run `reviewing-change`. Validate feedback with `receiving-code-review`, fix
+6. Run `reviewing-change`. Validate feedback with `receiving-code-review`, fix
    each confirmed blocking finding, and repeat review until no blocking findings
-   remain. Report non-blocking findings and open questions and leave them to the
-   user.
-8. Run `verifying-change` to reproduce the original path and execute the broader
+   remain, for at most three review rounds. If a blocking finding remains after
+   the third round, stop and report it with the fixes attempted. Report
+   non-blocking findings and open questions and leave them to the user.
+7. Run `verifying-change` to reproduce the original path and execute the broader
    checks justified by the affected surface.
 
 Distinguish a temporary mitigation from a permanent fix. Do not commit, push,
 publish, or open a pull request unless explicitly asked. Pass a no-commit
 constraint to every subskill and subagent and omit their normal commit steps.
 When a commit is authorized, use `committing-change`; PR publication remains a
-separate authorization handled after `verifying-change`.
+separate authorization handled after `verifying-change`. Never use
+`finishing-a-development-branch`: its merge, push, and pull-request options
+bypass these authorization checks.

@@ -4,7 +4,7 @@ description: Use when implementation or review is complete, before claiming succ
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.5.1"
+  version: "0.5.2"
 ---
 
 # Verifying A Change
@@ -76,10 +76,18 @@ If any check fails:
    produced.
 4. Make the smallest test-backed fix.
 5. Run reviewing-change on the resulting diff, resolve confirmed blocking
-   findings and rerun it until none remain, and report non-blocking findings
-   and open questions to the user.
+   findings and rerun it until none remain, for at most three review rounds,
+   and report non-blocking findings and open questions to the user. If a
+   blocking finding remains after the third round, stop and report it with the
+   fixes attempted.
 6. Run verifying-change again from the full matrix; do not resume from the
    failed check or reuse stale evidence.
+
+Treat a finding injected by a hook, such as a security-guidance warning, as a
+review finding: validate it with `receiving-code-review` and fix it only under
+step 1's authorization check. Fix a finding about a commit that already exists
+in a new commit, or report it; never amend, fold a fixup into, or otherwise
+rewrite that commit unless the user asks after seeing the report.
 
 Report passed, failed, and not-run checks separately. Never soften a failure
 into a success claim.
@@ -94,3 +102,5 @@ If every check passes, apply authorization independently:
 - If neither is authorized, ask before committing or publishing anything.
 
 Successful verification alone is not commit or publication authorization.
+Never use `finishing-a-development-branch`: its merge, push, and pull-request
+options bypass these authorization checks.

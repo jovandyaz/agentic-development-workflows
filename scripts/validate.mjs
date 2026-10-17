@@ -10,6 +10,7 @@ const skillsRoot = join(plugin, "skills");
 const evalsRoot = join(plugin, "evals");
 const EVAL_RESULTS_DIRECTORY = "results";
 const MIN_EVAL_CASES = 3;
+const PLUGIN_UNDER_TEST_FROM_CASE = "../../..";
 const expectedSkills = [
   "applying-engineering-standards",
   "assessing-code-quality",
@@ -178,6 +179,23 @@ function validateCaseYaml(directory, location) {
     fail(`${location}: scaffold_script must be a relative path inside the case directory`);
   } else if (!isFile(script)) {
     fail(`${location}: scaffold_script ${scaffoldScript} not found in the case directory`);
+  } else if (readFileSync(script, "utf8").includes(".claude/")) {
+    fail(
+      `${location}: scaffold_script writes .claude/, which eval runs never load; ship stub skills as a plugin listed in prompt.md plugins`,
+    );
+  }
+}
+
+function validatePromptPlugins(directory, location) {
+  const path = join(directory, "prompt.md");
+  if (!isFile(path)) return;
+  const plugins = readFileSync(path, "utf8").match(/^plugins:\s*\[(.*)\]\s*$/m);
+  if (!plugins) return;
+  const entries = plugins[1].split(",").map(yamlScalar);
+  if (entries[0] !== PLUGIN_UNDER_TEST_FROM_CASE) {
+    fail(
+      `${location}: prompt.md plugins replaces the plugin under test; list ${PLUGIN_UNDER_TEST_FROM_CASE} first`,
+    );
   }
 }
 
@@ -187,6 +205,7 @@ function validateEvalCase(directory) {
     fail(`${location}: missing prompt.md or case.yaml`);
   }
   validateCaseYaml(directory, location);
+  validatePromptPlugins(directory, location);
   const graders = join(directory, "graders");
   if (existsSync(graders) && !isDirectory(graders)) {
     fail(`${relative(root, graders)}: graders must be a directory`);

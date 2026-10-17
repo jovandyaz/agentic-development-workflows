@@ -277,6 +277,31 @@ test("rejects a missing scaffold script", (t) => {
   );
 });
 
+test("rejects a scaffold that writes project config the eval sandbox never loads", (t) => {
+  const directory = fixture(t);
+  writeFileSync(
+    evalPath(directory, "verifying-change", "verify-hook-finding", "fixture.sh"),
+    "#!/usr/bin/env bash\nmkdir -p .claude/skills/stub\n",
+  );
+  assertReported(
+    runValidator(directory),
+    /verify-hook-finding: scaffold_script writes \.claude\/, which eval runs never load/,
+  );
+});
+
+test("rejects a plugins list that drops the plugin under test", (t) => {
+  const directory = fixture(t);
+  replaceInFile(
+    evalPath(directory, "verifying-change", "verify-hook-finding", "prompt.md"),
+    "plugins: [../../.., superpowers-stub]",
+    "plugins: [superpowers-stub]",
+  );
+  assertReported(
+    runValidator(directory),
+    /verify-hook-finding: prompt\.md plugins replaces the plugin under test; list \.\.\/\.\.\/\.\. first/,
+  );
+});
+
 test("rejects a case name that differs from its directory", (t) => {
   const directory = fixture(t);
   replaceInFile(

@@ -4,7 +4,7 @@ description: Use when a confirmed defect, review finding, verification failure, 
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.5.1"
+  version: "0.5.2"
 ---
 
 # Capturing Lessons

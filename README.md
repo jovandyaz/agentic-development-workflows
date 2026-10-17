@@ -60,7 +60,6 @@ prints installation guidance instead of silently approximating a missing skill.
 | --- | --- |
 | Superpowers | Running any orchestrated workflow; standalone `assessing-code-quality` has no external dependency |
 | Anthropic `frontend-design` | A feature or bug fix changes UI |
-| Anthropic `code-review` | Optional extra lens on Claude Code |
 | Playwright MCP | Verifying a user-visible web path |
 
 Reviewed compatibility baselines and licenses are pinned in
@@ -87,15 +86,11 @@ Claude Code can install the official variants:
 ```text
 /plugin install superpowers@claude-plugins-official
 /plugin install frontend-design@claude-plugins-official
-/plugin install code-review@claude-plugins-official
 ```
 
 Marketplace commands follow the version currently curated by their provider;
 use the commit-addressed portable archive commands above when immutable source
 selection is required.
-
-The official Anthropic `code-review` command publishes a GitHub comment. These
-workflows never invoke that side effect without explicit user authorization.
 
 ## Install
 
