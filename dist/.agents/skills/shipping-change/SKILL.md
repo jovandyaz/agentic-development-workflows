@@ -4,7 +4,7 @@ description: Use when asked or expected to push a branch, open or update a pull 
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.5.2"
+  version: "0.5.3"
 ---
 
 # Shipping A Change
