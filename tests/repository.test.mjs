@@ -241,3 +241,36 @@ test("the eval workflow summarizes results by skill after the leak check and bef
   assert.ok(leak >= 0 && leak < summary && summary < upload);
   assert.match(workflow, /node scripts\/eval-report\.mjs eval-output\/results\.json >> "\$GITHUB_STEP_SUMMARY"/);
 });
+
+test("the CI fixer template keeps secrets from forks, caps the run, and never lets the agent push", () => {
+  const template = readFileSync(join(root, "docs", "templates", "ci-fix-agent.yml"), "utf8");
+  assert.doesNotMatch(template, /pull_request_target/);
+  assert.match(template, /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/);
+  assert.match(template, /--permission-mode dontAsk/);
+  assert.match(template, /--max-turns \d+/);
+  assert.match(template, /--max-budget-usd \d+/);
+  const allowed = template.match(/--allowedTools "([^"]+)"/)?.[1] ?? "";
+  assert.doesNotMatch(allowed, /git|gh /, "the workflow, not the agent, commits and pushes");
+  assert.match(template, /--remove-label agent:fix-ci/);
+});
+
+test("the CI fixer's agent job holds no write credentials and hands over every edit", () => {
+  const template = readFileSync(join(root, "docs", "templates", "ci-fix-agent.yml"), "utf8");
+  assert.match(template, /^permissions: \{\}$/m);
+  const [fixJob, publishJob] = template.split(/^  publish:$/m);
+  assert.ok(publishJob, "a separate job publishes the agent's edits");
+  assert.doesNotMatch(fixJob, /: write/, "tests the agent edits run with this job's token");
+  assert.match(fixJob, /persist-credentials: false/);
+  const agentStep = fixJob.slice(fixJob.indexOf("name: Let Claude fix"), fixJob.indexOf("name: Package"));
+  assert.doesNotMatch(agentStep, /GH_TOKEN|github\.token/);
+  assert.match(fixJob, /git add -A -- \. ':!handoff' ':!\.github'/, "new files are part of the fix; CI config is not");
+  assert.doesNotMatch(template, /git diff --quiet/, "git diff --quiet ignores new files");
+  const apply = publishJob.indexOf("git apply --index handoff/agent.patch");
+  const check = publishJob.indexOf("git diff --cached --name-only --no-renames -z HEAD");
+  assert.ok(apply >= 0 && apply < check, "the artifact is untrusted: check the paths it actually staged");
+  assert.ok(check < publishJob.indexOf("git commit"), "the check runs before the commit");
+  const pushStep = publishJob.slice(publishJob.indexOf("name: Commit and push"), publishJob.indexOf("run:", publishJob.indexOf("name: Commit and push")));
+  assert.match(pushStep, /if: needs\.fix\.result == 'success'/, "a failed agent run pushes nothing");
+  assert.match(publishJob, /if: vars\.CI_FIX_APP_CLIENT_ID != ''/, "the GitHub App token is optional");
+  assert.match(publishJob, /token: \$\{\{ steps\.app\.outputs\.token \|\| github\.token \}\}/);
+});
