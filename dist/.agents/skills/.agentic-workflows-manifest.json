@@ -11,19 +11,19 @@
       "integrity": "sha256-39e61a2a0bb1b9bb7a95f9314ae574948d2c48fdb7054c04db17dafc1be97ade"
     },
     "committing-change": {
-      "integrity": "sha256-3c7ece8312ba6f0d6e88b09a8212cad79dcd9e8ff21f3b2f7cb4433ad2559968"
+      "integrity": "sha256-72106031bb7760b780305b64801bd6643ba00890afc3ec8c3498e421a69a3691"
     },
     "developing-feature": {
-      "integrity": "sha256-e9d260a952c73238e54443ed6e61b3f5622f0e445f18aaea8bf5b9515ae6ec22"
+      "integrity": "sha256-f2fbd774a35bed8f159bd5106838ef9fb246b70937540de2c06c248d6081f814"
     },
     "fixing-bug": {
-      "integrity": "sha256-57f79e4a1073e950f2fce91f8cfb3caa1251fdb5ac6a96d16d3e47d9cf92d54b"
+      "integrity": "sha256-6f7a03f60ba9d0e6c9836126343aeabb8c437f4aea407f62a7ca23489c2bb5aa"
     },
     "reviewing-change": {
       "integrity": "sha256-c033e8597efb21be33a27770ed8f96abcd908e0a1e9c0745cee5ffa1d54f2703"
     },
     "shipping-change": {
-      "integrity": "sha256-0f9eecfff6f4797ec1ffb89844ad1664725202ef25d015562b6dedb851de6e1b"
+      "integrity": "sha256-2205d5888f66753891824ca7a363bb349e53e99cd4e9796f336f4205d36706ed"
     },
     "verifying-change": {
       "integrity": "sha256-ea06245d0e4468f20bac5f9e91806ae1c991948f51a8f1557d6e36501dbd351e"

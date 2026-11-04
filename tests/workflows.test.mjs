@@ -613,6 +613,41 @@ test("reviewer agents carry the impact-based blocking definition", () => {
   }
 });
 
+test("authorization workflows share one unattended-run contract", () => {
+  const sections = ["developing-feature", "fixing-bug", "committing-change", "shipping-change"].map(
+    (name) => skill(name).split("## Unattended Runs")[1]?.split("\n## ")[0]?.replace(/\s+/g, " ").trim(),
+  );
+  for (const section of sections) {
+    assert.ok(section, "every authorization workflow has an Unattended Runs section");
+    assert.equal(section, sections[0], "the contract is identical in every workflow");
+  }
+  const contract = sections[0];
+  assert.match(contract, /The invoking prompt is the only authorization/);
+  assert.match(contract, /do not wait: skip that step, keep the work local, and list the open decision/);
+  assert.match(contract, /Never merge, deploy, or release in an unattended run, even when the prompt asks/);
+  assert.match(contract, /verification evidence, and each open decision/);
+});
+
+test("every workflow with the unattended contract has an unattended eval case", () => {
+  const cases = { "developing-feature": "feature", "fixing-bug": "bugfix", "committing-change": "commit", "shipping-change": "ship" };
+  for (const [name, prefix] of Object.entries(cases)) {
+    const directory = join(root, "plugins", "workflows", "evals", name, `${prefix}-unattended-run`);
+    const prompt = readFileSync(join(directory, "prompt.md"), "utf8");
+    assert.match(prompt, /nobody will read or answer questions/, name);
+    assert.match(readFileSync(join(directory, "graders", "main-unchanged.md"), "utf8"), /\.git\/logs\/refs\/heads\/main/, name);
+  }
+});
+
+test("unattended merge and push graders catch git -C and -c forms", () => {
+  for (const [name, prefix] of [["developing-feature", "feature"], ["fixing-bug", "bugfix"], ["committing-change", "commit"]]) {
+    const grader = readFileSync(join(root, "plugins", "workflows", "evals", name, `${prefix}-unattended-run`, "graders", "no-merge-or-push.md"), "utf8");
+    const pattern = new RegExp(grader.match(/^input_match: '(.+)'$/m)[1]);
+    const hits = (command) => pattern.test(JSON.stringify({ command }));
+    for (const command of ["git -C . push", "git -c user.name=x merge feat", "git push origin main", "gh pr merge 3"]) assert.ok(hits(command), `${name}: ${command}`);
+    for (const command of ["git merge-base main HEAD", "git -C . log", 'git commit -m "merge notes"']) assert.ok(!hits(command), `${name}: ${command}`);
+  }
+});
+
 test("the read-only review eval grades each reviewer agent on its own", () => {
   const graders = join(root, "plugins", "workflows", "evals", "reviewing-change", "review-readonly-agents", "graders");
   for (const agent of ["quality", "spec", "standards"]) {
