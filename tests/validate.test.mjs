@@ -331,3 +331,52 @@ test("rejects an eval case without prompt.md or case.yaml", (t) => {
   assert.equal(result.status, 1);
   assert.match(result.stderr, /commit-authorized: missing prompt\.md or case\.yaml/);
 });
+
+function agentPath(directory, name) {
+  return join(directory, "plugins", "workflows", "agents", `${name}.md`);
+}
+
+test("rejects a reviewer agent granted a tool that edits or runs commands", (t) => {
+  const directory = fixture(t);
+  const path = agentPath(directory, "spec-reviewer");
+  writeFileSync(path, readFileSync(path, "utf8").replace("tools: Read, Grep, Glob", "tools: Read, Grep, Glob, Bash"));
+  const result = runValidator(directory);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /spec-reviewer\.md: tool Bash is not read-only/);
+});
+
+test("rejects a reviewer agent granted the Skill tool, which can start a skill with other tools", (t) => {
+  const directory = fixture(t);
+  const path = agentPath(directory, "spec-reviewer");
+  writeFileSync(path, readFileSync(path, "utf8").replace("tools: Read, Grep, Glob", "tools: Read, Grep, Glob, Skill"));
+  const result = runValidator(directory);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /spec-reviewer\.md: tool Skill is not read-only/);
+});
+
+test("rejects a reviewer agent without a tools list, which would inherit every tool", (t) => {
+  const directory = fixture(t);
+  const path = agentPath(directory, "standards-reviewer");
+  writeFileSync(path, readFileSync(path, "utf8").replace("tools: Read, Grep, Glob\n", ""));
+  const result = runValidator(directory);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /standards-reviewer\.md: tools must be listed/);
+});
+
+test("rejects an unexpected or missing agent", (t) => {
+  const directory = fixture(t);
+  rmSync(agentPath(directory, "quality-reviewer"));
+  writeFileSync(agentPath(directory, "deployer"), "---\nname: deployer\ndescription: Use when deploying.\ntools: Read\n---\n");
+  const result = runValidator(directory);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /expected agents quality-reviewer\.md, spec-reviewer\.md, standards-reviewer\.md; found deployer\.md/);
+});
+
+test("rejects an agent whose name differs from its file", (t) => {
+  const directory = fixture(t);
+  const path = agentPath(directory, "spec-reviewer");
+  writeFileSync(path, readFileSync(path, "utf8").replace("name: spec-reviewer", "name: spec"));
+  const result = runValidator(directory);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /spec-reviewer\.md: name must match file name/);
+});

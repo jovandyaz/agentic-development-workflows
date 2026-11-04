@@ -22,6 +22,9 @@ const expectedSkills = [
   "shipping-change",
   "verifying-change",
 ];
+const agentsRoot = join(plugin, "agents");
+const expectedAgents = ["quality-reviewer", "spec-reviewer", "standards-reviewer"];
+const readOnlyTools = new Set(["Read", "Grep", "Glob"]);
 const allowedFields = new Set([
   "name",
   "description",
@@ -123,6 +126,23 @@ function validateSkill(path, expectedVersion) {
 
   if (existsSync(join(dirname(path), "evals"))) {
     fail(`${location}: legacy evals directory; move cases to ${relative(root, join(evalsRoot, name))}`);
+  }
+}
+
+function validateAgent(path) {
+  const location = relative(root, path);
+  const metadata = parseFrontmatter(readFileSync(path, "utf8"), path);
+  const name = metadata.match(/^name:\s*(.+)$/m)?.[1]?.trim();
+  const description = metadata.match(/^description:\s*(.+)$/m)?.[1]?.trim();
+  const tools = metadata.match(/^tools:\s*(.+)$/m)?.[1]?.trim();
+  if (name !== basename(path, ".md")) fail(`${location}: name must match file name`);
+  if (!description?.startsWith("Use when")) fail(`${location}: description must start with "Use when"`);
+  if (!tools) {
+    fail(`${location}: tools must be listed; an agent without tools inherits every tool`);
+    return;
+  }
+  for (const tool of tools.split(",").map((entry) => entry.trim())) {
+    if (!readOnlyTools.has(tool)) fail(`${location}: tool ${tool} is not read-only`);
   }
 }
 
@@ -296,6 +316,17 @@ if (!existsSync(evalsRoot)) {
   for (const name of expectedSkills) validateEvalSuite(name);
 }
 
+const actualAgents = existsSync(agentsRoot)
+  ? readdirSync(agentsRoot).filter((file) => !file.startsWith(".")).sort()
+  : [];
+const expectedAgentFiles = expectedAgents.map((name) => `${name}.md`);
+if (JSON.stringify(actualAgents) !== JSON.stringify(expectedAgentFiles)) {
+  fail(`expected agents ${expectedAgentFiles.join(", ")}; found ${actualAgents.join(", ")}`);
+}
+for (const file of actualAgents) {
+  if (file.endsWith(".md")) validateAgent(join(agentsRoot, file));
+}
+
 const lock = readJson(join(root, "dependencies.lock.json"));
 for (const dependency of lock?.dependencies ?? []) {
   if (!/^[a-f0-9]{40}$/.test(dependency.revision ?? "")) {
@@ -318,4 +349,4 @@ if (failures.length > 0) {
   for (const failure of failures) console.error(`  ${failure}`);
   process.exit(1);
 }
-console.log("OK: marketplace, plugin, dependencies, skills, and evals are valid");
+console.log("OK: marketplace, plugin, dependencies, skills, agents, and evals are valid");

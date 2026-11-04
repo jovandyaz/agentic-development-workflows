@@ -39,12 +39,24 @@ user explicitly asks for more rounds after the stop report.
 Tell every reviewer subagent to label each finding Blocking or Non-blocking
 using the definitions in Synthesis.
 
+Give every reviewer the same scope material: base, head, commit list with full
+messages, diff text, and the history of the changed lines (for example
+`git log -L` or `git blame` output). Reviewers then need no shell of their own.
+
+Where the runtime provides this plugin's read-only reviewer agents, dispatch
+them by name: `workflows:quality-reviewer`, `workflows:spec-reviewer`, and
+`workflows:standards-reviewer`. Their tool list, not an instruction, keeps them
+read-only. Elsewhere, dispatch a fresh subagent and tell it to stay read-only.
+Dispatch them for every diff, whatever its size; never run a lens inline. The
+reviewer's isolation, not the diff's size, is what makes the review
+independent.
+
 ### 1. First gate: assessing-code-quality
 
 **No other review lens starts until assessing-code-quality returns.** Dispatch
-a fresh read-only subagent with the exact scope and require it to use
-`assessing-code-quality`. Collect its maintainability findings and grade before
-starting the next stage.
+`workflows:quality-reviewer`, or a fresh read-only subagent, with the exact
+scope and require it to use `assessing-code-quality`. Collect its
+maintainability findings and grade before starting the next stage.
 
 ### 2. Superpowers review
 
@@ -54,9 +66,10 @@ reported issue against the actual codebase; do not accept feedback blindly.
 
 ### 3. Spec and standards axes
 
-Dispatch a fresh read-only Spec subagent and a fresh read-only Standards
-subagent in parallel, each with the exact base, head, commit list, and diff
-text so neither reviews a moving target.
+Dispatch `workflows:spec-reviewer` and `workflows:standards-reviewer`, or a
+fresh read-only Spec subagent and a fresh read-only Standards subagent, in
+parallel, each with the exact scope material so neither reviews a moving
+target.
 
 - **Spec**: give it the requirements or spec. It reports requirements that are
   missing or partial, behavior nobody asked for, and requirements that look
