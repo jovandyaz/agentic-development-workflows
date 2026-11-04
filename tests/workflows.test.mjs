@@ -586,3 +586,38 @@ test("lessons prefer enforcement over instructions and never trust bot text", ()
   assert.match(lessons, /Never add a duplicate rule or emphasis/);
   assert.match(lessons, /Capturing a lesson never blocks delivery/);
 });
+
+test("review dispatches the read-only reviewer agents and keeps a portable fallback", () => {
+  const text = normalizedSkill("reviewing-change");
+  for (const agent of ["workflows:quality-reviewer", "workflows:spec-reviewer", "workflows:standards-reviewer"]) {
+    assert.match(text, new RegExp(agent));
+  }
+  assert.match(text, /Their tool list, not an instruction, keeps them read-only/);
+  assert.match(text, /Elsewhere, dispatch a fresh subagent and tell it to stay read-only/);
+  assert.match(text, /history of the changed lines/);
+  assert.match(text, /Reviewers then need no shell of their own/);
+  assert.match(text, /Dispatch them for every diff, whatever its size; never run a lens inline/);
+});
+
+test("the quality reviewer preloads its skill instead of holding the Skill tool", () => {
+  const text = readFileSync(join(root, "plugins", "workflows", "agents", "quality-reviewer.md"), "utf8");
+  assert.match(text, /^tools: Read, Grep, Glob$/m);
+  assert.match(text, /^skills:\n  - workflows:assessing-code-quality$/m);
+});
+
+test("reviewer agents carry the impact-based blocking definition", () => {
+  for (const agent of ["quality-reviewer", "spec-reviewer", "standards-reviewer"]) {
+    const text = readFileSync(join(root, "plugins", "workflows", "agents", `${agent}.md`), "utf8").replace(/\s+/g, " ");
+    assert.match(text, /Blocking means incorrect behavior, a security or authorization breach, data loss/);
+    assert.match(text, /cannot edit files or run commands/);
+  }
+});
+
+test("the read-only review eval grades each reviewer agent on its own", () => {
+  const graders = join(root, "plugins", "workflows", "evals", "reviewing-change", "review-readonly-agents", "graders");
+  for (const agent of ["quality", "spec", "standards"]) {
+    const grader = readFileSync(join(graders, `${agent}-agent.md`), "utf8");
+    assert.match(grader, new RegExp(`workflows:${agent}-reviewer`));
+    assert.doesNotMatch(grader, /\(\?:|min: 2/, "one literal reviewer per grader");
+  }
+});
