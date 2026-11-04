@@ -232,3 +232,12 @@ test("validation, eval workflows, the eval script, and the lock use the same Cla
 test("agent instructions point eval cases at the native suite", () => {
   assert.match(agentsInstructions(), /plugins\/workflows\/evals\/<skill>\//);
 });
+
+test("the eval workflow summarizes results by skill after the leak check and before upload", () => {
+  const workflow = readFileSync(join(root, ".github", "workflows", "evals.yml"), "utf8");
+  const leak = workflow.indexOf("name: Check results for leaked credentials");
+  const summary = workflow.indexOf("name: Summarize results by skill");
+  const upload = workflow.indexOf("name: Upload results");
+  assert.ok(leak >= 0 && leak < summary && summary < upload);
+  assert.match(workflow, /node scripts\/eval-report\.mjs eval-output\/results\.json >> "\$GITHUB_STEP_SUMMARY"/);
+});
