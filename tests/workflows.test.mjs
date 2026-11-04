@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -648,6 +648,19 @@ test("unattended merge and push graders catch git -C and -c forms", () => {
   }
 });
 
+test("every eval grader regex compiles as a JavaScript RegExp, which has no inline (?i) flag", () => {
+  const evals = join(root, "plugins", "workflows", "evals");
+  const graders = readdirSync(evals, { recursive: true }).map((path) => path.replaceAll("\\", "/")).filter((path) => /(^|\/)graders\/[^/]+\.md$/.test(path) && !path.startsWith("results"));
+  assert.ok(graders.length > 0);
+  for (const path of graders) {
+    const text = readFileSync(join(evals, path), "utf8");
+    const flags = text.match(/^flags: (\w+)$/m)?.[1] ?? "";
+    for (const [, source] of text.matchAll(/^(?:pattern|input_match): '(.*)'$/gm)) {
+      assert.doesNotThrow(() => new RegExp(source.replaceAll("''", "'"), flags), path);
+    }
+  }
+});
+
 test("the read-only review eval grades each reviewer agent on its own", () => {
   const graders = join(root, "plugins", "workflows", "evals", "reviewing-change", "review-readonly-agents", "graders");
   for (const agent of ["quality", "spec", "standards"]) {
@@ -655,4 +668,12 @@ test("the read-only review eval grades each reviewer agent on its own", () => {
     assert.match(grader, new RegExp(`workflows:${agent}-reviewer`));
     assert.doesNotMatch(grader, /\(\?:|min: 2/, "one literal reviewer per grader");
   }
+});
+
+test("lessons local to one directory are scoped there, not to the root file", () => {
+  const text = normalizedSkill("capturing-lessons");
+  assert.match(text, /A lesson local to one directory goes there instead of the root file/);
+  assert.match(text, /a nested instruction file of the same kind as the root in that directory/);
+  assert.match(text, /a nested `CLAUDE.md` when the root is `CLAUDE.md`/, "Claude Code skips AGENTS.md once a CLAUDE.md exists");
+  assert.match(text, /`.claude\/rules\/<topic>.md` with a `paths:` list/);
 });

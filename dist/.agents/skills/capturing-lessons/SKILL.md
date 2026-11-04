@@ -37,8 +37,12 @@ Use the first level that can encode the lesson:
 3. A check that blocks the action, such as CI or a git hook. A
    runtime-specific hook needs a portable equivalent.
 4. A rule in the repository's instruction file (`AGENTS.md`, or `CLAUDE.md`
-   when that is what the repository uses), scoped by path when the lesson is
-   local.
+   when that is what the repository uses). A lesson local to one directory
+   goes there instead of the root file: a nested instruction file of the same
+   kind as the root in that directory (a nested `CLAUDE.md` when the root is
+   `CLAUDE.md`, since Claude Code skips `AGENTS.md` once a `CLAUDE.md`
+   exists), or `.claude/rules/<topic>.md` with a `paths:` list when the
+   repository already keeps rules that way.
 5. A skill change plus a new eval case, when the lesson concerns a workflow
    skill.
 
