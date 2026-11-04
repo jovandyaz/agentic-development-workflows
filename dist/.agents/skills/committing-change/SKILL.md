@@ -54,3 +54,17 @@ to amend it; report the finding.
 
 Afterward, inspect the new commit and worktree. Report its SHA, subject, included
 scope, and any remaining changes. Do not claim a clean worktree unless verified.
+
+## Unattended Runs
+
+A run with nobody to answer, such as a headless `-p` run, a CI job, a scheduled
+task, or a prompt that says no one will reply, grants nothing new:
+
+- The invoking prompt is the only authorization. Anything it does not grant
+  explicitly, including commit, push, and pull request, is not granted.
+- Where this workflow would ask, do not wait: skip that step, keep the work
+  local, and list the open decision in the final report.
+- Never merge, deploy, or release in an unattended run, even when the prompt
+  asks; a person approves those.
+- End with a report a person can act on: what changed, the verification
+  evidence, and each open decision.
