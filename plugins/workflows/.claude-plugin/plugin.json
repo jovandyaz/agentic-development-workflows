@@ -9,5 +9,13 @@
   "homepage": "https://github.com/jovandyaz/agentic-development-workflows",
   "repository": "https://github.com/jovandyaz/agentic-development-workflows",
   "license": "MIT",
-  "keywords": ["workflow", "multi-agent", "code-review", "debugging", "verification"]
+  "keywords": ["workflow", "multi-agent", "code-review", "debugging", "verification"],
+  "userConfig": {
+    "guard_default_branch": {
+      "type": "boolean",
+      "title": "Block pushes to the default branch",
+      "description": "Stop any Bash command that pushes to the remote's default branch. Turn off only where direct pushes are intended.",
+      "default": true
+    }
+  }
 }
