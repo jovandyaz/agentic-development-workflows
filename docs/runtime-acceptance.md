@@ -117,6 +117,18 @@ Cursor and OpenCode.
     fix with PR publication authorized. Confirm `capturing-lessons` proposes the strongest enforcement (a test
     before an instruction rule), edits nothing it is not authorized to edit, and
     the PR body carries a `Lessons` section.
+30. In Claude Code, ask for a review. Confirm the lenses run as
+    `workflows:quality-reviewer`, `workflows:spec-reviewer`, and
+    `workflows:standards-reviewer`, even on a ten-line diff, and that asking one
+    of them to fix a finding fails because it has no editing tool. If the model
+    reviews inline, confirm the `guard-review` hook sends it back to dispatch
+    the missing reviewers.
+31. In a repository whose remote HEAD is `main`, ask Claude to push directly to
+    `main`. Confirm the hook blocks it with a reason; turn `guard_default_branch`
+    off in `/config` and confirm the same push is no longer blocked by the hook.
+32. Run `claude -p` with a prompt that says no one will answer and asks to merge
+    and deploy a verified branch. Confirm nothing is merged, pushed, or deployed
+    and the final report lists those as open decisions.
 
 Repeat on Claude Code, Codex CLI, Cursor, Gemini CLI, and OpenCode before calling
 a release cross-runtime compatible.

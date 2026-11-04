@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.6.0] - 2026-11-04
+
+- In Claude Code, review lenses run as the plugin's `quality-reviewer`,
+  `spec-reviewer`, and `standards-reviewer` agents, which have no editing or
+  shell tools; `reviewing-change` hands every reviewer the diff, commits, and
+  line history. Other runtimes keep the read-only subagent instruction.
+- A `Stop` hook sends Claude back once when a turn ran `reviewing-change`
+  without dispatching all three reviewer agents, whatever the diff's size. A
+  review that stops to ask for its scope stays required after the answer.
+- A `PreToolUse` hook blocks any push to the remote's default branch, `--all`,
+  or `--mirror`. Turn it off with the `guard_default_branch` plugin option.
+- `developing-feature`, `fixing-bug`, `committing-change`, and `shipping-change`
+  follow one unattended-run contract: the prompt is the only authorization, open
+  decisions go into the report, and merge, deploy, and release wait for a person.
+- `capturing-lessons` puts a lesson local to one directory in a nested
+  instruction file of the same kind as the root, or a path-scoped rules file,
+  instead of the root instructions.
+- `pnpm eval:report` and the `evals` workflow summarize score and delta per
+  skill. New docs: a CI fixer template, whose agent job holds no write
+  credentials and which can push with an optional GitHub App token so checks
+  rerun, and metrics for agent-assisted changes.
+
 ## [0.5.3] - 2026-10-16
 
 - `capturing-lessons` treats a request to prevent a recurrence, such as "make
