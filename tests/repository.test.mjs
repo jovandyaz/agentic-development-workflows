@@ -242,6 +242,12 @@ test("the eval workflow summarizes results by skill after the leak check and bef
   assert.match(workflow, /node scripts\/eval-report\.mjs eval-output\/results\.json >> "\$GITHUB_STEP_SUMMARY"/);
 });
 
+test("the plugin ships no MCP server, so Playwright stays a conditional dependency", () => {
+  assert.equal(existsSync(join(root, "plugins", "workflows", ".mcp.json")), false);
+  const manifest = JSON.parse(readFileSync(join(root, "plugins", "workflows", ".claude-plugin", "plugin.json"), "utf8"));
+  assert.equal(manifest.mcpServers, undefined);
+});
+
 test("the CI fixer template keeps secrets from forks, caps the run, and never lets the agent push", () => {
   const template = readFileSync(join(root, "docs", "templates", "ci-fix-agent.yml"), "utf8");
   assert.doesNotMatch(template, /pull_request_target/);

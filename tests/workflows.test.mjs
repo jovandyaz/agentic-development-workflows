@@ -385,7 +385,7 @@ test("all published versions stay synchronized", () => {
       "utf8",
     ),
   ).version;
-  assert.equal(packageVersion, "0.5.3");
+  assert.equal(packageVersion, "0.6.0");
   assert.equal(marketplaceVersion, packageVersion);
   assert.equal(pluginVersion, packageVersion);
   for (const name of [

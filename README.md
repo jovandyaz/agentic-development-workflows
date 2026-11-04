@@ -51,6 +51,21 @@ debugging, review, verification, and delivery. It detects actual installed
 versions, uses Context7 or official documentation, and applies programming
 principles and design patterns only when they solve a concrete project problem.
 
+## Enforced In Claude Code
+
+Skills are instructions the model follows. Rules with no exceptions also ship as
+components Claude Code enforces itself. Other runtimes get the same rule from the
+skill text.
+
+| Component | What it guarantees | Portable fallback |
+| --- | --- | --- |
+| `agents/quality-reviewer`, `spec-reviewer`, `standards-reviewer` | Review lenses run with `Read`, `Grep`, and `Glob` only, so they cannot edit, run commands, or start another skill; the quality reviewer preloads its skill | `reviewing-change` dispatches a fresh subagent told to stay read-only |
+| `hooks/guard-review.mjs` (`UserPromptSubmit`, `PostToolUse` on Skill and agent calls, `Stop`) | A turn that runs `reviewing-change` without all three reviewer agents is sent back once to dispatch the missing ones; a review that ends its turn without dispatching any of them, such as to ask for its scope, is required once more after the next prompt | `reviewing-change` dispatches the reviewers for every diff, whatever its size |
+| `hooks/guard-push.mjs` (`PreToolUse` on Bash) | A push to the remote's default branch, `--all`, or `--mirror` is blocked | `shipping-change` forbids pushing to the default branch |
+
+Turn the push guard off for one installation with the plugin's
+`guard_default_branch` option (`/config`).
+
 ## Prerequisites
 
 Dependencies are strict when their condition applies. A workflow stops and
@@ -207,6 +222,28 @@ See [`docs/runtime-acceptance.md`](docs/runtime-acceptance.md) for discovery and
 behavioral smoke tests. Each skill also has a behavioral eval suite under
 `plugins/workflows/evals/`, run with `claude plugin eval` against a no-plugin
 baseline; see [CONTRIBUTING.md](CONTRIBUTING.md#evals).
+
+### Unattended runs
+
+`developing-feature`, `fixing-bug`, `committing-change`, and `shipping-change`
+share one contract for headless runs, CI jobs, and scheduled tasks: the invoking
+prompt is the only authorization, open decisions go into the final report instead
+of a question, and merge, deploy, and release always wait for a person.
+[`docs/templates/ci-fix-agent.yml`](docs/templates/ci-fix-agent.yml) is a
+label-triggered GitHub Actions template that gives Claude one round to fix a red
+check and hands back at the pull request.
+
+## Measure
+
+`pnpm eval:report <results.json>` turns a `claude plugin eval --json` result into
+a per-skill table of score and delta against the no-plugin baseline, weakest
+first; the `evals` workflow writes it to the job summary. It counts regressions
+(Δ < 0) apart from cases with no difference (Δ = 0), because a guard case the
+baseline already passes is a regression check, not dead weight. The suite runs
+only on manual dispatch with a cost ceiling; projects that install the plugin
+never run it.
+[`docs/measuring-agent-changes.md`](docs/measuring-agent-changes.md) covers the
+production side: merged agent PRs, review rounds, reverts, and quick fixes.
 
 ## Development
 

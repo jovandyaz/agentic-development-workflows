@@ -4,7 +4,7 @@ description: Use when behavior is broken, a test fails, an error is reported, a 
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.5.3"
+  version: "0.6.0"
 ---
 
 # Fixing A Bug
