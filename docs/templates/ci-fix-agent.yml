@@ -1,0 +1,184 @@
+# Template: one-round CI fixer for a pull request branch.
+#
+# Copy to .github/workflows/ci-fix-agent.yml in the repository that uses the
+# plugin, set the ANTHROPIC_API_KEY secret, and adjust the commands marked ADJUST.
+# Pin each action to a commit SHA, as this repository's own workflows do.
+#
+# A maintainer adds the `agent:fix-ci` label to a pull request with a red check.
+# Claude gets one headless round to fix the failure; the workflow, not the agent,
+# commits and pushes to the pull request branch, removes the label, and posts the
+# agent's report. Another round needs the label again, so a person decides every
+# round (Stripe caps its agents at about two CI rounds before a human takes over).
+# Merging stays with a person.
+#
+# The agent runs tests it may edit, so it can run any code with its job's
+# environment. That job therefore holds a read-only token, no persisted git
+# credentials, and only the Anthropic key. It hands its edits over as a patch; a
+# second job, where no agent-written code runs, applies, commits, and pushes it.
+#
+# Optional: GitHub starts no unattended workflow runs for a push made with
+# GITHUB_TOKEN; it holds them for a maintainer to approve. To have checks run on
+# the agent's commit by themselves, create a GitHub App with Contents and Pull
+# requests write access, install it on the repository, and set the
+# CI_FIX_APP_CLIENT_ID variable and the CI_FIX_APP_PRIVATE_KEY secret. Without
+# them the workflow falls back to GITHUB_TOKEN and says so in its report.
+
+name: ci-fix-agent
+
+on:
+  pull_request:
+    types: [labeled]
+
+permissions: {}
+
+concurrency:
+  group: ci-fix-agent-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  fix:
+    # Same-repository branches only: fork code never runs with the API key.
+    if: >-
+      github.event.label.name == 'agent:fix-ci' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+    env:
+      BRANCH: ${{ github.event.pull_request.head.ref }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install dependencies # ADJUST
+        run: npm ci
+
+      - name: Collect the failing check log
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run_id="$(gh run list --branch "$BRANCH" --status failure --limit 1 --json databaseId --jq '.[0].databaseId')"
+          if [ -z "$run_id" ]; then echo "No failed run on $BRANCH" > ci-failure.log; else gh run view "$run_id" --log-failed > ci-failure.log || true; fi
+          tail -c 60000 ci-failure.log > ci-failure.trimmed.log
+
+      - name: Let Claude fix the failure (one round)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          prompt="$(cat <<'PROMPT'
+          You are running unattended in CI. Nobody will answer questions.
+          Fix the failing check described in ci-failure.trimmed.log on this branch.
+          Done means the failing check's command passes locally. Run it to prove it.
+          You may edit source and test files. Do not commit, push, merge, or deploy:
+          the workflow commits your edits. Do not edit CI configuration or lockfiles.
+          If the fix needs a decision a person must make, make no edits and say why.
+          End with a short report: root cause, what changed, the command you ran and
+          its result, and any open decision.
+          PROMPT
+          )"
+          # ADJUST the allowed commands to the repository's test and lint scripts.
+          # To load the workflows plugin, add: --plugin-dir path/to/plugins/workflows
+          npx -y @anthropic-ai/claude-code@2.1.300 -p "$prompt" \
+            --allowedTools "Read,Grep,Glob,Edit,Write,Bash(npm test*),Bash(npm run lint*)" \
+            --permission-mode dontAsk \
+            --max-turns 40 \
+            --max-budget-usd 5 \
+            --output-format json > claude-result.json
+          jq -r '.result // "No report returned."' claude-result.json > report.md
+
+      - name: Package the agent's edits as a patch
+        if: always()
+        run: |
+          rm -f ci-failure.log ci-failure.trimmed.log claude-result.json
+          mkdir -p handoff
+          [ -f report.md ] && mv report.md handoff/report.md
+          # `git add -A` stages new files too, so a fix that only adds a file survives.
+          git reset -q
+          git add -A -- . ':!handoff' ':!.github'
+          git diff --cached --binary > handoff/agent.patch
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: ci-fix-agent-handoff
+          path: handoff/
+          if-no-files-found: ignore
+
+  publish:
+    needs: fix
+    if: always() && needs.fix.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      BRANCH: ${{ github.event.pull_request.head.ref }}
+      PR: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Create a GitHub App token (optional)
+        id: app
+        if: vars.CI_FIX_APP_CLIENT_ID != ''
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.CI_FIX_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CI_FIX_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ steps.app.outputs.token || github.token }}
+
+      - uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          name: ci-fix-agent-handoff
+          path: handoff/
+
+      - name: Commit and push the agent's edits
+        id: push
+        # A failed or capped agent run leaves partial, unverified edits.
+        if: needs.fix.result == 'success'
+        run: |
+          if [ ! -s handoff/agent.patch ]; then echo "No edits to push."; exit 0; fi
+          git apply --index handoff/agent.patch
+          # The patch comes from a job that ran agent-edited code; check what it actually staged.
+          if git diff --cached --name-only --no-renames -z HEAD | tr '\0' '\n' | grep -q '^\.github/'; then
+            echo "The patch edits .github/; refusing to push it." >&2; exit 1
+          fi
+          git config user.name "ci-fix-agent"
+          git config user.email "ci-fix-agent@users.noreply.github.com"
+          git commit -m "fix: address failing CI check"
+          git push origin "HEAD:$BRANCH"
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Report and remove the label
+        if: always()
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          PUSHED: ${{ steps.push.outputs.pushed }}
+          APP_TOKEN: ${{ steps.app.outputs.token != '' }}
+          FIX_RESULT: ${{ needs.fix.result }}
+        run: |
+          {
+            echo "### ci-fix-agent round"; echo
+            cat handoff/report.md 2>/dev/null || echo "The agent produced no report."
+            if [ "$FIX_RESULT" != "success" ]; then
+              echo; echo "The agent job ended with \`$FIX_RESULT\`, so nothing was pushed."
+            fi
+            if [ "$PUSHED" = "true" ] && [ "$APP_TOKEN" != "true" ]; then
+              echo; echo "Checks on this push wait for a maintainer to approve them in the Actions tab (pushed with GITHUB_TOKEN)."
+            fi
+          } > comment.md
+          gh pr comment "$PR" --body-file comment.md
+          gh pr edit "$PR" --remove-label agent:fix-ci
