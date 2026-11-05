@@ -13,8 +13,9 @@ Nine composable Agent Skills for disciplined software delivery:
 - `assessing-code-quality`
 
 In Claude Code the plugin also ships three read-only reviewer agents, a hook
-that requires them in every review, and a hook that blocks pushes to the
-default branch.
+that sends a review back once when it skipped one of them, and a hook that
+blocks pushes to the default branch it cannot prove safe. Server-side branch
+protection remains the guarantee; the hooks catch mistakes before they reach it.
 
 The workflows orchestrate, but do not copy, Superpowers and selected external
 skills. See the repository README for prerequisites and installation.
