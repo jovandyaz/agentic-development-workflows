@@ -2,31 +2,31 @@
   "source": "jovandyaz/agentic-development-workflows",
   "skills": {
     "applying-engineering-standards": {
-      "integrity": "sha256-72009fb194f6839a9ec093d61319fd4366ec0479d3c04c4122894264d72bd165"
+      "integrity": "sha256-e7e1a32ec7d4111dc31844bcab2cec2ebc4c63304d85b33a2d4c3e743e9adc71"
     },
     "assessing-code-quality": {
-      "integrity": "sha256-1831dcb0e1b001e877e436da10d3971f1eb56d06738ff5bbd0d361c12cc0d613"
+      "integrity": "sha256-710a303245a2e71bdceb7b1c8a4c7e29a0367d718811d69a75c6702242d2f483"
     },
     "capturing-lessons": {
-      "integrity": "sha256-e382bd99d74b4f3ede93e663d9486f64f2c6542f4190e438535411a198a9bf5b"
+      "integrity": "sha256-c4b273405d56239e426457dca15c0fd4fe7b397b0754585a13f6ffe494f49e10"
     },
     "committing-change": {
-      "integrity": "sha256-a5d1a8aeee43e14c810a2f974db85aabedfb49d06701aa606a5b09e8d4e0ceba"
+      "integrity": "sha256-d1c6e2ab6ba389003c97722de3e52bb9fb924af387a6428b207c978cdea7cfa7"
     },
     "developing-feature": {
-      "integrity": "sha256-faa14ac9cffa0f6d67c69cd4a56c4f9dafa05c4e30219a79fa8193a4f1e7b240"
+      "integrity": "sha256-377efbab5de80c1122ee1b8adbdac53421b6a3c55a91ef29dd81ddd70a6037f4"
     },
     "fixing-bug": {
-      "integrity": "sha256-6d5b01825bbcb51f17960ecb5fcd1bdb16565bbc62dd896e09e3d01e9613b2aa"
+      "integrity": "sha256-63ee5d994a1d23c377f125944b86e0e8db413aac1d1570add1f0d49635eb7947"
     },
     "reviewing-change": {
-      "integrity": "sha256-116a74d9c40594090919b2817e48c1b32a101b8f9d65e48f8513bcd749f31a22"
+      "integrity": "sha256-94efe56cd71a0ab2664047224db0aa6406b36fd5471f06dcf1875d02c24ee039"
     },
     "shipping-change": {
-      "integrity": "sha256-5837c633d99299d833ac462bd9db2faecfe1e22f3a5a20e1478d1cd0eceae8e0"
+      "integrity": "sha256-49b6bd4a0457f08303aea95dec273b3bad18e394e9565b159bfe0d76140e624e"
     },
     "verifying-change": {
-      "integrity": "sha256-964fa0b4398e53b5717e2df62aac536c5fa14a9fbfcbdf227ed8751dd0e3fa2b"
+      "integrity": "sha256-e57512c672aba0486c6f4d20ca6135f96ca3cb05aba6b2cc009de003dc181ea3"
     }
   }
 }
