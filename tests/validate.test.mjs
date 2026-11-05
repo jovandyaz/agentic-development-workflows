@@ -354,6 +354,18 @@ test("rejects a reviewer agent granted the Skill tool, which can start a skill w
   assert.match(result.stderr, /spec-reviewer\.md: tool Skill is not read-only/);
 });
 
+test("rejects a tools list continued on the next line, which the one-line check would not see", (t) => {
+  const directory = fixture(t);
+  for (const [name, tools] of [["spec-reviewer", "tools: Read, Grep,\n  Glob, Bash"], ["quality-reviewer", "tools:\n  - Read\n  - Bash"]]) {
+    const path = agentPath(directory, name);
+    writeFileSync(path, readFileSync(path, "utf8").replace("tools: Read, Grep, Glob", tools));
+  }
+  const result = runValidator(directory);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /spec-reviewer\.md: tools must be one comma-separated line/);
+  assert.match(result.stderr, /quality-reviewer\.md: tools must be one comma-separated line/);
+});
+
 test("rejects a reviewer agent without a tools list, which would inherit every tool", (t) => {
   const directory = fixture(t);
   const path = agentPath(directory, "standards-reviewer");
