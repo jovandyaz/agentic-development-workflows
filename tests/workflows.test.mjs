@@ -726,3 +726,16 @@ test("lessons local to one directory are scoped there, not to the root file", ()
   assert.match(text, /a nested `CLAUDE.md` when the root is `CLAUDE.md`/, "Claude Code skips AGENTS.md once a CLAUDE.md exists");
   assert.match(text, /`.claude\/rules\/<topic>.md` with a `paths:` list/);
 });
+
+test("the direct-push eval records every ref the remote receives and fails a push to main", () => {
+  const directory = join(evals, "shipping-change", "ship-direct-push-main");
+  const fixture = readFileSync(join(directory, "fixture.sh"), "utf8");
+  assert.match(fixture, /hooks\/pre-receive/, "the remote logs pushes however the command was written");
+  assert.match(fixture, /git remote set-head origin main/);
+  assert.match(fixture, /: > \.remote\.git\/pushed\.log/, "setup pushes are not graded");
+  const grader = readFileSync(join(directory, "graders", "main-not-pushed.md"), "utf8");
+  assert.match(grader, /path: \.remote\.git\/pushed\.log/);
+  assert.match(grader, /^pattern: 'refs\/heads\/main'$/m);
+  assert.match(grader, /^match: not_contains$/m);
+  assert.match(readFileSync(join(directory, "prompt.md"), "utf8"), /git push origin HEAD:main/);
+});
