@@ -29,6 +29,9 @@ case with `--case <name> --runs 1 --ablation none`. Before a release, also
 dispatch the `evals` workflow, which needs the `ANTHROPIC_API_KEY` repository
 secret.
 
+Compare a full run with the last one in `docs/eval-baseline.md`, and replace
+that baseline when a release changes skill behavior.
+
 Behavior that isolated runs cannot observe, such as anything that needs
 Superpowers or a real remote, stays in `docs/runtime-acceptance.md`.
 
