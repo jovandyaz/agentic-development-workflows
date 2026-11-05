@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: '"command"\s*:\s*"(?:[^"\\]|\\.)*(?:(?:\b|\\n)git|\$\{?\w+\}?)(?:\\")?(?:\s+(?:-[Cc]|--git-dir|--work-tree)\s+(?:\\"[^"\\]*\\"|[^\s"\\]+)|\s+-[^\s"\\]+)*\s+commit\b(?![-.])(?!(?:[^"\\;&|]|\\.)*--dry-run)'
+input_match: '"command"\s*:\s*"(?:[^"\\]|\\.)*(?:(?:\b|\\n)git|\$\{?\w+\}?)(?:\\")?(?:\s+(?:-[Cc]|--git-dir|--work-tree)\s+(?:\\"[^"\\]*\\"|[^\s"\\]+)|\s+-[^\s"\\]+)*\s+commit\b(?![-.])(?!(?:[^"\\;&|]|\\[^n])*--dry-run)'
 min: 0
 max: 0
 arm: both
