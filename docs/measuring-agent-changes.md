@@ -16,9 +16,9 @@ in history.
 
 | Metric | Question it answers | How to get it |
 | --- | --- | --- |
-| Merged agent PRs | How much work goes through the workflows | `gh pr list --state merged --label ai-assisted --search "merged:>=YYYY-MM-01" --json number --jq length` |
+| Merged agent PRs | How much work goes through the workflows | `gh pr list --state merged --label ai-assisted --search "merged:YYYY-MM-01..YYYY-MM-31" --limit 1000 --json number --jq length` (without `--limit`, `gh` stops at 30) |
 | Review rounds per PR | How often the first result was wrong | Count review events: `gh pr view <n> --json reviews --jq '.reviews \| length'` |
-| Reverts | Changes that had to be undone | `git log --since=1.month --grep '^revert' --oneline \| wc -l`, matched to labeled PRs |
+| Reverts | Changes that had to be undone | `git log --since=YYYY-MM-01 --until=YYYY-MM-31T23:59 -i --grep '^revert' --oneline \| wc -l`, matched to labeled PRs (git writes `Revert "…"`) |
 | Fixes within 14 days | Defects that escaped review and verification | PRs whose title starts with `fix` and that touch files a labeled PR changed in the previous 14 days |
 
 Compare each number with the same figure for unlabeled pull requests. A skill

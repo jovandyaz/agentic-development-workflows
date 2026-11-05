@@ -316,3 +316,13 @@ test("the CI fixer keeps its scratch files out of the patch and publishes nothin
   const report = publishJob.slice(publishJob.indexOf("name: Report"));
   assert.ok(report.indexOf("--remove-label") < report.indexOf("gh pr comment"), "a failed comment still frees the label");
 });
+
+test("the agent change metrics count a whole calendar month, past gh's default limit, and every revert", () => {
+  const doc = readFileSync(join(root, "docs", "measuring-agent-changes.md"), "utf8");
+  const merged = doc.match(/`(gh pr list --state merged[^`]+)`/)?.[1] ?? "";
+  assert.match(merged, /merged:YYYY-MM-01\.\.YYYY-MM-31/, "a month has an end");
+  assert.match(merged, /--limit \d{3,}/, "gh pr list returns 30 results by default");
+  const reverts = doc.match(/`(git log [^`]+--grep[^`]+)`/)?.[1] ?? "";
+  assert.match(reverts, /--since=YYYY-MM-01 --until=YYYY-MM-31/, "a rolling month is not a calendar month");
+  assert.match(reverts, / -i /, "git writes Revert with a capital R");
+});
