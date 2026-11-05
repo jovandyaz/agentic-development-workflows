@@ -638,14 +638,63 @@ test("every workflow with the unattended contract has an unattended eval case", 
   }
 });
 
-test("unattended merge and push graders catch git -C and -c forms", () => {
-  for (const [name, prefix] of [["developing-feature", "feature"], ["fixing-bug", "bugfix"], ["committing-change", "commit"]]) {
-    const grader = readFileSync(join(root, "plugins", "workflows", "evals", name, `${prefix}-unattended-run`, "graders", "no-merge-or-push.md"), "utf8");
-    const pattern = new RegExp(grader.match(/^input_match: '(.+)'$/m)[1]);
-    const hits = (command) => pattern.test(JSON.stringify({ command }));
-    for (const command of ["git -C . push", "git -c user.name=x merge feat", "git push origin main", "gh pr merge 3"]) assert.ok(hits(command), `${name}: ${command}`);
-    for (const command of ["git merge-base main HEAD", "git -C . log", 'git commit -m "merge notes"']) assert.ok(!hits(command), `${name}: ${command}`);
+const evals = join(root, "plugins", "workflows", "evals");
+const graderPattern = (path, key = "input_match") => {
+  const text = readFileSync(join(evals, path), "utf8");
+  return new RegExp(text.match(new RegExp(`^${key}: '(.+)'$`, "m"))[1].replaceAll("''", "'"), text.match(/^flags: (\w+)$/m)?.[1] ?? "");
+};
+const bashHit = (pattern) => (command) => pattern.test(JSON.stringify({ command }));
+
+test("unattended merge and push graders catch git -C, -c, and later-line forms and only git or gh commands", () => {
+  for (const [name, prefix] of [["developing-feature", "feature"], ["fixing-bug", "bugfix"], ["committing-change", "commit"], ["shipping-change", "ship"]]) {
+    const hits = bashHit(graderPattern(`${name}/${prefix}-unattended-run/graders/no-merge-or-push.md`));
+    for (const command of ["git -C . push", "git -c user.name=x merge feat", "git push origin main", "gh pr merge 3", "git status\ngit push", "npm test\ngh pr create"]) {
+      assert.ok(hits(command), `${name}: ${command}`);
+    }
+    for (const command of ["git merge-base main HEAD", "git -C . log", 'git commit -m "merge notes"', "git log --grep=merge", "git config branch.x.merge", "git commit -m 'fix push retry'"]) {
+      assert.ok(!hits(command), `${name}: ${command}`);
+    }
   }
+});
+
+test("commit graders ignore a --dry-run that belongs to a later command line", () => {
+  const graders = ["developing-feature/feature-unattended-run/graders/no-commit.md", "committing-change/commit-not-authorized/graders/no-commit.md", "committing-change/commit-signoff-required/graders/no-commit.md", "shipping-change/ship-review-round-cap/graders/no-commit.md", "committing-change/commit-authorized/graders/commits.md", "committing-change/commit-coauthor-pressure/graders/commits.md"];
+  for (const path of graders) {
+    const hits = bashHit(graderPattern(path));
+    assert.ok(hits("git commit -m x\ngit clean --dry-run"), path);
+    assert.ok(!hits("git commit --dry-run -m x"), path);
+  }
+});
+
+test("unattended runs that grant a commit require one on the working branch", () => {
+  for (const [path, branch] of [["committing-change/commit-unattended-run", "fix/token-type"], ["fixing-bug/bugfix-unattended-run", "fix/cart-quantity"]]) {
+    const grader = readFileSync(join(evals, path, "graders", "commits-on-branch.md"), "utf8");
+    assert.match(grader, new RegExp(`path: \\.git/logs/refs/heads/${branch}$`, "m"), path);
+    const pattern = graderPattern(`${path}/graders/commits-on-branch.md`, "pattern");
+    assert.ok(pattern.test("0 1 Eval <e> 1 +0000\tcommit: fix: count quantity"));
+    assert.ok(!pattern.test("0 1 Eval <e> 1 +0000\tbranch: Created from main"));
+  }
+  for (const path of ["fixing-bug/bugfix-unattended-run", "developing-feature/feature-unattended-run"]) {
+    assert.match(readFileSync(join(evals, path, "prompt.md"), "utf8"), /^allowed_tools: \[.*\bAgent\b.*\]$/m, `${path}: the review step dispatches reviewer agents`);
+  }
+});
+
+test("path-scoped lesson graders keep the root rule and require a rule that keeps the callback", () => {
+  for (const [name, root_] of [["lessons-path-scoped", "AGENTS.md"], ["lessons-path-scoped-claude-md", "CLAUDE.md"]]) {
+    const keeps = readFileSync(join(evals, "capturing-lessons", name, "graders", "root-keeps-rule.md"), "utf8");
+    assert.match(keeps, new RegExp(`path: ${root_.replace(".", "\\.")}$`, "m"));
+    assert.match(keeps, /^pattern: 'pnpm test'$/m);
+    const direction = graderPattern(`capturing-lessons/${name}/graders/rule-scoped.md`, "pattern");
+    assert.ok(direction.test("- Keep the callback API in gateway.js; the vendor SDK has no promises."), name);
+    assert.ok(direction.test("- Do not convert gateway.js to async/await."), name);
+    assert.ok(!direction.test("- Convert gateway.js to async/await."), name);
+  }
+});
+
+test("the read-only review eval catches shell writes", () => {
+  const hits = bashHit(graderPattern("reviewing-change/review-readonly-agents/graders/no-bash-write.md"));
+  for (const command of ["echo x >> convert.js", "sed -i s/a/b/ convert.js", "git checkout -- convert.js", "rm convert.js"]) assert.ok(hits(command), command);
+  for (const command of ["git diff main...HEAD > /tmp/review.diff", "git log -L 1,5:convert.js", "node --test 2>/dev/null"]) assert.ok(!hits(command), command);
 });
 
 test("every eval grader regex compiles as a JavaScript RegExp, which has no inline (?i) flag", () => {
