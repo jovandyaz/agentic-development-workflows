@@ -66,7 +66,7 @@ test("the command line prints the report for a results file", (t) => {
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const path = join(directory, "results.json");
   writeFileSync(path, JSON.stringify(result));
-  const run = spawnSync(process.execPath, [join(root, "scripts", "eval-report.mjs"), path], { encoding: "utf8" });
+  const run = spawnSync(process.execPath, [join(root, "scripts", "eval-report.mjs"), path, evalsRoot], { encoding: "utf8" });
   assert.equal(run.status, 0, run.stderr);
-  assert.match(run.stdout, /## Eval report by skill/);
+  assert.equal(run.stdout, report(result, caseSkills(evalsRoot)));
 });

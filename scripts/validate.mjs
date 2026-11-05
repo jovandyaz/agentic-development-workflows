@@ -134,9 +134,14 @@ function validateAgent(path) {
   const metadata = parseFrontmatter(readFileSync(path, "utf8"), path);
   const name = metadata.match(/^name:\s*(.+)$/m)?.[1]?.trim();
   const description = metadata.match(/^description:\s*(.+)$/m)?.[1]?.trim();
-  const tools = metadata.match(/^tools:\s*(.+)$/m)?.[1]?.trim();
+  const toolsField = metadata.match(/^tools:[ \t]*(.*)((?:\n[ \t]+.*)*)/m);
+  const tools = toolsField?.[1]?.trim();
   if (name !== basename(path, ".md")) fail(`${location}: name must match file name`);
   if (!description?.startsWith("Use when")) fail(`${location}: description must start with "Use when"`);
+  if (toolsField?.[2]) {
+    fail(`${location}: tools must be one comma-separated line, so every listed tool is checked`);
+    return;
+  }
   if (!tools) {
     fail(`${location}: tools must be listed; an agent without tools inherits every tool`);
     return;
