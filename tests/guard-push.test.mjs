@@ -29,8 +29,8 @@ function git(cwd, ...args) {
   assert.equal(result.status, 0, result.stderr);
 }
 
-function repository(t, branch = "feature/x", { remoteHead = true } = {}) {
-  const base = mkdtempSync(join(tmpdir(), "guard-push-"));
+function repository(t, branch = "feature/x", { remoteHead = true, prefix = "guard-push-" } = {}) {
+  const base = mkdtempSync(join(tmpdir(), prefix));
   t.after(() => rmSync(base, { recursive: true, force: true }));
   const directory = join(base, "work");
   git(base, "init", "-q", "--bare", "-b", "trunk", "remote.git");
@@ -133,14 +133,16 @@ test("resolves git -C against the session's working directory", (t) => {
   assert.match(result.stderr, DEFAULT_BRANCH);
 });
 
-test("follows cd into the repository before a push", (t) => {
-  const cwd = repository(t, "trunk");
-  const name = cwd.split(/[\\/]/).pop();
-  expectBlocked(
-    dirname(cwd),
-    [`cd ${name} && git push origin HEAD`, `cd ${slash(cwd)}; git push`, `cd ${name} && git -C . push -u origin HEAD`],
-    DEFAULT_BRANCH,
-  );
+test("follows cd into the repository before a push, including a quoted path with spaces", (t) => {
+  for (const prefix of ["guard-push-", "guard push "]) {
+    const cwd = repository(t, "trunk", { prefix });
+    const name = cwd.split(/[\\/]/).pop();
+    expectBlocked(
+      dirname(cwd),
+      [`cd "${name}" && git push origin HEAD`, `cd "${slash(cwd)}"; git push`, `cd '${slash(cwd)}' && git -C . push -u origin HEAD`],
+      DEFAULT_BRANCH,
+    );
+  }
 });
 
 test("keeps the directory when cd runs in a pipeline or in the background", (t) => {
