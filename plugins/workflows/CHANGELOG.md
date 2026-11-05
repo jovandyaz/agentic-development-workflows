@@ -15,6 +15,8 @@
   run was granted, keep the root rule in path-scoped lessons, and catch shell
   writes in read-only review. A new case checks that a
   direct push to the default branch is refused.
+- The review guard counts a reviewer launched in the background only once it
+  returns, so a review cannot end while a lens is still running.
 - The validator rejects a reviewer `tools:` list that continues on a second
   line, and the agent change metrics count a whole calendar month.
 

@@ -60,7 +60,7 @@ skill text.
 | Component | What it guarantees | Portable fallback |
 | --- | --- | --- |
 | `agents/quality-reviewer`, `spec-reviewer`, `standards-reviewer` | Review lenses run with `Read`, `Grep`, and `Glob` only, so they cannot edit, run commands, or start another skill; the quality reviewer preloads its skill | `reviewing-change` dispatches a fresh subagent told to stay read-only |
-| `hooks/guard-review.mjs` (`UserPromptSubmit`, `PostToolUse` on Skill and agent calls, `Stop`) | A turn that runs `reviewing-change` without all three reviewer agents is sent back once to dispatch the missing ones; a review that ends its turn without dispatching any of them, such as to ask for its scope, is required once more after the next prompt | `reviewing-change` dispatches the reviewers for every diff, whatever its size |
+| `hooks/guard-review.mjs` (`UserPromptSubmit`, `PostToolUse` on Skill and agent calls, `SubagentStop`, `Stop`) | A turn that runs `reviewing-change` without all three reviewer agents is sent back once to dispatch the missing ones; a review that ends its turn without dispatching any of them, such as to ask for its scope, is required once more after the next prompt | `reviewing-change` dispatches the reviewers for every diff, whatever its size |
 | `hooks/guard-push.mjs` (`PreToolUse` on Bash) | A push to the remote's default branch, `--all`, `--mirror`, or a matching refspec is blocked, and so is any push the hook cannot resolve, such as one inside `bash -c` or `$(...)`; Claude is told to push explicitly with `git push <remote> <branch>` | `shipping-change` forbids pushing to the default branch |
 
 Turn the push guard off for one installation with the plugin's

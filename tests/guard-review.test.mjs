@@ -142,6 +142,26 @@ test("records reviewers dispatched in parallel without losing one", async (t) =>
   }
 });
 
+test("a reviewer launched in the background counts only once its SubagentStop arrives", (t) => {
+  const s = session(t);
+  s.skill("workflows:reviewing-change");
+  for (const reviewer of reviewers) {
+    s.raw({ hook_event_name: "PostToolUse", tool_name: "Agent", tool_input: { subagent_type: reviewer, run_in_background: true }, tool_response: { isAsync: true, status: "async_launched" } });
+  }
+  const result = s.stop();
+  assert.equal(result.status, 2, "launched is not reviewed");
+  assert.match(result.stderr, /running in the background counts once it returns/);
+  for (const reviewer of reviewers) s.raw({ hook_event_name: "SubagentStop", agent_id: "a1", agent_type: reviewer, stop_hook_active: false });
+  assert.equal(s.stop().status, 0);
+});
+
+test("a reviewer's SubagentStop outside a review changes nothing", (t) => {
+  const s = session(t);
+  s.raw({ hook_event_name: "SubagentStop", agent_id: "a1", agent_type: reviewers[0] });
+  s.skill("workflows:reviewing-change");
+  assert.match(s.stop().stderr, /quality-reviewer/);
+});
+
 test("ignores tool events from inside a subagent", (t) => {
   const s = session(t);
   s.raw({ hook_event_name: "PostToolUse", tool_name: "Skill", tool_input: { skill: "workflows:reviewing-change" }, agent_id: "sub-1" });
@@ -175,6 +195,7 @@ test("hooks.json runs the review guard after Skill and agent calls and at Stop",
   assert.deepEqual(post.hooks[0].args, args);
   const stop = config.hooks.Stop.find((entry) => entry.hooks.some((hook) => hook.args?.[0] === args[0]));
   assert.equal(stop.hooks[0].command, "node");
+  assert.ok(config.hooks.SubagentStop.some((entry) => entry.hooks.some((hook) => hook.args?.[0] === args[0])), "a background reviewer is recorded when it finishes");
   const prompt = config.hooks.UserPromptSubmit.find((entry) => entry.hooks.some((hook) => hook.args?.[0] === args[0]));
   assert.ok(prompt, "a new prompt resets the review state");
 });

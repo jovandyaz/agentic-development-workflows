@@ -57,6 +57,20 @@
           }
         ]
       }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/guard-review.mjs"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }
