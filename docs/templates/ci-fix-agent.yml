@@ -47,11 +47,11 @@ jobs:
       contents: read
       actions: read
     env:
-      BRANCH: ${{ github.event.pull_request.head.ref }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
       - uses: actions/setup-node@v7
@@ -65,9 +65,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          run_id="$(gh run list --branch "$BRANCH" --status failure --limit 1 --json databaseId --jq '.[0].databaseId')"
-          if [ -z "$run_id" ]; then echo "No failed run on $BRANCH" > ci-failure.log; else gh run view "$run_id" --log-failed > ci-failure.log || true; fi
-          tail -c 60000 ci-failure.log > ci-failure.trimmed.log
+          mkdir -p .ci-fix-agent
+          run_id="$(gh run list --commit "$HEAD_SHA" --status failure --json databaseId,workflowName --jq '[.[] | select(.workflowName != "ci-fix-agent")][0].databaseId // empty')"
+          if [ -z "$run_id" ]; then echo "No failed run for $HEAD_SHA" > .ci-fix-agent/failure.log; else gh run view "$run_id" --log-failed > .ci-fix-agent/failure.log || true; fi
+          tail -c 60000 .ci-fix-agent/failure.log > .ci-fix-agent/failure.trimmed.log
 
       - name: Let Claude fix the failure (one round)
         env:
@@ -75,10 +76,11 @@ jobs:
         run: |
           prompt="$(cat <<'PROMPT'
           You are running unattended in CI. Nobody will answer questions.
-          Fix the failing check described in ci-failure.trimmed.log on this branch.
+          Fix the failing check described in .ci-fix-agent/failure.trimmed.log.
           Done means the failing check's command passes locally. Run it to prove it.
           You may edit source and test files. Do not commit, push, merge, or deploy:
-          the workflow commits your edits. Do not edit CI configuration or lockfiles.
+          the workflow commits your edits. Do not edit CI configuration, lockfiles,
+          or anything under .ci-fix-agent/.
           If the fix needs a decision a person must make, make no edits and say why.
           End with a short report: root cause, what changed, the command you ran and
           its result, and any open decision.
@@ -91,25 +93,27 @@ jobs:
             --permission-mode dontAsk \
             --max-turns 40 \
             --max-budget-usd 5 \
-            --output-format json > claude-result.json
-          jq -r '.result // "No report returned."' claude-result.json > report.md
+            --output-format json > .ci-fix-agent/claude-result.json || true
+          jq -r '.result // "No report returned."' .ci-fix-agent/claude-result.json > .ci-fix-agent/report.md || echo "No report returned." > .ci-fix-agent/report.md
+          # A run stopped by --max-turns or --max-budget-usd leaves partial, unverified edits.
+          jq -e '.subtype == "success"' .ci-fix-agent/claude-result.json > /dev/null
 
       - name: Package the agent's edits as a patch
         if: always()
         run: |
-          rm -f ci-failure.log ci-failure.trimmed.log claude-result.json
-          mkdir -p handoff
-          [ -f report.md ] && mv report.md handoff/report.md
+          mkdir -p .ci-fix-agent
           # `git add -A` stages new files too, so a fix that only adds a file survives.
           git reset -q
-          git add -A -- . ':!handoff' ':!.github'
-          git diff --cached --binary > handoff/agent.patch
+          git add -A -- . ':!.ci-fix-agent' ':!.github'
+          git diff --cached --binary > .ci-fix-agent/agent.patch
 
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: ci-fix-agent-handoff
-          path: handoff/
+          path: |
+            .ci-fix-agent/agent.patch
+            .ci-fix-agent/report.md
           if-no-files-found: ignore
 
   publish:
@@ -122,6 +126,7 @@ jobs:
       pull-requests: write
     env:
       BRANCH: ${{ github.event.pull_request.head.ref }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       PR: ${{ github.event.pull_request.number }}
     steps:
       - name: Create a GitHub App token (optional)
@@ -134,32 +139,34 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
 
+      # The agent's patch applies to this commit only; if the branch moved, the push is rejected.
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ steps.app.outputs.token || github.token }}
 
       - uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: ci-fix-agent-handoff
-          path: handoff/
+          path: .ci-fix-agent/
 
       - name: Commit and push the agent's edits
         id: push
         # A failed or capped agent run leaves partial, unverified edits.
         if: needs.fix.result == 'success'
         run: |
-          if [ ! -s handoff/agent.patch ]; then echo "No edits to push."; exit 0; fi
-          git apply --index handoff/agent.patch
-          # The patch comes from a job that ran agent-edited code; check what it actually staged.
-          if git diff --cached --name-only --no-renames -z HEAD | tr '\0' '\n' | grep -q '^\.github/'; then
-            echo "The patch edits .github/; refusing to push it." >&2; exit 1
+          if [ ! -s .ci-fix-agent/agent.patch ]; then echo "No edits to push."; exit 0; fi
+          git apply --index .ci-fix-agent/agent.patch
+          # The patch comes from a job that ran agent-edited code; check what it actually staged. ADJUST the lockfile names.
+          if git diff --cached --name-only --no-renames -z HEAD | tr '\0' '\n' | grep -qE '(^\.github/|(^|/)(package-lock\.json|npm-shrinkwrap\.json|pnpm-lock\.yaml|yarn\.lock|bun\.lockb?|Cargo\.lock|poetry\.lock|uv\.lock|Gemfile\.lock|go\.sum|composer\.lock)$)'; then
+            echo "The patch edits CI configuration or a lockfile; refusing to push it." >&2; exit 1
           fi
           git config user.name "ci-fix-agent"
           git config user.email "ci-fix-agent@users.noreply.github.com"
           git commit -m "fix: address failing CI check"
-          git push origin "HEAD:$BRANCH"
+          # The lease makes the push fail unless the branch still points at the commit the agent fixed.
+          git push --force-with-lease="refs/heads/$BRANCH:$HEAD_SHA" origin "HEAD:refs/heads/$BRANCH"
           echo "pushed=true" >> "$GITHUB_OUTPUT"
 
       - name: Report and remove the label
@@ -172,13 +179,13 @@ jobs:
         run: |
           {
             echo "### ci-fix-agent round"; echo
-            cat handoff/report.md 2>/dev/null || echo "The agent produced no report."
+            cat .ci-fix-agent/report.md 2>/dev/null || echo "The agent produced no report."
             if [ "$FIX_RESULT" != "success" ]; then
               echo; echo "The agent job ended with \`$FIX_RESULT\`, so nothing was pushed."
             fi
             if [ "$PUSHED" = "true" ] && [ "$APP_TOKEN" != "true" ]; then
               echo; echo "Checks on this push wait for a maintainer to approve them in the Actions tab (pushed with GITHUB_TOKEN)."
             fi
-          } > comment.md
-          gh pr comment "$PR" --body-file comment.md
+          } > "$RUNNER_TEMP/comment.md"
           gh pr edit "$PR" --remove-label agent:fix-ci
+          gh pr comment "$PR" --body-file "$RUNNER_TEMP/comment.md"

@@ -269,9 +269,9 @@ test("the CI fixer's agent job holds no write credentials and hands over every e
   assert.match(fixJob, /persist-credentials: false/);
   const agentStep = fixJob.slice(fixJob.indexOf("name: Let Claude fix"), fixJob.indexOf("name: Package"));
   assert.doesNotMatch(agentStep, /GH_TOKEN|github\.token/);
-  assert.match(fixJob, /git add -A -- \. ':!handoff' ':!\.github'/, "new files are part of the fix; CI config is not");
+  assert.match(fixJob, /git add -A -- \. ':!\.ci-fix-agent' ':!\.github'/, "new files are part of the fix; CI config is not");
   assert.doesNotMatch(template, /git diff --quiet/, "git diff --quiet ignores new files");
-  const apply = publishJob.indexOf("git apply --index handoff/agent.patch");
+  const apply = publishJob.indexOf("git apply --index .ci-fix-agent/agent.patch");
   const check = publishJob.indexOf("git diff --cached --name-only --no-renames -z HEAD");
   assert.ok(apply >= 0 && apply < check, "the artifact is untrusted: check the paths it actually staged");
   assert.ok(check < publishJob.indexOf("git commit"), "the check runs before the commit");
@@ -279,4 +279,40 @@ test("the CI fixer's agent job holds no write credentials and hands over every e
   assert.match(pushStep, /if: needs\.fix\.result == 'success'/, "a failed agent run pushes nothing");
   assert.match(publishJob, /if: vars\.CI_FIX_APP_CLIENT_ID != ''/, "the GitHub App token is optional");
   assert.match(publishJob, /token: \$\{\{ steps\.app\.outputs\.token \|\| github\.token \}\}/);
+});
+
+test("the CI fixer gates forks on the agent job and refuses CI config and lockfile edits before committing", () => {
+  const template = readFileSync(join(root, "docs", "templates", "ci-fix-agent.yml"), "utf8");
+  const [fixJob, publishJob] = template.split(/^  publish:$/m);
+  const fixIf = fixJob.match(/^ {4}if: >-\n((?: {6}.*\n)+)/m)?.[1] ?? "";
+  assert.match(fixIf, /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/, "the fork gate guards the job that holds the API key");
+  const pushStep = publishJob.slice(publishJob.indexOf("name: Commit and push"), publishJob.indexOf("name: Report"));
+  const refusal = pushStep.match(/grep -qE '([^']+)'; then\n\s+echo .*refusing to push it\." >&2; exit 1/);
+  assert.ok(refusal, "a protected path in the patch fails the job");
+  for (const path of [".github/workflows/ci.yml", "package-lock.json", "pnpm-lock.yaml", "yarn.lock", "sub/Cargo.lock"]) {
+    assert.match(path, new RegExp(refusal[1]), path);
+  }
+  assert.doesNotMatch("src/lock.js", new RegExp(refusal[1]));
+  assert.ok(pushStep.indexOf("exit 1") < pushStep.indexOf("git commit"));
+});
+
+test("the CI fixer repairs the commit that failed and publishes only onto that commit", () => {
+  const template = readFileSync(join(root, "docs", "templates", "ci-fix-agent.yml"), "utf8");
+  const [fixJob, publishJob] = template.split(/^  publish:$/m);
+  const headSha = "ref: ${{ github.event.pull_request.head.sha }}";
+  assert.ok(fixJob.includes(headSha) && publishJob.includes(headSha), "a push made after the label leaves the agent's patch unpublished");
+  assert.match(fixJob, /gh run list --commit "\$HEAD_SHA" --status failure/);
+  assert.match(fixJob, /select\(\.workflowName != "ci-fix-agent"\)/, "a failed earlier round is not the check to fix");
+  assert.match(publishJob, /git push --force-with-lease="refs\/heads\/\$BRANCH:\$HEAD_SHA" origin "HEAD:refs\/heads\/\$BRANCH"/, "a branch reset to an ancestor would still accept a fast-forward");
+  assert.doesNotMatch(publishJob, /--force(?!-with-lease="refs\/heads\/\$BRANCH:\$HEAD_SHA")/);
+});
+
+test("the CI fixer keeps its scratch files out of the patch and publishes nothing from a capped run", () => {
+  const template = readFileSync(join(root, "docs", "templates", "ci-fix-agent.yml"), "utf8");
+  const [fixJob, publishJob] = template.split(/^  publish:$/m);
+  assert.match(fixJob, /git add -A -- \. ':!\.ci-fix-agent' ':!\.github'/);
+  assert.doesNotMatch(fixJob, /> (?:ci-failure|claude-result|report)\./, "scratch files live under .ci-fix-agent/, never over tracked files");
+  assert.match(fixJob, /jq -e '\.subtype == "success"' \.ci-fix-agent\/claude-result\.json/, "error_max_turns and budget stops fail the job");
+  const report = publishJob.slice(publishJob.indexOf("name: Report"));
+  assert.ok(report.indexOf("--remove-label") < report.indexOf("gh pr comment"), "a failed comment still frees the label");
 });
