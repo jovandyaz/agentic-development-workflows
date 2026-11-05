@@ -39,6 +39,31 @@ test("repository relies on AGENTS.md without a competing CLAUDE.md", () => {
   assert.equal(existsSync(join(root, "CLAUDE.md")), false);
 });
 
+const FROZEN_HOOKS = {
+  PreToolUse: ["Bash node guard-push.mjs"],
+  PostToolUse: ["Skill|Agent|Task node guard-review.mjs"],
+  Stop: ["* node guard-review.mjs"],
+  UserPromptSubmit: ["* node guard-review.mjs"],
+  SubagentStop: ["* node guard-review.mjs"],
+};
+
+test("hooks stay frozen unless an eval shows skill text cannot fix a failure", () => {
+  const plugin = JSON.parse(readFileSync(join(root, "plugins/workflows/.claude-plugin/plugin.json"), "utf8"));
+  assert.equal(plugin.hooks, undefined, "register hooks only in hooks/hooks.json");
+  const { hooks } = JSON.parse(readFileSync(join(root, "plugins/workflows/hooks/hooks.json"), "utf8"));
+  const registered = Object.fromEntries(
+    Object.entries(hooks).map(([event, groups]) => [
+      event,
+      groups.flatMap(({ matcher = "*", hooks: entries }) =>
+        entries.map((hook) =>
+          [matcher, hook.command ?? hook.type, ...(hook.args ?? [])].map((part) => part.split("/").pop()).join(" "),
+        ),
+      ),
+    ]),
+  );
+  assert.deepEqual(registered, FROZEN_HOOKS, "a new or widened hook needs the eval evidence AGENTS.md asks for");
+});
+
 const STALE_SKILL_NAMES = [/(?<!assessing-)\bcode-quality\b/, /\breviewing-pr\b/];
 const HISTORY_PATHS = ["plugins/workflows/CHANGELOG.md", "docs/superpowers/"];
 
