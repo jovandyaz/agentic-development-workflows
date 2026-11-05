@@ -38,8 +38,13 @@ export function missingReviewers(directory) {
 function main() {
   const input = JSON.parse(readFileSync(0, "utf8"));
   const directory = sessionDirectory(input.session_id);
+  if (!directory) return 0;
+  if (input.hook_event_name === "SubagentStop") {
+    if (REVIEWERS.includes(input.agent_type) && existsSync(join(directory, "started"))) writeFileSync(join(directory, marker(input.agent_type)), "");
+    return 0;
+  }
   // Subagent tool events carry agent_id; a subagent cannot dispatch the reviewers.
-  if (!directory || input.agent_id) return 0;
+  if (input.agent_id) return 0;
 
   switch (input.hook_event_name) {
     case "UserPromptSubmit":
@@ -52,8 +57,9 @@ function main() {
     case "PostToolUse": {
       const { tool_name: tool, tool_input: args = {} } = input;
       if (tool === "Skill" && REVIEW_SKILL.test(args.skill ?? "")) startReview(directory);
+      // A background launch returns before the reviewer has looked at anything; its SubagentStop records it.
       else if (AGENT_TOOLS.has(tool) && REVIEWERS.includes(args.subagent_type) && existsSync(join(directory, "started"))) {
-        writeFileSync(join(directory, marker(args.subagent_type)), "");
+        if (input.tool_response?.status !== "async_launched") writeFileSync(join(directory, marker(args.subagent_type)), "");
       }
       return 0;
     }
@@ -73,6 +79,7 @@ function main() {
       process.stderr.write(
         `Blocked by the workflows plugin: reviewing-change ran without dispatching ${missing.join(", ")}. ` +
           "Dispatch each missing reviewer agent with the scope material, whatever the diff's size; never run a lens inline. " +
+          "A reviewer running in the background counts once it returns, so wait for its result before reporting. " +
           "If reviewing-change stopped to ask for its scope, end the turn with that question; the reviewers are required after the answer. " +
           "If the user explicitly asked to skip a lens, say so in the report instead.\n",
       );
