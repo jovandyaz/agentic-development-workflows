@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.6.1] - 2026-11-05
+
+- The push guard fails closed: a push it cannot resolve, such as one inside
+  `bash -c`, `$(...)`, an alias, or a wrapper, is blocked with how to push
+  explicitly. It resolves destinations with local git only, never contacts the
+  remote or runs repository-configured commands before approval, and asks for
+  `git remote set-head <remote> --auto` when the default branch is unknown.
+  Dry runs and text that only mentions `git push` are no longer blocked.
+- The CI fixer template repairs the commit that failed, keeps its scratch files
+  out of the patch, publishes nothing from a run stopped by its turn or budget
+  cap, refuses lockfile edits, and frees the label when commenting fails.
+- Eval graders catch commands on later lines, require the commit an unattended
+  run was granted, keep the root rule in path-scoped lessons, and catch shell
+  writes in read-only review. A new case checks that a
+  direct push to the default branch is refused.
+- The validator rejects a reviewer `tools:` list that continues on a second
+  line, and the agent change metrics count a whole calendar month.
+
 ## [0.6.0] - 2026-11-04
 
 - In Claude Code, review lenses run as the plugin's `quality-reviewer`,
