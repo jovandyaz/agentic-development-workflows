@@ -373,11 +373,27 @@ test("the CI fixer never runs the pull request's code in the job that holds the 
   assert.match(publishJob, /path: \$\{\{ runner\.temp \}\}\/ci-fix-agent\//, "a .ci-fix-agent/ committed in the pull request is never read");
   const pushStep = publishJob.slice(publishJob.indexOf("name: Commit and push"), publishJob.indexOf("name: Report"));
   assert.match(pushStep, /needs\.verify\.result == 'success'/, "edits whose check failed are never pushed");
-  assert.match(fixJob, /patch_sha256: \$\{\{ steps\.package\.outputs\.sha256 \}\}/);
-  const hash = pushStep.indexOf('sha256sum -c --quiet');
+  assert.match(fixJob, /patch_sha256: \$\{\{ steps\.package\.outputs\.patch_sha256 \}\}/);
+  assert.match(fixJob, /report_sha256: \$\{\{ steps\.package\.outputs\.report_sha256 \}\}/);
+  assert.match(fixJob, /echo "patch_sha256=\$\(sha256sum \.ci-fix-agent\/agent\.patch/);
+  assert.match(fixJob, /echo "report_sha256=\$\(sha256sum \.ci-fix-agent\/report\.md/);
+  const hash = pushStep.search(/sha256sum -c --quiet \|\| \{ [^}]*exit 1; \}/);
   assert.ok(hash >= 0 && hash < pushStep.indexOf("git apply"), "only the patch the agent job produced is pushed");
   const report = publishJob.slice(publishJob.indexOf("name: Report"));
   assert.match(report, /GH_REPO: \$\{\{ github\.repository \}\}/, "the report needs no checkout");
+  const reportHash = report.indexOf('echo "$REPORT_SHA256  $report" | sha256sum -c --quiet');
+  assert.ok(reportHash >= 0 && reportHash < report.indexOf('cat "$report"'), "code in the verify job cannot choose the comment text");
+  assert.match(report, /if ! gh pr edit "\$PR" --remove-label agent:fix-ci; then\n\s+printf .*remove it by hand/, "a label that stays on is reported");
+  const symlinks = agentStep.indexOf("find . -path ./.git -prune -o -type l -print");
+  assert.ok(symlinks >= 0 && symlinks < agentStep.indexOf("claude\" --bare"), "a symlink out of the checkout stops the run before Claude starts");
+  assert.match(agentStep, /realpath -m -- "\$link"/);
+  const discard = agentStep.slice(leak, agentStep.indexOf("jq -e"));
+  for (const piece of ["git reset -q --hard && git clean -fdq -e .ci-fix-agent", "rm -rf .ci-fix-agent && mkdir .ci-fix-agent", "Rotate the key", "exit 1"]) {
+    assert.ok(discard.includes(piece), `a leaked key is discarded, not packaged: ${piece}`);
+  }
+  for (const step of ["name: Package the agent's edits as a patch", "uses: actions/upload-artifact@v7"]) {
+    assert.match(fixJob.slice(fixJob.indexOf(step), fixJob.indexOf(step) + 120), /if: always\(\)/, `${step} runs after a failed agent step`);
+  }
   for (const outcome of ["nothing was pushed", "made no edits", "PUSH_OUTCOME", "Pushed."]) assert.ok(report.includes(outcome), outcome);
 });
 
