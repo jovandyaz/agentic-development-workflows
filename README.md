@@ -66,6 +66,14 @@ skill text.
 Turn the push guard off for one installation with the plugin's
 `guard_default_branch` option (`/config`).
 
+The push guard blocks a push it cannot analyse, including one it cannot resolve
+within its 8-second budget, which ends before the hook's 10-second timeout. It
+lets a command through when it cannot start at all, for example with no `node`
+on `PATH`, when its input is not valid hook JSON, or when a git alias it could
+not read in time hides a push. `onFailure: "block"` would close the first case
+but block every Bash call, not only pushes, so it is left unset. `guard-review`
+fails open on an internal error so a bug in it never traps a turn.
+
 The hooks are a seatbelt, not the guarantee: keep branch protection or a ruleset
 on the default branch, which the remote enforces however a push is written.
 
