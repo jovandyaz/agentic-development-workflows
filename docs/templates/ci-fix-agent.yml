@@ -62,7 +62,8 @@ jobs:
     env:
       HEAD_SHA: ${{ github.event.pull_request.head.sha }}
     outputs:
-      patch_sha256: ${{ steps.package.outputs.sha256 }}
+      patch_sha256: ${{ steps.package.outputs.patch_sha256 }}
+      report_sha256: ${{ steps.package.outputs.report_sha256 }}
     steps:
       - uses: actions/setup-node@v7
         with:
@@ -104,6 +105,14 @@ jobs:
           End with a short report: root cause, what changed, and any open decision.
           PROMPT
           )"
+          # Path rules alone do not stop a symlink in the checkout from pointing the file tools elsewhere.
+          outside="$(find . -path ./.git -prune -o -type l -print | while IFS= read -r link; do
+            case "$(realpath -m -- "$link")" in "$PWD"/*) ;; *) printf '%s\n' "$link" ;; esac
+          done)"
+          if [ -n "$outside" ]; then
+            printf 'Not run: these symlinks point outside the checkout:\n%s\n' "$outside" > .ci-fix-agent/report.md
+            exit 1
+          fi
           # --bare and --setting-sources user load nothing from the checkout, including its `env` block.
           # With no Bash tool and file tools limited to ./, nothing the pull request contains runs here
           # and the agent cannot read the key from outside the checkout, such as /proc/self/environ.
@@ -116,6 +125,7 @@ jobs:
             --output-format json > .ci-fix-agent/claude-result.json || true
           jq -r '.result // "No report returned."' .ci-fix-agent/claude-result.json > .ci-fix-agent/report.md || echo "No report returned." > .ci-fix-agent/report.md
           # Instructions planted in the pull request could make the agent copy the key into its report or a file.
+          # This catches a verbatim copy only; keeping reads inside the checkout is the real defense.
           if [ -n "$ANTHROPIC_API_KEY" ] && grep -rqF --exclude-dir=.git -- "$ANTHROPIC_API_KEY" .; then
             git reset -q --hard && git clean -fdq -e .ci-fix-agent
             rm -rf .ci-fix-agent && mkdir .ci-fix-agent
@@ -134,8 +144,10 @@ jobs:
           git reset -q
           git add -A -- . ':!.ci-fix-agent' ':!.github'
           git diff --cached --binary > .ci-fix-agent/agent.patch
-          # The publish job pushes only the exact patch this job produced.
-          echo "sha256=$(sha256sum .ci-fix-agent/agent.patch | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          [ -f .ci-fix-agent/report.md ] || echo "The agent produced no report." > .ci-fix-agent/report.md
+          # The publish job pushes and posts only the exact files this job produced.
+          echo "patch_sha256=$(sha256sum .ci-fix-agent/agent.patch | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "report_sha256=$(sha256sum .ci-fix-agent/report.md | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v7
         if: always()
@@ -221,6 +233,7 @@ jobs:
         if: needs.fix.result == 'success' && needs.verify.result == 'success'
         env:
           PATCH_SHA256: ${{ needs.fix.outputs.patch_sha256 }}
+        # The check below fails on an empty hash, so a fix job that never packaged a patch pushes nothing.
         run: |
           patch="$RUNNER_TEMP/ci-fix-agent/agent.patch"
           # The verify job ran pull request code, which could try to replace the artifact.
@@ -249,10 +262,16 @@ jobs:
           APP_TOKEN: ${{ steps.app.outputs.token != '' }}
           FIX_RESULT: ${{ needs.fix.result }}
           VERIFY_RESULT: ${{ needs.verify.result }}
+          REPORT_SHA256: ${{ needs.fix.outputs.report_sha256 }}
         run: |
+          report="$RUNNER_TEMP/ci-fix-agent/report.md"
           {
             echo "### ci-fix-agent round"; echo
-            cat "$RUNNER_TEMP/ci-fix-agent/report.md" 2>/dev/null || echo "The agent produced no report."
+            if [ -n "$REPORT_SHA256" ] && echo "$REPORT_SHA256  $report" | sha256sum -c --quiet 2>/dev/null; then
+              cat "$report"
+            else
+              echo "The agent's report is missing or is not the one the agent job produced."
+            fi
             echo
             if [ "$FIX_RESULT" != "success" ]; then
               echo "The agent job ended with \`$FIX_RESULT\`, so nothing was pushed."
@@ -268,5 +287,7 @@ jobs:
               echo "Pushed."
             fi
           } > "$RUNNER_TEMP/comment.md"
-          gh pr edit "$PR" --remove-label agent:fix-ci || echo "Could not remove the label." >&2
+          if ! gh pr edit "$PR" --remove-label agent:fix-ci; then
+            printf '\nCould not remove the `agent:fix-ci` label; remove it by hand before the next round.\n' >> "$RUNNER_TEMP/comment.md"
+          fi
           gh pr comment "$PR" --body-file "$RUNNER_TEMP/comment.md"
