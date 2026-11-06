@@ -273,6 +273,12 @@ test("the plugin ships no MCP server, so Playwright stays a conditional dependen
   assert.equal(manifest.mcpServers, undefined);
 });
 
+function ciFixJobs(template) {
+  const [fixJob, rest = ""] = template.split(/^  verify:$/m);
+  const [verifyJob, publishJob] = rest.split(/^  publish:$/m);
+  return { fixJob, verifyJob, publishJob };
+}
+
 test("the CI fixer template keeps secrets from forks, caps the run, and never lets the agent push", () => {
   const template = readFileSync(join(root, "docs", "templates", "ci-fix-agent.yml"), "utf8");
   assert.doesNotMatch(template, /pull_request_target/);
@@ -288,7 +294,7 @@ test("the CI fixer template keeps secrets from forks, caps the run, and never le
 test("the CI fixer's agent job holds no write credentials and hands over every edit", () => {
   const template = readFileSync(join(root, "docs", "templates", "ci-fix-agent.yml"), "utf8");
   assert.match(template, /^permissions: \{\}$/m);
-  const [fixJob, publishJob] = template.split(/^  publish:$/m);
+  const { fixJob, verifyJob, publishJob } = ciFixJobs(template);
   assert.ok(publishJob, "a separate job publishes the agent's edits");
   assert.doesNotMatch(fixJob, /: write/, "tests the agent edits run with this job's token");
   assert.match(fixJob, /persist-credentials: false/);
@@ -296,7 +302,7 @@ test("the CI fixer's agent job holds no write credentials and hands over every e
   assert.doesNotMatch(agentStep, /GH_TOKEN|github\.token/);
   assert.match(fixJob, /git add -A -- \. ':!\.ci-fix-agent' ':!\.github'/, "new files are part of the fix; CI config is not");
   assert.doesNotMatch(template, /git diff --quiet/, "git diff --quiet ignores new files");
-  const apply = publishJob.indexOf("git apply --index .ci-fix-agent/agent.patch");
+  const apply = publishJob.indexOf('git apply --index "$patch"');
   const check = publishJob.indexOf("git diff --cached --name-only --no-renames -z HEAD");
   assert.ok(apply >= 0 && apply < check, "the artifact is untrusted: check the paths it actually staged");
   assert.ok(check < publishJob.indexOf("git commit"), "the check runs before the commit");
@@ -308,7 +314,7 @@ test("the CI fixer's agent job holds no write credentials and hands over every e
 
 test("the CI fixer gates forks on the agent job and refuses CI config and lockfile edits before committing", () => {
   const template = readFileSync(join(root, "docs", "templates", "ci-fix-agent.yml"), "utf8");
-  const [fixJob, publishJob] = template.split(/^  publish:$/m);
+  const { fixJob, verifyJob, publishJob } = ciFixJobs(template);
   const fixIf = fixJob.match(/^ {4}if: >-\n((?: {6}.*\n)+)/m)?.[1] ?? "";
   assert.match(fixIf, /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/, "the fork gate guards the job that holds the API key");
   const pushStep = publishJob.slice(publishJob.indexOf("name: Commit and push"), publishJob.indexOf("name: Report"));
@@ -323,7 +329,7 @@ test("the CI fixer gates forks on the agent job and refuses CI config and lockfi
 
 test("the CI fixer repairs the commit that failed and publishes only onto that commit", () => {
   const template = readFileSync(join(root, "docs", "templates", "ci-fix-agent.yml"), "utf8");
-  const [fixJob, publishJob] = template.split(/^  publish:$/m);
+  const { fixJob, verifyJob, publishJob } = ciFixJobs(template);
   const headSha = "ref: ${{ github.event.pull_request.head.sha }}";
   assert.ok(fixJob.includes(headSha) && publishJob.includes(headSha), "a push made after the label leaves the agent's patch unpublished");
   assert.match(fixJob, /gh run list --commit "\$HEAD_SHA" --status failure/);
@@ -334,12 +340,45 @@ test("the CI fixer repairs the commit that failed and publishes only onto that c
 
 test("the CI fixer keeps its scratch files out of the patch and publishes nothing from a capped run", () => {
   const template = readFileSync(join(root, "docs", "templates", "ci-fix-agent.yml"), "utf8");
-  const [fixJob, publishJob] = template.split(/^  publish:$/m);
+  const { fixJob, verifyJob, publishJob } = ciFixJobs(template);
   assert.match(fixJob, /git add -A -- \. ':!\.ci-fix-agent' ':!\.github'/);
   assert.doesNotMatch(fixJob, /> (?:ci-failure|claude-result|report)\./, "scratch files live under .ci-fix-agent/, never over tracked files");
   assert.match(fixJob, /jq -e '\.subtype == "success"' \.ci-fix-agent\/claude-result\.json/, "error_max_turns and budget stops fail the job");
   const report = publishJob.slice(publishJob.indexOf("name: Report"));
   assert.ok(report.indexOf("--remove-label") < report.indexOf("gh pr comment"), "a failed comment still frees the label");
+});
+
+test("the CI fixer never runs the pull request's code in the job that holds the API key", () => {
+  const template = readFileSync(join(root, "docs", "templates", "ci-fix-agent.yml"), "utf8");
+  const { fixJob, verifyJob, publishJob } = ciFixJobs(template);
+  assert.ok(verifyJob && publishJob, "a verify job sits between the agent and the push");
+  assert.doesNotMatch(fixJob.replace(/npm install --prefix "\$RUNNER_TEMP\/claude" [^\n]+/, ""), /\b(?:npm|npx|pnpm|yarn|pytest)\b|^\s+make\b/m, "installing or testing the checkout runs its code");
+  assert.ok(fixJob.indexOf("Install Claude Code") < fixJob.indexOf("actions/checkout"), "the checkout's .npmrc cannot redirect the Claude install");
+  const agentStep = fixJob.slice(fixJob.indexOf("name: Let Claude fix"), fixJob.indexOf("name: Package"));
+  assert.match(agentStep, /--bare --setting-sources user -p/, "nothing from the checkout loads, including its settings env block");
+  assert.doesNotMatch(agentStep, /--plugin-dir|--add-dir/);
+  assert.match(agentStep, /--allowedTools "Read\(\.\/\*\*\)" "Edit\(\.\/\*\*\)" "Write\(\.\/\*\*\)" \\/, "file tools stay inside the checkout, away from /proc/self/environ");
+  assert.match(agentStep, /--disallowedTools "Bash" "WebFetch" "WebSearch" \\/);
+  const leak = agentStep.indexOf('grep -rqF --exclude-dir=.git -- "$ANTHROPIC_API_KEY" .');
+  assert.ok(leak > agentStep.indexOf("claude-result.json") && leak < agentStep.indexOf("jq -e"), "a copied key is caught while the key is still in the environment");
+  assert.match(agentStep, /\[ -n "\$ANTHROPIC_API_KEY" \] &&/, "an empty key would match every file");
+  assert.match(fixJob, /rm -rf \.ci-fix-agent && mkdir \.ci-fix-agent/, "a committed symlink cannot redirect the scratch files");
+  assert.match(fixJob, /include-hidden-files: true/, "upload-artifact skips dot-directories by default");
+  assert.doesNotMatch(verifyJob, /secrets\.|GH_TOKEN|github\.token|: write/, "the job that runs the code holds no credentials");
+  assert.match(verifyJob, /if: needs\.fix\.result == 'success'/);
+  assert.match(verifyJob, /persist-credentials: false/);
+  assert.ok(verifyJob.indexOf("git apply") < verifyJob.indexOf("npm test"), "the check runs on the agent's edits");
+  assert.doesNotMatch(publishJob, /ANTHROPIC_API_KEY|\b(?:npm|npx|pnpm|yarn) /, "the job with write access runs no project code");
+  assert.match(publishJob, /needs: \[fix, verify\]/);
+  assert.match(publishJob, /path: \$\{\{ runner\.temp \}\}\/ci-fix-agent\//, "a .ci-fix-agent/ committed in the pull request is never read");
+  const pushStep = publishJob.slice(publishJob.indexOf("name: Commit and push"), publishJob.indexOf("name: Report"));
+  assert.match(pushStep, /needs\.verify\.result == 'success'/, "edits whose check failed are never pushed");
+  assert.match(fixJob, /patch_sha256: \$\{\{ steps\.package\.outputs\.sha256 \}\}/);
+  const hash = pushStep.indexOf('sha256sum -c --quiet');
+  assert.ok(hash >= 0 && hash < pushStep.indexOf("git apply"), "only the patch the agent job produced is pushed");
+  const report = publishJob.slice(publishJob.indexOf("name: Report"));
+  assert.match(report, /GH_REPO: \$\{\{ github\.repository \}\}/, "the report needs no checkout");
+  for (const outcome of ["nothing was pushed", "made no edits", "PUSH_OUTCOME", "Pushed."]) assert.ok(report.includes(outcome), outcome);
 });
 
 test("the agent change metrics count a whole calendar month, past gh's default limit, and every revert", () => {
