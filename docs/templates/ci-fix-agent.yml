@@ -11,10 +11,23 @@
 # round (Stripe caps its agents at about two CI rounds before a human takes over).
 # Merging stays with a person.
 #
-# The agent runs tests it may edit, so it can run any code with its job's
-# environment. That job therefore holds a read-only token, no persisted git
-# credentials, and only the Anthropic key. It hands its edits over as a patch; a
-# second job, where no agent-written code runs, applies, commits, and pushes it.
+# The Anthropic key and the pull request's code never share a job. The agent job
+# runs no project code: Claude starts in bare mode with user settings only, so it
+# loads no hooks, skills, plugins, MCP servers, settings, or `env` block from the
+# checkout. It gets no Bash tool, and its file tools are limited to the checkout,
+# where Claude Code denies writes to `.git` in dontAsk mode. It hands its edits
+# over as a patch, and the step fails if the key appears in its report or files. A
+# verify job with no secrets and a read-only token applies the patch, installs
+# dependencies, and runs the failing check. Only when that check passes does a
+# third job, where no project code runs, check the patch's hash and push it.
+#
+# What this protects against is the pull request's content: its dependencies,
+# tests, and any instructions planted in its files or logs. It does not protect
+# against the pull request's author. A `pull_request` run uses the workflow file
+# from the pull request, and anyone who can push a branch here can already reach
+# repository secrets through a workflow of their own. Before adding the label,
+# check that the pull request does not change `.github/`, and keep the key in an
+# environment with required reviewers if branch authors are not fully trusted.
 #
 # Optional: GitHub starts no unattended workflow runs for a push made with
 # GITHUB_TOKEN; it holds them for a maintainer to approve. To have checks run on
@@ -37,7 +50,7 @@ concurrency:
 
 jobs:
   fix:
-    # Same-repository branches only: fork code never runs with the API key.
+    # Same-repository branches only: fork content never reaches the agent that holds the API key.
     if: >-
       github.event.label.name == 'agent:fix-ci' &&
       github.event.pull_request.head.repo.full_name == github.repository
@@ -48,24 +61,28 @@ jobs:
       actions: read
     env:
       HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    outputs:
+      patch_sha256: ${{ steps.package.outputs.sha256 }}
     steps:
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      # Installed before the checkout and outside it, so the pull request's .npmrc cannot change where Claude comes from.
+      - name: Install Claude Code
+        run: npm install --prefix "$RUNNER_TEMP/claude" --no-save @anthropic-ai/claude-code@2.1.300
+
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-
-      - name: Install dependencies # ADJUST
-        run: npm ci
-
       - name: Collect the failing check log
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p .ci-fix-agent
+          # Start from an empty directory: a symlink the pull request commits here could redirect these writes.
+          rm -rf .ci-fix-agent && mkdir .ci-fix-agent
           run_id="$(gh run list --commit "$HEAD_SHA" --status failure --json databaseId,workflowName --jq '[.[] | select(.workflowName != "ci-fix-agent")][0].databaseId // empty')"
           if [ -z "$run_id" ]; then echo "No failed run for $HEAD_SHA" > .ci-fix-agent/failure.log; else gh run view "$run_id" --log-failed > .ci-fix-agent/failure.log || true; fi
           tail -c 60000 .ci-fix-agent/failure.log > .ci-fix-agent/failure.trimmed.log
@@ -77,28 +94,39 @@ jobs:
           prompt="$(cat <<'PROMPT'
           You are running unattended in CI. Nobody will answer questions.
           Fix the failing check described in .ci-fix-agent/failure.trimmed.log.
-          Done means the failing check's command passes locally. Run it to prove it.
-          You may edit source and test files. Do not commit, push, merge, or deploy:
-          the workflow commits your edits. Do not edit CI configuration, lockfiles,
+          You cannot run commands. Read the log and the code, read AGENTS.md or
+          CLAUDE.md if the repository has one, and make the smallest fix. A separate
+          job without your credentials runs the failing check on your edits and
+          pushes them only if it passes.
+          You may edit source and test files. Do not edit CI configuration, lockfiles,
           or anything under .ci-fix-agent/.
           If the fix needs a decision a person must make, make no edits and say why.
-          End with a short report: root cause, what changed, the command you ran and
-          its result, and any open decision.
+          End with a short report: root cause, what changed, and any open decision.
           PROMPT
           )"
-          # ADJUST the allowed commands to the repository's test and lint scripts.
-          # To load the workflows plugin, add: --plugin-dir path/to/plugins/workflows
-          npx -y @anthropic-ai/claude-code@2.1.300 -p "$prompt" \
-            --allowedTools "Read,Grep,Glob,Edit,Write,Bash(npm test*),Bash(npm run lint*)" \
+          # --bare and --setting-sources user load nothing from the checkout, including its `env` block.
+          # With no Bash tool and file tools limited to ./, nothing the pull request contains runs here
+          # and the agent cannot read the key from outside the checkout, such as /proc/self/environ.
+          "$RUNNER_TEMP/claude/node_modules/.bin/claude" --bare --setting-sources user -p "$prompt" \
+            --allowedTools "Read(./**)" "Edit(./**)" "Write(./**)" \
+            --disallowedTools "Bash" "WebFetch" "WebSearch" \
             --permission-mode dontAsk \
             --max-turns 40 \
             --max-budget-usd 5 \
             --output-format json > .ci-fix-agent/claude-result.json || true
           jq -r '.result // "No report returned."' .ci-fix-agent/claude-result.json > .ci-fix-agent/report.md || echo "No report returned." > .ci-fix-agent/report.md
+          # Instructions planted in the pull request could make the agent copy the key into its report or a file.
+          if [ -n "$ANTHROPIC_API_KEY" ] && grep -rqF --exclude-dir=.git -- "$ANTHROPIC_API_KEY" .; then
+            git reset -q --hard && git clean -fdq -e .ci-fix-agent
+            rm -rf .ci-fix-agent && mkdir .ci-fix-agent
+            echo "The agent's output contained the API key, so it was discarded. Rotate the key." > .ci-fix-agent/report.md
+            exit 1
+          fi
           # A run stopped by --max-turns or --max-budget-usd leaves partial, unverified edits.
           jq -e '.subtype == "success"' .ci-fix-agent/claude-result.json > /dev/null
 
       - name: Package the agent's edits as a patch
+        id: package
         if: always()
         run: |
           mkdir -p .ci-fix-agent
@@ -106,6 +134,8 @@ jobs:
           git reset -q
           git add -A -- . ':!.ci-fix-agent' ':!.github'
           git diff --cached --binary > .ci-fix-agent/agent.patch
+          # The publish job pushes only the exact patch this job produced.
+          echo "sha256=$(sha256sum .ci-fix-agent/agent.patch | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v7
         if: always()
@@ -114,10 +144,43 @@ jobs:
           path: |
             .ci-fix-agent/agent.patch
             .ci-fix-agent/report.md
+          # The files sit under a dot-directory, which upload-artifact skips by default.
+          include-hidden-files: true
           if-no-files-found: ignore
 
-  publish:
+  verify:
     needs: fix
+    if: needs.fix.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # No secrets: this job runs the pull request's code and the agent's edits.
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: ci-fix-agent-handoff
+          path: ${{ runner.temp }}/ci-fix-agent/
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Run the failing check on the agent's edits # ADJUST the install and check commands
+        run: |
+          patch="$RUNNER_TEMP/ci-fix-agent/agent.patch"
+          if [ ! -s "$patch" ]; then echo "No edits to verify."; exit 0; fi
+          git apply "$patch"
+          npm ci
+          npm test
+
+  publish:
+    needs: [fix, verify]
     if: always() && needs.fix.result != 'skipped'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -145,19 +208,25 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ steps.app.outputs.token || github.token }}
 
+      # Outside the checkout, so a .ci-fix-agent/ directory committed in the pull request is never read.
       - uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: ci-fix-agent-handoff
-          path: .ci-fix-agent/
+          path: ${{ runner.temp }}/ci-fix-agent/
 
       - name: Commit and push the agent's edits
         id: push
-        # A failed or capped agent run leaves partial, unverified edits.
-        if: needs.fix.result == 'success'
+        # Push only edits the verify job ran the check on and saw pass.
+        if: needs.fix.result == 'success' && needs.verify.result == 'success'
+        env:
+          PATCH_SHA256: ${{ needs.fix.outputs.patch_sha256 }}
         run: |
-          if [ ! -s .ci-fix-agent/agent.patch ]; then echo "No edits to push."; exit 0; fi
-          git apply --index .ci-fix-agent/agent.patch
+          patch="$RUNNER_TEMP/ci-fix-agent/agent.patch"
+          # The verify job ran pull request code, which could try to replace the artifact.
+          echo "$PATCH_SHA256  $patch" | sha256sum -c --quiet || { echo "The patch is not the one the agent job produced; refusing to push it." >&2; exit 1; }
+          if [ ! -s "$patch" ]; then echo "No edits to push."; echo "pushed=none" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git apply --index "$patch"
           # The patch comes from a job that ran agent-edited code; check what it actually staged. ADJUST the lockfile names.
           if git diff --cached --name-only --no-renames -z HEAD | tr '\0' '\n' | grep -qE '(^\.github/|(^|/)(package-lock\.json|npm-shrinkwrap\.json|pnpm-lock\.yaml|yarn\.lock|bun\.lockb?|Cargo\.lock|poetry\.lock|uv\.lock|Gemfile\.lock|go\.sum|composer\.lock)$)'; then
             echo "The patch edits CI configuration or a lockfile; refusing to push it." >&2; exit 1
@@ -173,19 +242,31 @@ jobs:
         if: always()
         env:
           GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          # Without it, gh needs the checkout, which a failed token step skips.
+          GH_REPO: ${{ github.repository }}
           PUSHED: ${{ steps.push.outputs.pushed }}
+          PUSH_OUTCOME: ${{ steps.push.outcome }}
           APP_TOKEN: ${{ steps.app.outputs.token != '' }}
           FIX_RESULT: ${{ needs.fix.result }}
+          VERIFY_RESULT: ${{ needs.verify.result }}
         run: |
           {
             echo "### ci-fix-agent round"; echo
-            cat .ci-fix-agent/report.md 2>/dev/null || echo "The agent produced no report."
+            cat "$RUNNER_TEMP/ci-fix-agent/report.md" 2>/dev/null || echo "The agent produced no report."
+            echo
             if [ "$FIX_RESULT" != "success" ]; then
-              echo; echo "The agent job ended with \`$FIX_RESULT\`, so nothing was pushed."
-            fi
-            if [ "$PUSHED" = "true" ] && [ "$APP_TOKEN" != "true" ]; then
-              echo; echo "Checks on this push wait for a maintainer to approve them in the Actions tab (pushed with GITHUB_TOKEN)."
+              echo "The agent job ended with \`$FIX_RESULT\`, so nothing was pushed."
+            elif [ "$VERIFY_RESULT" != "success" ]; then
+              echo "The verify job ended with \`$VERIFY_RESULT\`: the patch did not apply or the failing check did not pass on it, so nothing was pushed."
+            elif [ "$PUSHED" = "none" ]; then
+              echo "The agent made no edits, so nothing was pushed."
+            elif [ "$PUSHED" != "true" ]; then
+              echo "Publishing ended with \`$PUSH_OUTCOME\` (refused patch, moved branch, or failed push), so nothing was pushed."
+            elif [ "$APP_TOKEN" != "true" ]; then
+              echo "Pushed. Checks on this push wait for a maintainer to approve them in the Actions tab (pushed with GITHUB_TOKEN)."
+            else
+              echo "Pushed."
             fi
           } > "$RUNNER_TEMP/comment.md"
-          gh pr edit "$PR" --remove-label agent:fix-ci
+          gh pr edit "$PR" --remove-label agent:fix-ci || echo "Could not remove the label." >&2
           gh pr comment "$PR" --body-file "$RUNNER_TEMP/comment.md"

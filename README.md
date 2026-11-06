@@ -234,7 +234,12 @@ prompt is the only authorization, open decisions go into the final report instea
 of a question, and merge, deploy, and release always wait for a person.
 [`docs/templates/ci-fix-agent.yml`](docs/templates/ci-fix-agent.yml) is a
 label-triggered GitHub Actions template that gives Claude one round to fix a red
-check and hands back at the pull request.
+check and hands back at the pull request. The Anthropic key and the pull
+request's code never share a job: the agent only reads and edits files inside
+the checkout, a job with no secrets runs the failing check on its edits, and
+only a passing check is pushed. It guards against the pull request's content,
+not its author, since a `pull_request` run uses the workflow file from the
+branch; the template's header says what to check before adding the label.
 
 ## Measure
 
