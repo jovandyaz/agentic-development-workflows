@@ -372,7 +372,7 @@ test("the CI fixer never runs the pull request's code in the job that holds the 
   assert.match(publishJob, /needs: \[fix, verify\]/);
   assert.match(publishJob, /path: \$\{\{ runner\.temp \}\}\/ci-fix-agent\//, "a .ci-fix-agent/ committed in the pull request is never read");
   const pushStep = publishJob.slice(publishJob.indexOf("name: Commit and push"), publishJob.indexOf("name: Report"));
-  assert.match(pushStep, /needs\.verify\.result == 'success'/, "edits whose check failed are never pushed");
+  assert.match(pushStep, /^ {8}if: needs\.fix\.result == 'success' && needs\.verify\.result == 'success'$/m, "edits whose check failed are never pushed");
   assert.match(fixJob, /patch_sha256: \$\{\{ steps\.package\.outputs\.patch_sha256 \}\}/);
   assert.match(fixJob, /report_sha256: \$\{\{ steps\.package\.outputs\.report_sha256 \}\}/);
   assert.match(fixJob, /echo "patch_sha256=\$\(sha256sum \.ci-fix-agent\/agent\.patch/);
