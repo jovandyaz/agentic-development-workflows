@@ -29,9 +29,9 @@
 # check that the pull request does not change `.github/`, and keep the key in an
 # environment with required reviewers if branch authors are not fully trusted.
 #
-# Optional: GitHub starts no unattended workflow runs for a push made with
-# GITHUB_TOKEN; it holds them for a maintainer to approve. To have checks run on
-# the agent's commit by themselves, create a GitHub App with Contents and Pull
+# Optional: a push made with GITHUB_TOKEN starts no `push` workflows, and the
+# `pull_request` runs it starts wait for a maintainer to approve them. To have
+# checks run on the agent's commit by themselves, create a GitHub App with Contents and Pull
 # requests write access, install it on the repository, and set the
 # CI_FIX_APP_CLIENT_ID variable and the CI_FIX_APP_PRIVATE_KEY secret. Without
 # them the workflow falls back to GITHUB_TOKEN and says so in its report.
@@ -282,7 +282,7 @@ jobs:
             elif [ "$PUSHED" != "true" ]; then
               echo "Publishing ended with \`$PUSH_OUTCOME\` (refused patch, moved branch, or failed push), so nothing was pushed."
             elif [ "$APP_TOKEN" != "true" ]; then
-              echo "Pushed. Checks on this push wait for a maintainer to approve them in the Actions tab (pushed with GITHUB_TOKEN)."
+              echo "Pushed with GITHUB_TOKEN, so \`push\` workflows did not run and \`pull_request\` checks wait for a maintainer to approve them in the Actions tab."
             else
               echo "Pushed."
             fi
