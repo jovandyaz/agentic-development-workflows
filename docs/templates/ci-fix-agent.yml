@@ -132,7 +132,8 @@ jobs:
             --max-budget-usd 5 \
             --output-format json > .ci-fix-agent/claude-result.json || true
           jq -r '.result // "No report returned."' .ci-fix-agent/claude-result.json > .ci-fix-agent/report.md || echo "No report returned." > .ci-fix-agent/report.md
-          # Checked before any git command reads the config.
+          # A backstop checked before any git command reads the config; the symlink scan and Claude Code's
+          # .git protection are what keep the agent out. Nothing is uploaded then, so the comment calls the report missing.
           if [ "$(sha256sum .git/config)" != "$git_config" ]; then
             echo "The agent changed .git/config, so the run was discarded." > .ci-fix-agent/report.md
             exit 1
