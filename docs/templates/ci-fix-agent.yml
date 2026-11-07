@@ -89,6 +89,7 @@ jobs:
           tail -c 60000 .ci-fix-agent/failure.log > .ci-fix-agent/failure.trimmed.log
 
       - name: Let Claude fix the failure (one round)
+        id: agent
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
@@ -105,14 +106,21 @@ jobs:
           End with a short report: root cause, what changed, and any open decision.
           PROMPT
           )"
-          # Path rules alone do not stop a symlink in the checkout from pointing the file tools elsewhere.
-          outside="$(find . -path ./.git -prune -o -type l -print0 | while IFS= read -r -d '' link; do
-            case "$(realpath -m -- "$link")" in "$PWD" | "$PWD"/*) ;; *) printf '%s\n' "$link" ;; esac
+          # Path rules alone do not stop a symlink in the checkout from pointing the file tools elsewhere,
+          # or at .git, where a changed config makes later git commands run code.
+          unsafe="$(find . -path ./.git -prune -o -type l -print0 | while IFS= read -r -d '' link; do
+            case "$(realpath -m -- "$link")" in
+              "$PWD" | "$PWD"/.git | "$PWD"/.git/*) printf '%s\n' "$link" ;;
+              "$PWD"/*) ;;
+              *) printf '%s\n' "$link" ;;
+            esac
           done)"
-          if [ -n "$outside" ]; then
-            printf 'Not run: these symlinks point outside the checkout:\n%s\n' "$outside" > .ci-fix-agent/report.md
+          if [ -n "$unsafe" ]; then
+            printf 'Not run: these symlinks point outside the checkout or at its .git directory:\n%s\n' "$unsafe" > .ci-fix-agent/report.md
+            echo "checked=true" >> "$GITHUB_OUTPUT"
             exit 1
           fi
+          git_config="$(sha256sum .git/config)"
           # --bare and --setting-sources user load nothing from the checkout, including its `env` block.
           # With no Bash tool and file tools limited to ./, nothing the pull request contains runs here
           # and the agent cannot read the key from outside the checkout, such as /proc/self/environ.
@@ -124,20 +132,28 @@ jobs:
             --max-budget-usd 5 \
             --output-format json > .ci-fix-agent/claude-result.json || true
           jq -r '.result // "No report returned."' .ci-fix-agent/claude-result.json > .ci-fix-agent/report.md || echo "No report returned." > .ci-fix-agent/report.md
+          # Checked before any git command reads the config.
+          if [ "$(sha256sum .git/config)" != "$git_config" ]; then
+            echo "The agent changed .git/config, so the run was discarded." > .ci-fix-agent/report.md
+            exit 1
+          fi
           # Instructions planted in the pull request could make the agent copy the key into its report or a file.
           # This catches a verbatim copy only; keeping reads inside the checkout is the real defense.
           if [ -n "$ANTHROPIC_API_KEY" ] && grep -rqF --exclude-dir=.git -- "$ANTHROPIC_API_KEY" .; then
             git reset -q --hard && git clean -fdq -e .ci-fix-agent
             rm -rf .ci-fix-agent && mkdir .ci-fix-agent
             echo "The agent's output contained the API key, so it was discarded. Rotate the key." > .ci-fix-agent/report.md
+            echo "checked=true" >> "$GITHUB_OUTPUT"
             exit 1
           fi
+          echo "checked=true" >> "$GITHUB_OUTPUT"
           # A run stopped by --max-turns or --max-budget-usd leaves partial, unverified edits.
           jq -e '.subtype == "success"' .ci-fix-agent/claude-result.json > /dev/null
 
+      # Only after the agent step's checks ran: a step that timed out or was cancelled may leave the key in the files.
       - name: Package the agent's edits as a patch
         id: package
-        if: always()
+        if: always() && steps.agent.outputs.checked == 'true'
         run: |
           mkdir -p .ci-fix-agent
           # `git add -A` stages new files too, so a fix that only adds a file survives.
@@ -150,7 +166,7 @@ jobs:
           echo "report_sha256=$(sha256sum .ci-fix-agent/report.md | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v7
-        if: always()
+        if: always() && steps.agent.outputs.checked == 'true'
         with:
           name: ci-fix-agent-handoff
           path: |

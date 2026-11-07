@@ -386,13 +386,20 @@ test("the CI fixer never runs the pull request's code in the job that holds the 
   assert.match(report, /if ! gh pr edit "\$PR" --remove-label agent:fix-ci; then\n\s+printf .*remove it by hand/, "a label that stays on is reported");
   const symlinks = agentStep.indexOf("find . -path ./.git -prune -o -type l -print0 | while IFS= read -r -d '' link; do");
   assert.ok(symlinks >= 0 && symlinks < agentStep.indexOf("claude\" --bare"), "a symlink out of the checkout stops the run before Claude starts");
-  assert.match(agentStep, /case "\$\(realpath -m -- "\$link"\)" in "\$PWD" \| "\$PWD"\/\*\) ;;/, "a link to the checkout root stays allowed");
+  assert.match(agentStep, /case "\$\(realpath -m -- "\$link"\)" in\n\s+"\$PWD" \| "\$PWD"\/\.git \| "\$PWD"\/\.git\/\*\) printf/, "a link to .git, or to the root that holds it, stops the run");
+  const configSaved = agentStep.indexOf('git_config="$(sha256sum .git/config)"');
+  const configChecked = agentStep.indexOf('if [ "$(sha256sum .git/config)" != "$git_config" ]; then');
+  assert.ok(configSaved >= 0 && configSaved < agentStep.indexOf("claude\" --bare"), "the config is hashed before Claude starts");
+  assert.ok(configChecked > agentStep.indexOf("claude\" --bare") && configChecked < leak, "a changed .git/config stops the run before any git command");
+  assert.match(agentStep, /^ {8}id: agent$/m);
+  const checked = agentStep.lastIndexOf('echo "checked=true" >> "$GITHUB_OUTPUT"');
+  assert.ok(checked > leak && checked < agentStep.indexOf("jq -e"), "the handoff is marked safe only after the leak check");
   const discard = agentStep.slice(leak, agentStep.indexOf("jq -e"));
   for (const piece of ["git reset -q --hard && git clean -fdq -e .ci-fix-agent", "rm -rf .ci-fix-agent && mkdir .ci-fix-agent", "Rotate the key", "exit 1"]) {
     assert.ok(discard.includes(piece), `a leaked key is discarded, not packaged: ${piece}`);
   }
   for (const step of ["name: Package the agent's edits as a patch", "uses: actions/upload-artifact@v7"]) {
-    assert.match(fixJob.slice(fixJob.indexOf(step), fixJob.indexOf(step) + 120), /if: always\(\)/, `${step} runs after a failed agent step`);
+    assert.match(fixJob.slice(fixJob.indexOf(step), fixJob.indexOf(step) + 160), /if: always\(\) && steps\.agent\.outputs\.checked == 'true'/, `${step} runs after a failed agent step, never after one that stopped before its checks`);
   }
   for (const outcome of ["nothing was pushed", "made no edits", "PUSH_OUTCOME", "Pushed."]) assert.ok(report.includes(outcome), outcome);
 });
