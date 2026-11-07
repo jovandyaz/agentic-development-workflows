@@ -21,6 +21,10 @@ in history.
 | Reverts | Changes that had to be undone | `git log --since=YYYY-MM-01 --until=YYYY-MM-31T23:59 -i --grep '^revert' --oneline \| wc -l`, matched to labeled PRs (git writes `Revert "…"`) |
 | Fixes within 14 days | Defects that escaped review and verification | PRs whose title starts with `fix` and that touch files a labeled PR changed in the previous 14 days |
 
+The four numbers come from pull request and commit metadata the repository
+already holds. Collect no prompts, transcripts, or per-person figures, and keep
+the monthly table where the repository's own access controls apply.
+
 Compare each number with the same figure for unlabeled pull requests. A skill
 change that raises merged agent PRs but also raises reverts or quick fixes is a
 regression, whatever its eval score.

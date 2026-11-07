@@ -66,6 +66,14 @@ skill text.
 Turn the push guard off for one installation with the plugin's
 `guard_default_branch` option (`/config`).
 
+The push guard blocks a push it cannot analyse, including one it cannot resolve
+within its 8-second budget, which ends before the hook's 10-second timeout. It
+lets a command through when it cannot start at all, for example with no `node`
+on `PATH`, when its input is not valid hook JSON, or when a git alias it could
+not read in time hides a push. `onFailure: "block"` would close the first case
+but block every Bash call, not only pushes, so it is left unset. `guard-review`
+fails open on an internal error so a bug in it never traps a turn.
+
 The hooks are a seatbelt, not the guarantee: keep branch protection or a ruleset
 on the default branch, which the remote enforces however a push is written.
 
@@ -234,7 +242,12 @@ prompt is the only authorization, open decisions go into the final report instea
 of a question, and merge, deploy, and release always wait for a person.
 [`docs/templates/ci-fix-agent.yml`](docs/templates/ci-fix-agent.yml) is a
 label-triggered GitHub Actions template that gives Claude one round to fix a red
-check and hands back at the pull request.
+check and hands back at the pull request. The Anthropic key and the pull
+request's code never share a job: the agent only reads and edits files inside
+the checkout, a job with no secrets runs the failing check on its edits, and
+only a passing check is pushed. It guards against the pull request's content,
+not its author, since a `pull_request` run uses the workflow file from the
+branch; the template's header says what to check before adding the label.
 
 ## Measure
 
