@@ -392,9 +392,13 @@ test("the CI fixer never runs the pull request's code in the job that holds the 
   assert.ok(configSaved >= 0 && configSaved < agentStep.indexOf("claude\" --bare"), "the config is hashed before Claude starts");
   assert.ok(configChecked > agentStep.indexOf("claude\" --bare") && configChecked < leak, "a changed .git/config stops the run before any git command");
   assert.match(agentStep, /^ {8}id: agent$/m);
+  assert.match(agentStep, /\n\s+"\$PWD"\/\*\) ;;\n\s+\*\) printf '%s\\n' "\$link" ;;/, "a link outside the checkout stops the run");
   assert.match(agentStep, /\|\|\n\s+find \. -path \.\/\.git -prune -o -print0 \| grep -qzF -- "\$ANTHROPIC_API_KEY"; \}; then/, "a key copied into a file name is caught too");
-  const checked = agentStep.lastIndexOf('echo "checked=true" >> "$GITHUB_OUTPUT"');
-  assert.ok(checked > leak && checked < agentStep.indexOf("jq -e"), "the handoff is marked safe only after the leak check");
+  const claudeStart = agentStep.indexOf("claude\" --bare");
+  const marks = [...agentStep.matchAll(/echo "checked=true" >> "\$GITHUB_OUTPUT"/g)].map((m) => m.index);
+  assert.equal(marks.length, 3);
+  assert.ok(marks.every((i) => i < configSaved || i > leak), "the handoff is marked safe only before Claude runs or after the leak check");
+  assert.ok(marks.at(-1) < agentStep.indexOf("jq -e") && claudeStart > configSaved);
   const discard = agentStep.slice(leak, agentStep.indexOf("jq -e"));
   for (const piece of ["git reset -q --hard && git clean -fdq -e .ci-fix-agent", "rm -rf .ci-fix-agent && mkdir .ci-fix-agent", "Rotate the key", "exit 1"]) {
     assert.ok(discard.includes(piece), `a leaked key is discarded, not packaged: ${piece}`);
