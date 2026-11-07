@@ -392,6 +392,7 @@ test("the CI fixer never runs the pull request's code in the job that holds the 
   assert.ok(configSaved >= 0 && configSaved < agentStep.indexOf("claude\" --bare"), "the config is hashed before Claude starts");
   assert.ok(configChecked > agentStep.indexOf("claude\" --bare") && configChecked < leak, "a changed .git/config stops the run before any git command");
   assert.match(agentStep, /^ {8}id: agent$/m);
+  assert.match(agentStep, /\|\|\n\s+find \. -path \.\/\.git -prune -o -print0 \| grep -qzF -- "\$ANTHROPIC_API_KEY"; \}; then/, "a key copied into a file name is caught too");
   const checked = agentStep.lastIndexOf('echo "checked=true" >> "$GITHUB_OUTPUT"');
   assert.ok(checked > leak && checked < agentStep.indexOf("jq -e"), "the handoff is marked safe only after the leak check");
   const discard = agentStep.slice(leak, agentStep.indexOf("jq -e"));
