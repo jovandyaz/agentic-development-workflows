@@ -384,9 +384,9 @@ test("the CI fixer never runs the pull request's code in the job that holds the 
   const reportHash = report.indexOf('echo "$REPORT_SHA256  $report" | sha256sum -c --quiet');
   assert.ok(reportHash >= 0 && reportHash < report.indexOf('cat "$report"'), "code in the verify job cannot choose the comment text");
   assert.match(report, /if ! gh pr edit "\$PR" --remove-label agent:fix-ci; then\n\s+printf .*remove it by hand/, "a label that stays on is reported");
-  const symlinks = agentStep.indexOf("find . -path ./.git -prune -o -type l -print");
+  const symlinks = agentStep.indexOf("find . -path ./.git -prune -o -type l -print0 | while IFS= read -r -d '' link; do");
   assert.ok(symlinks >= 0 && symlinks < agentStep.indexOf("claude\" --bare"), "a symlink out of the checkout stops the run before Claude starts");
-  assert.match(agentStep, /realpath -m -- "\$link"/);
+  assert.match(agentStep, /case "\$\(realpath -m -- "\$link"\)" in "\$PWD" \| "\$PWD"\/\*\) ;;/, "a link to the checkout root stays allowed");
   const discard = agentStep.slice(leak, agentStep.indexOf("jq -e"));
   for (const piece of ["git reset -q --hard && git clean -fdq -e .ci-fix-agent", "rm -rf .ci-fix-agent && mkdir .ci-fix-agent", "Rotate the key", "exit 1"]) {
     assert.ok(discard.includes(piece), `a leaked key is discarded, not packaged: ${piece}`);

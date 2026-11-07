@@ -106,8 +106,8 @@ jobs:
           PROMPT
           )"
           # Path rules alone do not stop a symlink in the checkout from pointing the file tools elsewhere.
-          outside="$(find . -path ./.git -prune -o -type l -print | while IFS= read -r link; do
-            case "$(realpath -m -- "$link")" in "$PWD"/*) ;; *) printf '%s\n' "$link" ;; esac
+          outside="$(find . -path ./.git -prune -o -type l -print0 | while IFS= read -r -d '' link; do
+            case "$(realpath -m -- "$link")" in "$PWD" | "$PWD"/*) ;; *) printf '%s\n' "$link" ;; esac
           done)"
           if [ -n "$outside" ]; then
             printf 'Not run: these symlinks point outside the checkout:\n%s\n' "$outside" > .ci-fix-agent/report.md
