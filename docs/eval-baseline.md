@@ -6,13 +6,14 @@ case by case. Replace it when a release changes skill behavior.
 ## 0.6.1
 
 Claude Code 2.1.300, model `claude-opus-5-5`, judge `claude-haiku-5-5`, three
-runs per arm, 48 cases, commit `179d685`, about $48 at list price. Seven cases
+runs per arm, 50 cases, commit `179d685`, about $53 at list price. Seven cases
 had runs time out on the first pass because a second suite ran on the same
 credential at the same time; they were rerun alone and the tables use the
-reruns, marked `*`. Run one suite at a time.
+reruns, marked `*`. Run one suite at a time. The two refund review cases were
+added after that pass and run alone with the same settings.
 
 Mean Δ is the with-plugin score minus the without-plugin score, averaged over
-cases. The 95% interval resamples cases and runs (40,000 bootstrap draws). A
+cases. The 95% interval resamples cases and runs (200,000 bootstrap draws). A
 lower bound of 0.00 means the gain rests on a few cases and the rest score the
 same either way. The last column is the earlier baseline: one run per arm, on an
 unrecorded default model, with three-run reruns for two cases.
@@ -24,11 +25,11 @@ unrecorded default model, with three-run reruns for two cases.
 | capturing-lessons | 7 | +0.25 | +0.08 to +0.48 | 2 | +0.26 |
 | shipping-change | 8 | +0.25 | +0.06 to +0.49 | 5 | +0.24 |
 | fixing-bug | 4 | +0.23 | 0.00 to +0.48 | 2 | +0.21 |
-| reviewing-change | 5 | +0.16 | 0.00 to +0.33 | 3 | +0.17 |
 | applying-engineering-standards | 5 | +0.13 | 0.00 to +0.40 | 4 | +0.20 |
 | assessing-code-quality | 4 | +0.12 | 0.00 to +0.24 | 2 | +0.15 |
+| reviewing-change | 7 | +0.11 | 0.00 to +0.25 | 5 | +0.17 |
 | verifying-change | 5 | +0.07 | 0.00 to +0.20 | 4 | +0.07 |
-| All | 48 | +0.21 | +0.13 to +0.30 | | |
+| All | 50 | +0.20 | +0.13 to +0.29 | | |
 
 No case scores lower with the plugin. Only `committing-change`,
 `capturing-lessons`, and `shipping-change` have an interval clear of zero on
@@ -70,10 +71,12 @@ any single-case change with `--runs 3` before trimming the skill text it covers.
 | fixing-bug | bugfix-near-miss | 1.00 | 1.00 | 0.00 | 1 1 1 / 1 1 1 |
 | fixing-bug | bugfix-unattended-run | 1.00 | 0.42 | +0.58 | 1 1 1 / 0.25 0.5 0.5 |
 | fixing-bug | bugfix-unrelated | 1.00 | 1.00 | 0.00 | 1 1 1 / 1 1 1 |
+| reviewing-change | review-clean-change | 1.00 | 1.00 | 0.00 | 1 1 1 / 1 1 1 |
 | reviewing-change | review-gate | 1.00 | 0.67 | +0.33 | 1 1 1 / 0.67 0.67 0.67 |
 | reviewing-change | review-history-silent-failure | 1.00 | 1.00 | 0.00 | 1 1 1 / 1 1 1 |
 | reviewing-change | review-near-miss | 1.00 | 1.00 | 0.00 | 1 1 1 / 1 1 1 |
 | reviewing-change | review-readonly-agents | 0.94 | 0.50 | +0.44 | 0.83 1 1 / 0.5 0.5 0.5 |
+| reviewing-change | review-spec-standards | 1.00 | 1.00 | 0.00 | 1 1 1 / 1 1 1 |
 | reviewing-change | review-unrelated | 1.00 | 1.00 | 0.00 | 1 1 1 / 1 1 1 |
 | shipping-change | ship-assumed-authorization | 1.00 | 1.00 | 0.00 | 1 1 1 / 1 1 1 |
 | shipping-change | ship-bot-comment | 1.00 | 1.00 | 0.00 | 1 1 1 / 1 1 1 |
@@ -99,11 +102,12 @@ read-only reviewer covering quality, spec, and standards, and dropped the review
 guard hooks. Both copies ran three review cases, three runs each, with the
 plugin only:
 
-- `review-history-silent-failure` from the suite: a refactor that swallows an
-  error, findable only in the changed lines' history.
-- A refund change that misses a spec requirement, uses floating-point money
-  against `AGENTS.md`, and has no test.
-- A correct refund change, to catch an invented blocking finding.
+- `review-history-silent-failure`: a refactor that swallows an error, findable
+  only in the changed lines' history.
+- `review-spec-standards`: a refund change that misses a spec requirement, uses
+  floating-point money against `AGENTS.md`, and has no test.
+- `review-clean-change`: a correct refund change, to catch an invented blocking
+  finding.
 
 | Variant | Score | Cost per run | Time per run |
 | --- | ---: | ---: | ---: |
