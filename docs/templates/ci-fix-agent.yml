@@ -139,7 +139,8 @@ jobs:
           fi
           # Instructions planted in the pull request could make the agent copy the key into its report or a file.
           # This catches a verbatim copy only; keeping reads inside the checkout is the real defense.
-          if [ -n "$ANTHROPIC_API_KEY" ] && grep -rqF --exclude-dir=.git -- "$ANTHROPIC_API_KEY" .; then
+          if [ -n "$ANTHROPIC_API_KEY" ] && { grep -rqF --exclude-dir=.git -- "$ANTHROPIC_API_KEY" . ||
+            find . -path ./.git -prune -o -print0 | grep -qzF -- "$ANTHROPIC_API_KEY"; }; then
             git reset -q --hard && git clean -fdq -e .ci-fix-agent
             rm -rf .ci-fix-agent && mkdir .ci-fix-agent
             echo "The agent's output contained the API key, so it was discarded. Rotate the key." > .ci-fix-agent/report.md
