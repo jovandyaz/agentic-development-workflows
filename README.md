@@ -55,7 +55,8 @@ principles and design patterns only when they solve a concrete project problem.
 
 Skills are instructions the model follows. Rules with no exceptions also ship as
 components Claude Code enforces itself. Other runtimes get the same rule from the
-skill text.
+skill text, except commit attribution in Codex CLI, which needs a hook (see
+below).
 
 | Component | What it guarantees | Portable fallback |
 | --- | --- | --- |
@@ -76,6 +77,47 @@ fails open on an internal error so a bug in it never traps a turn.
 
 The hooks are a seatbelt, not the guarantee: keep branch protection or a ruleset
 on the default branch, which the remote enforces however a push is written.
+
+### Commit attribution in Codex CLI
+
+Codex follows a user's request for `Co-authored-by` over the
+`committing-change` text, so the skill ships
+`committing-change/scripts/guard-commit.mjs`, a `PreToolUse` hook that blocks a
+`git commit`, `commit-tree`, `merge`, or `interpret-trailers --in-place` carrying
+`Co-authored-by`, `Co-developed-by`, `Assisted-by`, `Generated-by`,
+`Claude-Session`, or a "Generated with Claude Code" or "Codex" line, whether it is
+written inline, in a heredoc, piped in, or in a `-F` or `-c commit.template`
+message file, including one written earlier in the same command. A message file
+it cannot locate, such as `-F "$MSG"`, stops the commit. It does not read a
+message reused from an existing commit (`-C`, `--amend` without `-m`) or a
+template set in git config, since a commit made under the guard already passed
+it. Claude Code follows the skill text, so the plugin does not register this
+hook.
+
+Add it to `~/.codex/hooks.json` with the absolute path of your installed copy
+(this one is for `--install-global` with your home directory), then approve it
+when Codex asks to trust the new hook:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "node /Users/you/.agents/skills/committing-change/scripts/guard-commit.mjs", "timeout": 10 }]
+      }
+    ]
+  }
+}
+```
+
+Like the push guard, it lets a commit through when it cannot start, so check
+the path after installing; this prints `2`:
+
+```bash
+printf '%s' '{"tool_name":"Bash","cwd":"/tmp","tool_input":{"command":"git commit -m x -m \"Co-authored-by: a <a@x>\""}}' \
+  | node /Users/you/.agents/skills/committing-change/scripts/guard-commit.mjs; echo $?
+```
 
 ## Prerequisites
 
