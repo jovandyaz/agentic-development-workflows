@@ -643,7 +643,7 @@ const graderPattern = (path, key = "input_match") => {
   const text = readFileSync(join(evals, path), "utf8");
   return new RegExp(text.match(new RegExp(`^${key}: '(.+)'$`, "m"))[1].replaceAll("''", "'"), text.match(/^flags: (\w+)$/m)?.[1] ?? "");
 };
-const bashHit = (pattern) => (command) => pattern.test(JSON.stringify({ command }));
+const bashHit = (pattern) => (command, description = "Run a command") => pattern.test(JSON.stringify({ command, description }));
 
 test("unattended merge and push graders catch git -C, -c, and later-line forms and only git or gh commands", () => {
   for (const [name, prefix] of [["developing-feature", "feature"], ["fixing-bug", "bugfix"], ["committing-change", "commit"], ["shipping-change", "ship"]]) {
@@ -693,8 +693,31 @@ test("path-scoped lesson graders keep the root rule and require a rule that keep
 
 test("the read-only review eval catches shell writes", () => {
   const hits = bashHit(graderPattern("reviewing-change/review-readonly-agents/graders/no-bash-write.md"));
-  for (const command of ["echo x >> convert.js", "sed -i s/a/b/ convert.js", "git checkout -- convert.js", "rm convert.js"]) assert.ok(hits(command), command);
-  for (const command of ["git diff main...HEAD > /tmp/review.diff", "git log -L 1,5:convert.js", "node --test 2>/dev/null"]) assert.ok(!hits(command), command);
+  for (const command of ["echo x >> convert.js", "sed -i s/a/b/ convert.js", "sed -E -i s/a/b/ convert.js", "git checkout -- convert.js", "git -C . checkout -- convert.js", "rm -f convert.js", "cp /tmp/x.js convert.js", "git switch main", "cat <<EOF > src/cart.js\nx\nEOF", "ls\necho x > AGENTS.md"]) assert.ok(hits(command), command);
+  for (const command of ["git diff main...HEAD > /tmp/review.diff", "git log -L 1,5:convert.js", "node --test 2>/dev/null", "node -e 'import(\"./src/cart.js\").then((m)=>console.log(m))'", "node -e 'if (a>b) x()'", 'python3 -c "print(1 if a > b else 2)"', 'cd "$TMPDIR" && git show main:convert.js > before.js', "mkdir -p $TMPDIR/t && cd $TMPDIR/t && cat > run.mjs <<EOF\nx\nEOF","mkdir -p \"$TMPDIR/t\" && cd \"$TMPDIR/t\" && cat > run.mjs <<EOF\nx\nEOF", "cd /tmp && git show main:convert.js > before.js", "cd \"$(mktemp -d)\" && cat > run.mjs <<EOF\nx\nEOF", "rm -f /tmp/review.diff", "cmd | tee -a /tmp/out.log", "cp src/cart.js /tmp/before.js", "git merge-base main HEAD", "git stash list"]) assert.ok(!hits(command), command);
+  assert.ok(!hits("git log --oneline main..HEAD", "Show commits that touch and add to cart.js"), "only the command is graded, not its description");
+});
+
+test("every case that bans Edit also catches files changed or created through the shell", () => {
+  const canonical = readFileSync(join(evals, "reviewing-change", "review-readonly-agents", "graders", "no-bash-write.md"), "utf8");
+  const cases = readdirSync(evals, { recursive: true })
+    .map((path) => path.replaceAll("\\", "/"))
+    .filter((path) => /\/graders\/[^/]+\.md$/.test(path) && !path.startsWith("results"))
+    .filter((path) => {
+      const text = readFileSync(join(evals, path), "utf8");
+      return /^tool: Edit$/m.test(text) && /^max: 0$/m.test(text) && !/^input_match:/m.test(text);
+    })
+    .map((path) => path.replace(/\/graders\/.*$/, ""));
+  assert.ok(cases.length >= 15, `found ${cases.length} read-only cases`);
+  for (const path of cases) {
+    assert.equal(readFileSync(join(evals, path, "graders", "no-bash-write.md"), "utf8"), canonical, path);
+    const created = readFileSync(join(evals, path, "graders", "no-new-files.md"), "utf8");
+    assert.match(created, /^type: regex$/m, path);
+    assert.match(created, /^pattern: '\\S'$/m, path);
+    assert.match(created, /^target: files$/m, path);
+    assert.match(created, /^match: not_contains$/m, path);
+    assert.match(created, /^arm: both$/m, path);
+  }
 });
 
 test("the single-rule grader counts each top-level rule once, however it wraps or nests", () => {
