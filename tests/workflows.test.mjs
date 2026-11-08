@@ -697,6 +697,18 @@ test("the read-only review eval catches shell writes", () => {
   for (const command of ["git diff main...HEAD > /tmp/review.diff", "git log -L 1,5:convert.js", "node --test 2>/dev/null"]) assert.ok(!hits(command), command);
 });
 
+test("the single-rule grader counts each top-level rule once, however it wraps or nests", () => {
+  const pattern = graderPattern("capturing-lessons/lessons-ignored-rule/graders/single-rule.md", "pattern");
+  const count = (text) => text.match(new RegExp(pattern.source, `${pattern.flags}g`))?.length ?? 0;
+  assert.equal(count("# Rules\n\n- Keep runtime dependencies at zero.\n- Run `pnpm test`.\n"), 1);
+  assert.equal(count("- Keep the package free of runtime\n  dependencies; it ships as scripts.\n- Run tests.\n"), 1);
+  assert.equal(count("- Rules:\n  - Keep runtime dependencies at zero.\n"), 1);
+  assert.equal(count("- Keep runtime dependencies at zero.\n  - Tooling goes in devDependencies.\n"), 1, "a clarifying sub-bullet is the same rule");
+  assert.equal(count("- Run tests.\n  - Never add dependencies.\n- Keep runtime dependencies at zero.\n"), 2);
+  assert.equal(count("- Keep runtime dependencies at zero.\n- Never add\n  package.json dependencies.\n"), 2);
+  assert.equal(count("- Run tests.\n\nDependencies are discussed in prose.\n"), 0);
+});
+
 test("every eval grader regex compiles as a JavaScript RegExp, which has no inline (?i) flag", () => {
   const evals = join(root, "plugins", "workflows", "evals");
   const graders = readdirSync(evals, { recursive: true }).map((path) => path.replaceAll("\\", "/")).filter((path) => /(^|\/)graders\/[^/]+\.md$/.test(path) && !path.startsWith("results"));
