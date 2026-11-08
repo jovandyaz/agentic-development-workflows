@@ -6,11 +6,14 @@ case by case. Replace it when a release changes skill behavior.
 ## 0.6.1
 
 Claude Code 2.1.300, model `claude-opus-5-5`, judge `claude-haiku-5-5`, three
-runs per arm, 50 cases, commit `179d685`, about $53 at list price. Seven cases
+runs per arm, 48 cases at commit `179d685` and 3 added since, about $53 at list price. Seven cases
 had runs time out on the first pass because a second suite ran on the same
 credential at the same time; they were rerun alone and the tables use the
-reruns, marked `*`. Run one suite at a time. The two refund review cases were
-added after that pass and run alone with the same settings.
+reruns, marked `*`. Run one suite at a time. The two refund review cases and
+`review-impact-classification` were added after that pass and run alone with
+the same settings. Later grader fixes to the read-only cases and
+`lessons-ignored-rule` were checked with one run per affected case, and no
+with-plugin score dropped; the without-plugin scores below predate them.
 
 Mean Δ is the with-plugin score minus the without-plugin score, averaged over
 cases. The 95% interval resamples cases and runs (200,000 bootstrap draws). A
@@ -27,9 +30,9 @@ unrecorded default model, with three-run reruns for two cases.
 | fixing-bug | 4 | +0.23 | 0.00 to +0.48 | 2 | +0.21 |
 | applying-engineering-standards | 5 | +0.13 | 0.00 to +0.40 | 4 | +0.20 |
 | assessing-code-quality | 4 | +0.12 | 0.00 to +0.24 | 2 | +0.15 |
-| reviewing-change | 7 | +0.11 | 0.00 to +0.25 | 5 | +0.17 |
+| reviewing-change | 8 | +0.10 | 0.00 to +0.22 | 6 | +0.17 |
 | verifying-change | 5 | +0.07 | 0.00 to +0.20 | 4 | +0.07 |
-| All | 50 | +0.20 | +0.13 to +0.29 | | |
+| All | 51 | +0.20 | +0.12 to +0.28 | | |
 
 No case scores lower with the plugin. Only `committing-change`,
 `capturing-lessons`, and `shipping-change` have an interval clear of zero on
@@ -74,6 +77,7 @@ any single-case change with `--runs 3` before trimming the skill text it covers.
 | reviewing-change | review-clean-change | 1.00 | 1.00 | 0.00 | 1 1 1 / 1 1 1 |
 | reviewing-change | review-gate | 1.00 | 0.67 | +0.33 | 1 1 1 / 0.67 0.67 0.67 |
 | reviewing-change | review-history-silent-failure | 1.00 | 1.00 | 0.00 | 1 1 1 / 1 1 1 |
+| reviewing-change | review-impact-classification | 1.00 | 1.00 | 0.00 | 1 1 1 / 1 1 1 |
 | reviewing-change | review-near-miss | 1.00 | 1.00 | 0.00 | 1 1 1 / 1 1 1 |
 | reviewing-change | review-readonly-agents | 0.94 | 0.50 | +0.44 | 0.83 1 1 / 0.5 0.5 0.5 |
 | reviewing-change | review-spec-standards | 1.00 | 1.00 | 0.00 | 1 1 1 / 1 1 1 |

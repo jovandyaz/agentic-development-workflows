@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Eval cases that must not change files also fail on a new file and on common
+  shell writes in the repository, not only on `Edit` or `Write`.
+- `lessons-ignored-rule` counts a hard-wrapped rule once and drops a judge that
+  disagreed with its deterministic grader between runs.
+- A new review case checks that only a correctness defect blocks and a naming
+  issue stays non-blocking.
+
 ## [0.6.1] - 2026-11-05
 
 - The push guard fails closed: a push it cannot resolve, such as one inside
