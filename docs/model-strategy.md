@@ -6,6 +6,20 @@ names: which model is stronger changes between releases. Claude Opus 5.5
 performed at the level of Claude Fable 5.1 on most work, and Claude Fable 5.2
 is now a step above Claude Opus 5.5.
 
+## Roles, Not Names
+
+The policy uses two roles that any model can fill:
+
+- **Default model:** runs the session. Pick it by cost per completed task on
+  your own work.
+- **Strongest model:** advises or plans. This is the model that ranks highest
+  on your own measurement today. Claude Code also checks the ranking: an
+  advisor that ranks below the main model is not attached.
+
+When a new model ships, re-run the measurement below and reassign the roles. A
+new model can take either role. A model that ranks below the default model
+takes neither. No skill, agent, or setting in this plugin needs to change.
+
 ## Policy
 
 1. **One model first.** Run the session on the default model at its default
