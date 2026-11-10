@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [0.7.0] - 2026-11-10
 
 - `committing-change` ships `scripts/guard-commit.mjs`, a Codex `PreToolUse`
   hook that blocks a commit carrying `Co-authored-by` or other agent

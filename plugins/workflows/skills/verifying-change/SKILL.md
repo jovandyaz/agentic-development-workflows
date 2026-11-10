@@ -4,7 +4,7 @@ description: Use when implementation or review is complete, before claiming succ
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.6.1"
+  version: "0.7.0"
 ---
 
 # Verifying A Change
