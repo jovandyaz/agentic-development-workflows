@@ -302,6 +302,8 @@ only on manual dispatch with a cost ceiling; projects that install the plugin
 never run it.
 [`docs/measuring-agent-changes.md`](docs/measuring-agent-changes.md) covers the
 production side: merged agent PRs, review rounds, reverts, and quick fixes.
+[`docs/model-strategy.md`](docs/model-strategy.md) covers when to raise effort,
+when to add an advisor or a stronger subagent, and how to measure a pairing.
 
 ## Development
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import test from "node:test";
@@ -417,4 +417,17 @@ test("the agent change metrics count a whole calendar month, past gh's default l
   const reverts = doc.match(/`(git log [^`]+--grep[^`]+)`/)?.[1] ?? "";
   assert.match(reverts, /--since=YYYY-MM-01 --until=YYYY-MM-31/, "a rolling month is not a calendar month");
   assert.match(reverts, / -i /, "git writes Revert with a capital R");
+});
+
+test("skills and agents name no model, so the session model and its advisor apply", () => {
+  const base = join(root, "plugins", "workflows");
+  const files = [
+    ...readdirSync(join(base, "agents")).filter((name) => name.endsWith(".md")).map((name) => join(base, "agents", name)),
+    ...readdirSync(join(base, "skills")).map((name) => join(base, "skills", name, "SKILL.md")),
+  ];
+  assert.ok(files.length >= 12, `found ${files.length} skill and agent files`);
+  for (const path of files) {
+    const frontmatter = readFileSync(path, "utf8").match(/^---\n([\s\S]*?)\n---/)?.[1] ?? "";
+    assert.doesNotMatch(frontmatter, /^(model|effort):/m, `${path} pins a model or effort; see docs/model-strategy.md`);
+  }
 });
