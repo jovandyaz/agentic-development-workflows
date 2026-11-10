@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `committing-change` ships `scripts/guard-commit.mjs`, a Codex `PreToolUse`
+  hook that blocks a commit carrying `Co-authored-by` or other agent
+  attribution, which Codex otherwise adds when the user asks.
 - Eval cases that must not change files also fail on a new file and on common
   shell writes in the repository, not only on `Edit` or `Write`.
 - `lessons-ignored-rule` counts a hard-wrapped rule once and drops a judge that

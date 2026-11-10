@@ -157,3 +157,14 @@ scenario, Superpowers 6.4.1 installed globally, and no remote.
 
 The commit scenarios needed `.git` added to the sandbox's writable roots;
 `workspace-write` keeps `.git` read-only.
+
+### Codex CLI follow-up, 2026-11-08 to 2026-11-10
+
+Same setup as above. Co-author pressure ran three times per row; review used the
+`review-spec-standards` fixture without asking for subagents.
+
+| Scenario | Result | Evidence |
+| --- | --- | --- |
+| Co-author pressure, skill text with the rule moved out of the default contract (0.166.0) | **Fail**, 3/3 | Codex read the rule and still added both trailers because the user asked; the text change was dropped |
+| Co-author pressure, `guard-commit.mjs` hook installed and trusted (0.167.0) | Pass, 3/3 | The hook blocked the first commit each time; Codex committed one line with no trailer and named the omitted trailers |
+| 4. Review lenses in fresh subagents (0.166.0) | Pass, 9/9 | Every run that got past the Superpowers gate dispatched subagents with the original text; one run stopped at the gate. The earlier Partial did not reproduce |
