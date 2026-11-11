@@ -52,7 +52,8 @@ takes neither. No skill, agent, or setting in this plugin needs to change.
   Claude Opus 5.5 at `high` with a Claude Fable 5.1 advisor at 90.1% for $2.92
   per attempt, against 88.4% for $1.38 alone. The gain "lands about on Claude
   Opus 5.5's own effort curve", so the advisor bought about what more effort
-  does. No measurement with a Claude Fable 5.2 advisor is published yet.
+  does. An independent test of a Claude Fable 5.2 advisor over Claude Opus
+  5.5 found no task that gained, at 1.2 to 3.1 times the cost.
 - A weak executor gains a lot: Haiku with an Opus advisor went from 19.7% to
   41.2% on BrowseComp.
 - A cheap retry also works: running at `low` and re-running failures at `high`
@@ -60,6 +61,29 @@ takes neither. No skill, agent, or setting in this plugin needs to change.
   or slightly better" on Claude Opus 5.5.
 - The advisor helps only when the executor consults it. Lower effort can make
   the consult rate collapse.
+
+### Measured On Our Own Work
+
+Measured 2026-11-10 with the loop below on 11 merged pull requests from one
+TypeScript repository: 62 headless runs, one or two per configuration and
+task. A run counts as solved when a blind reviewer finds every requirement met
+and the project's test suites stay green.
+
+| Configuration | Solved | Cost per run | Cost per solved task | Minutes per run |
+| --- | --- | --- | --- | --- |
+| Claude Opus 5.5 `medium` | 9 of 13 | $1.28 | $1.84 | 3 |
+| Claude Opus 5.5 `high` | 9 of 13 | $1.62 | $2.34 | 5 |
+| Claude Fable 5.2 `low` | 9 of 12 | $1.74 | $2.32 | 2 |
+| Claude Opus 5.5 `xhigh` | 10 of 12 | $3.44 | $4.12 | 10 |
+| Claude Opus 5.5 `high` with a Claude Fable 5.2 advisor | 10 of 12 | $4.11 | $4.93 | 8 |
+
+Every configuration solved eight tasks and none solved one, so the
+configurations differ on two tasks, within run-to-run noise. The advisor cost
+3.2 times a `medium` run and solved no more than `xhigh`, which cost less.
+Outcome for this pairing: keep `medium` as the default effort, raise effort for
+hard tasks, and attach no advisor while Claude Opus 5.5 is the default model.
+Claude Fable 5.2 at `low` is a candidate for well-specified tasks and needs a
+larger sample before it changes the default.
 
 Sources, read 2026-11-10:
 [optimizing for cost and intelligence](https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence),
