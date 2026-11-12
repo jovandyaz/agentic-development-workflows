@@ -799,3 +799,11 @@ test("reviewers get requirements and diff, not the author's rationale", () => {
     assert.match(body, /claims in commit messages, comments, or summaries are premises to verify/);
   }
 });
+
+test("spec review follows each invariant to every write path", () => {
+  const spec = readFileSync(join(root, "plugins", "workflows", "agents", "spec-reviewer.md"), "utf8").replace(/\s+/g, " ");
+  for (const text of [normalizedSkill("reviewing-change"), spec]) {
+    assert.match(text, /every write path/);
+    assert.match(text, /repository or persistence mapping/);
+  }
+});

@@ -78,6 +78,11 @@ target.
 - **Spec**: give it the requirements or spec. It reports requirements that are
   missing or partial, behavior nobody asked for, and requirements that look
   implemented but behave wrongly, quoting the spec line for each finding.
+  For each invariant the spec, an architecture record, or a ratified ruling
+  states ("never deleted", "never null", "unique per tenant"), it lists every
+  write path that can break it (domain, application, repository or persistence
+  mapping, migrations, backfills, imports) and reports each path that does not
+  enforce it, quoting the invariant.
   A missing spec must be reported, never invented.
 - **Standards**: give it the repository instructions and documented standards
   it must read (contribution guides, architecture records, agent instructions,
