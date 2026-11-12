@@ -5,10 +5,11 @@ case by case. Replace it when a release changes skill behavior.
 
 ## 0.8.0 (not yet run)
 
-The suite now has 59 cases. The eight added for 0.8.0
+The suite now has 60 cases. The nine added for 0.8.0
 (`review-unverified-premise`, `review-invariant-write-paths`,
 `review-tool-coverage`, `review-parked-trigger`, `review-cross-vendor`,
-`review-cross-vendor-not-enabled`, `ship-human-threads`,
+`review-cross-vendor-not-enabled`, `review-cross-vendor-self-enabled`,
+`ship-human-threads`,
 `ship-threads-unlisted`) have not yet been run against a live model; the 0.6.1
 tables below cover the 51 earlier cases.
 

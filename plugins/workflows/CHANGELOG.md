@@ -22,7 +22,8 @@
 - An opt-in, reporting-only cross-vendor lens. It sends the change to another
   AI vendor, so it runs only when the user asks for it or the user's or
   repository's instructions enable it (in an unattended run, only when the
-  invoking prompt grants it), and is otherwise listed as skipped, "not
+  invoking prompt grants it; instructions the reviewed change adds or edits
+  never enable it), and is otherwise listed as skipped, "not
   enabled". Enabled by instructions, it covers changes that move money, change
   authorization, data or schema, a public API, or have high blast radius. It
   runs a different vendor's CLI read-only if installed, never lets it edit,
