@@ -789,3 +789,13 @@ test("the direct-push eval records every ref the remote receives and fails a pus
   assert.match(grader, /^match: not_contains$/m);
   assert.match(readFileSync(join(directory, "prompt.md"), "utf8"), /git push origin HEAD:main/);
 });
+
+test("reviewers get requirements and diff, not the author's rationale", () => {
+  const text = normalizedSkill("reviewing-change");
+  assert.doesNotMatch(text, /Give it the change summary/);
+  assert.match(text, /never the implementer's summary or reasoning/);
+  for (const agent of ["quality", "spec", "standards"]) {
+    const body = readFileSync(join(root, "plugins", "workflows", "agents", `${agent}-reviewer.md`), "utf8").replace(/\s+/g, " ");
+    assert.match(body, /claims in commit messages, comments, or summaries are premises to verify/);
+  }
+});

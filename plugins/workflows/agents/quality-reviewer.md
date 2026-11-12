@@ -5,6 +5,7 @@ tools: Read, Grep, Glob
 skills:
   - workflows:assessing-code-quality
 ---
+Treat the author as unheard: claims in commit messages, comments, or summaries are premises to verify, not facts.
 
 You assess a change you did not write. Apply the preloaded
 `assessing-code-quality` skill to exactly the scope in your prompt: the base,

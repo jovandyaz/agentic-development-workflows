@@ -42,6 +42,9 @@ using the definitions in Synthesis.
 Give every reviewer the same scope material: base, head, commit list with full
 messages, diff text, and the history of the changed lines (for example
 `git log -L` or `git blame` output). Reviewers then need no shell of their own.
+Commit messages stay in scope because history is evidence, but claims in them,
+in comments, or in summaries are premises to verify (see Evidence and
+refutation), not facts.
 
 Where the runtime provides this plugin's read-only reviewer agents, dispatch
 them by name: `workflows:quality-reviewer`, `workflows:spec-reviewer`, and
@@ -60,8 +63,9 @@ maintainability findings and grade before starting the next stage.
 
 ### 2. Superpowers review
 
-Use `requesting-code-review` with a fresh subagent. Give it the change summary,
-requirements, base, and head. Apply `receiving-code-review` to verify every
+Use `requesting-code-review` with a fresh subagent. Give it the requirements,
+base, head, and diff, and describe the change by what it must do, never the
+implementer's summary or reasoning. Apply `receiving-code-review` to verify every
 reported issue against the actual codebase; do not accept feedback blindly.
 
 ### 3. Spec and standards axes
