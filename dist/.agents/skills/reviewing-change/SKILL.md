@@ -86,10 +86,30 @@ follows every standard can still build the wrong thing, and the right behavior
 can still break the repository's conventions. Treat each finding as a
 hypothesis until `receiving-code-review` confirms it against the codebase.
 
+### 4. Evidence and refutation
+
+Run this step yourself after the reviewers return; it verifies findings and is
+not a lens. Reviewers can only read, so their evidence is `file:line` or
+documentation URLs; you may also run read-only commands.
+
+Take every candidate finding, and every premise that the change, a proposed
+fix, or an earlier ruling relies on, such as uniqueness, nullability, ordering,
+idempotency, library behavior, or "tooling enforces X". For each, try to refute
+it before reporting or accepting it. Accept it only with evidence: a
+`file:line`, the schema object or constraint, a command output, or an official
+documentation URL for the installed version, found through
+`applying-engineering-standards`.
+
+A premise without evidence is an open question, or Blocking when the change
+depends on it, even if the gap predates the change. Drop a finding the evidence
+refutes and list it as refuted.
+
 ## Synthesis
 
-Deduplicate only findings with the same cause and impact. Validate file and line
-references, exclude pre-existing issues, and retain the strongest evidence.
+Start from what Evidence and refutation produced: confirmed findings, open
+questions, and refuted findings. Deduplicate only findings with the same cause
+and impact. Validate file and line references, exclude pre-existing issues, and
+retain the strongest evidence.
 
 Classify every confirmed finding by impact, never by lens or severity label:
 
@@ -101,8 +121,9 @@ Classify every confirmed finding by impact, never by lens or severity label:
 Report a finding whose classification is uncertain as an open question; never
 fix or drop it silently. Report blocking findings first, then non-blocking
 findings, each by severity with location, impact, evidence, and smallest safe
-fix. Follow with open questions, the assessing-code-quality grade, lenses
-executed, and verification gaps. If no findings remain, state that explicitly.
+fix. Follow with open questions, refuted findings, the assessing-code-quality
+grade, lenses executed, and verification gaps. If no findings remain, state
+that explicitly.
 
 Use `capturing-lessons` for each confirmed blocking finding that reveals a
 mistake likely to recur, and include its report.
