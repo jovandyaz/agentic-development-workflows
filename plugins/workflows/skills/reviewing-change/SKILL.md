@@ -129,13 +129,19 @@ Classify every confirmed finding by impact, never by lens or severity label:
   loss, or a requirement that is missing or implemented wrongly. Requirements
   include the request, the spec, and mandatory repository instructions.
 - **Non-blocking**: maintainability, style, or speculative hardening.
+- **Parked**: a Non-blocking finding deferred until a condition holds, such as
+  "if a second writer appears". Report it with its revisit trigger.
+
+Each round, recheck every parked finding from earlier rounds against the
+current diff. When its trigger has occurred, reclassify it by impact and report
+it as a finding of this round.
 
 Report a finding whose classification is uncertain as an open question; never
 fix or drop it silently. Report blocking findings first, then non-blocking
 findings, each by severity with location, impact, evidence, and smallest safe
-fix. Follow with open questions, refuted findings, the assessing-code-quality
-grade, lenses executed, and verification gaps. If no findings remain, state
-that explicitly.
+fix. Follow with parked findings and their triggers, open questions, refuted
+findings, the assessing-code-quality grade, lenses executed, and verification
+gaps. If no findings remain, state that explicitly.
 
 Use `capturing-lessons` for each confirmed blocking finding that reveals a
 mistake likely to recur, and include its report.

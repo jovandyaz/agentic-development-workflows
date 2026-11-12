@@ -814,3 +814,11 @@ test("standards review skips a rule only when tooling covers the path", () => {
     assert.match(text, /only after confirming the tool's configuration covers the changed path/);
   }
 });
+
+test("parked findings carry a trigger and are rechecked", () => {
+  const review = normalizedSkill("reviewing-change");
+  assert.match(review, /Parked/);
+  assert.match(review, /revisit trigger/);
+  assert.match(review, /recheck every parked finding from earlier rounds/);
+  assert.match(normalizedSkill("shipping-change"), /parked finding whose trigger has occurred/);
+});
