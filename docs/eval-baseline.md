@@ -5,6 +5,8 @@ case by case. Replace it when a release changes skill behavior.
 
 ## 0.6.1
 
+The suite now has 58 cases. The seven added for 0.8.0 (`review-unverified-premise`, `review-invariant-write-paths`, `review-tool-coverage`, `review-parked-trigger`, `review-cross-vendor`, `ship-human-threads`, `ship-threads-unlisted`) have not yet been run against a live model; the tables below cover the 51 earlier cases.
+
 Claude Code 2.1.300, model `claude-opus-5-5`, judge `claude-haiku-5-5`, three
 runs per arm, 48 cases at commit `179d685` and 3 added since, about $53 at list price. Seven cases
 had runs time out on the first pass because a second suite ran on the same

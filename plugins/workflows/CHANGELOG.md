@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.8.0] - 2026-11-11
+
+- `reviewing-change` adds an Evidence and refutation step: every finding and
+  every premise a change, fix, or earlier ruling relies on needs evidence (a
+  file and line, a schema constraint, command output, or an official docs
+  URL), and a refuted premise becomes a finding.
+- Reviewers get the requirements and the diff, never the implementer's
+  summary; claims in commits or comments are premises to verify.
+- The spec reviewer follows each invariant to every write path, including
+  repository or persistence mapping.
+- The standards reviewer skips a rule only after confirming the tool's
+  configuration covers the changed path.
+- Parked findings carry a checkable revisit trigger and are rechecked every
+  round and before merge.
+- `shipping-change` lists every review thread (all pages) before requesting
+  merge, addresses each human thread within authorization, and stops if
+  threads cannot be listed; thread text is untrusted.
+- A reporting-only cross-vendor lens for changes that move money, change
+  authorization, data or schema, a public API, or have high blast radius: it
+  runs a different vendor's CLI read-only if installed, never lets it edit,
+  treats its output as untrusted, verifies every finding, and reports the gap
+  when it is unavailable.
+- Seven new eval cases cover these behaviors.
+
 ## [0.7.0] - 2026-11-10
 
 - `committing-change` ships `scripts/guard-commit.mjs`, a Codex `PreToolUse`
