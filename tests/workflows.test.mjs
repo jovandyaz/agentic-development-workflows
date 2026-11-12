@@ -831,3 +831,13 @@ test("parked findings have a source, one home, and a checkable trigger", () => {
   assert.match(review, /never defers past a trigger that has occurred without the user's acceptance/);
   assert.match(normalizedSkill("shipping-change"), /parked-finding recheck against the current head/);
 });
+
+test("shipping-change resolves human review threads before requesting merge", () => {
+  const shipping = normalizedSkill("shipping-change");
+  const section = shipping.slice(shipping.indexOf("## Pre-Merge, Merge, And Post-Deploy"));
+  assert.match(section, /every human review thread/);
+  assert.match(section, /reviewThreads/);
+  assert.match(section, /could not be listed/);
+  assert.match(section, /require conversation resolution/);
+  assertOrdered(section, ["every human review thread", "Report when the PR is ready"]);
+});
