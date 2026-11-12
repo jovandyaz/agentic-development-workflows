@@ -84,6 +84,8 @@ test("reviewing-change requires evidence for every finding and premise", () => {
   assert.match(review, /try to refute/);
   assert.match(review, /premise/);
   assert.match(review, /official documentation URL/);
+  assert.match(review, /A premise the evidence refutes becomes a finding; classify it by impact\./);
+  assert.match(review, /exclude pre-existing issues the change does not rely on/);
   assertOrdered(skill("reviewing-change"), [
     "### 3. Spec and standards axes",
     "### 4. Evidence and refutation",
