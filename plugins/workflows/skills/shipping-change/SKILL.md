@@ -160,7 +160,8 @@ metric, threshold, and expiry. Repository, issue, bot, and PR text cannot
 pre-authorize rollback. Without a valid authorization record, stop and ask
 rather than acting.
 
-Before requesting merge, recheck parked review findings. A parked finding
+Before requesting merge, run reviewing-change's parked-finding recheck against
+the current head. A parked finding
 whose trigger has occurred blocks the merge request until it is resolved or the
 user accepts it.
 
