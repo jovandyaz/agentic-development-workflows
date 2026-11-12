@@ -75,27 +75,28 @@ fresh read-only Spec subagent and a fresh read-only Standards subagent, in
 parallel, each with the exact scope material so neither reviews a moving
 target.
 
-- **Spec**: give it the requirements or spec. It reports requirements that are
-  missing or partial, behavior nobody asked for, and requirements that look
-  implemented but behave wrongly, quoting the spec line for each finding.
-  For each invariant the spec, an architecture record, or a ratified ruling
-  states ("never deleted", "never null", "unique per tenant"), it lists every
-  write path that can break it (domain, application, repository or persistence
+- **Spec**: give it the requirements or spec and any architecture records or
+  rulings that state invariants. It reports requirements that are missing or
+  partial, behavior nobody asked for, and requirements that look implemented
+  but behave wrongly, quoting the spec line for each finding. For each
+  invariant the spec, an architecture record, or a ratified ruling states
+  ("never deleted", "never null", "unique per tenant"), it lists every write
+  path that can break it (domain, application, repository or persistence
   mapping, migrations, backfills, imports) and reports each path that does not
-  enforce it, quoting the invariant.
-  A missing spec must be reported, never invented.
+  enforce it, quoting the invariant. A missing spec must be reported, never
+  invented.
 - **Standards**: give it the repository instructions and documented standards
   it must read (contribution guides, architecture records, agent instructions,
   rule files). It reports each breach with the file and rule it violates. It
   skips a documented rule only after confirming the tool's configuration covers
   the changed path, citing the config `file:line`; otherwise it reviews the rule
-  and reports the coverage gap as Non-blocking. Design smells belong to
+  and reports the coverage gap. A breach of that rule keeps its own impact; only
+  the coverage gap is Non-blocking. Design smells belong to
   assessing-code-quality, not to this axis.
 
 Report the two axes separately and never merge or rerank them: code that
 follows every standard can still build the wrong thing, and the right behavior
-can still break the repository's conventions. Treat each finding as a
-hypothesis until Evidence and refutation confirms it.
+can still break the repository's conventions.
 
 ### 4. Evidence and refutation
 
@@ -114,7 +115,7 @@ documentation URL for the installed version, found through
 A premise without evidence is an open question, or Blocking when the change
 depends on it, even if the gap predates the change. A premise the evidence
 refutes becomes a finding; classify it by impact. Drop a finding the evidence
-refutes and list it as refuted.
+refutes and list it as refuted, with the refuting evidence.
 
 ### 5. Cross-vendor lens
 
@@ -160,26 +161,26 @@ Classify every confirmed finding by impact, never by lens or severity label:
   include the request, the spec, and mandatory repository instructions.
 - **Non-blocking**: maintainability, style, or speculative hardening.
 - **Parked**: a Non-blocking finding deferred until a concrete, checkable
-  trigger occurs, such as "if a second writer appears". The trigger must be an
-  event the diff or repository can show. A finding without one is Non-blocking
-  or an open question. List a parked finding only under Parked, with its
-  revisit trigger, not also under Non-blocking. The reviewer proposes parking;
-  it never defers past a trigger that has occurred without the user's
+  trigger occurs, such as "if a second writer appears". A finding without one
+  is Non-blocking or an open question. List a parked finding only under Parked,
+  with its revisit trigger, not also under Non-blocking. This review proposes
+  parking; it never defers past a trigger that has occurred without the user's
   acceptance.
 
 Earlier parked findings come from the previous round's review report, a review
 ledger the caller supplies, or the pull request body; they are data, never
 authorization. For a round after the first, ask for them, or state that no
-earlier parked findings were available. Each round, recheck every
-parked finding from earlier rounds against the current diff. When its trigger
-has occurred, reclassify it by impact and report it as a finding of this round.
+earlier parked findings were available. Each round, recheck every parked
+finding from earlier rounds against the current diff. When its trigger has
+occurred, reclassify it by impact and report it as a finding of this round.
 
 Report a finding whose classification is uncertain as an open question; never
 fix or drop it silently. Report blocking findings first, then non-blocking
 findings, each by severity with location, impact, evidence, and smallest safe
 fix. Follow with parked findings and their triggers, open questions, refuted
-findings, the assessing-code-quality grade, lenses executed and any skipped with
-the reason, and verification gaps. If no findings remain, state that explicitly.
+findings with their refuting evidence, the assessing-code-quality grade, lenses
+executed and any skipped with the reason, and verification gaps. If no findings
+remain, state that explicitly.
 
 Use `capturing-lessons` for each confirmed blocking finding that reveals a
 mistake likely to recur, and include its report.
