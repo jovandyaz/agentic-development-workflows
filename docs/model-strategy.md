@@ -52,8 +52,7 @@ takes neither. No skill, agent, or setting in this plugin needs to change.
   Claude Opus 5.5 at `high` with a Claude Fable 5.1 advisor at 90.1% for $2.92
   per attempt, against 88.4% for $1.38 alone. The gain "lands about on Claude
   Opus 5.5's own effort curve", so the advisor bought about what more effort
-  does. An independent test of a Claude Fable 5.2 advisor over Claude Opus
-  5.5 found no task that gained, at 1.2 to 3.1 times the cost.
+  does.
 - A weak executor gains a lot: Haiku with an Opus advisor went from 19.7% to
   41.2% on BrowseComp.
 - A cheap retry also works: running at `low` and re-running failures at `high`
@@ -69,7 +68,9 @@ TypeScript repository: 62 headless runs, one or two per configuration and
 task. Each run was graded twice, blind: by a Claude Fable 5.2 reviewer and by
 an OpenAI Codex reviewer (`codex exec -s read-only`, high reasoning effort). A
 run counts as solved when the reviewer finds every requirement met and the
-project's test suites stay green.
+project's test suites stay green. The repositories are private and the run
+data is not published, so treat these numbers as one team's observation, not a
+benchmark.
 
 | Configuration | Solved (Claude judge) | Solved (Codex judge) | Cost per run | Cost per solved task (Codex) | Minutes per run |
 | --- | --- | --- | --- | --- | --- |
