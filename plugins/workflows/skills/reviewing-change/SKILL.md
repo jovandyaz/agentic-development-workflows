@@ -86,8 +86,10 @@ target.
   A missing spec must be reported, never invented.
 - **Standards**: give it the repository instructions and documented standards
   it must read (contribution guides, architecture records, agent instructions,
-  rule files). It reports each breach with the file and rule it violates and
-  skips anything tooling already enforces; design smells belong to
+  rule files). It reports each breach with the file and rule it violates. It
+  skips a documented rule only after confirming the tool's configuration covers
+  the changed path, citing the config `file:line`; otherwise it reviews the rule
+  and reports the coverage gap as Non-blocking. Design smells belong to
   assessing-code-quality, not to this axis.
 
 Report the two axes separately and never merge or rerank them: code that

@@ -807,3 +807,10 @@ test("spec review follows each invariant to every write path", () => {
     assert.match(text, /repository or persistence mapping/);
   }
 });
+
+test("standards review skips a rule only when tooling covers the path", () => {
+  const standards = readFileSync(join(root, "plugins", "workflows", "agents", "standards-reviewer.md"), "utf8").replace(/\s+/g, " ");
+  for (const text of [normalizedSkill("reviewing-change"), standards]) {
+    assert.match(text, /only after confirming the tool's configuration covers the changed path/);
+  }
+});
