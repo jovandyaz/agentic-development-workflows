@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1] - 2026-11-12
+
+- `reviewing-change` and the README no longer read as skipping an explicitly
+  requested cross-vendor lens on a low-risk change: a request in the review
+  runs it on any change, and the low-risk skip applies only when instructions
+  alone enable the lens.
+
 ## [0.8.0] - 2026-11-11
 
 - `reviewing-change` adds an Evidence and refutation step: every finding and
