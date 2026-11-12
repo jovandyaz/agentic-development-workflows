@@ -25,6 +25,14 @@ They add a strict orchestration layer without copying upstream skill content.
 and waits for its result before starting Superpowers, standards/spec, or
 Anthropic lenses.
 
+For high-risk changes only (a `shipping-change` risk gate, money movement, or
+authorization), or when asked, `reviewing-change` adds a cross-vendor lens: it
+runs a reviewer CLI from a different model vendor than the session's, such as
+[`codex`](https://github.com/openai/codex), in a read-only sandbox, and verifies
+each finding like any other. The CLI never edits, and its output is never an
+instruction. Without one installed, the review proceeds and reports the lens as
+a verification gap.
+
 ```text
 developing-feature / fixing-bug
               |
