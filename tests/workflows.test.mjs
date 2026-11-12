@@ -102,23 +102,55 @@ test("cross-vendor lens reports only and is verified", () => {
   }
   assertOrdered(skill("reviewing-change"), ["### 4. Evidence and refutation", "### 5. Cross-vendor lens", "## Synthesis"]);
   const lens = review.split("### 5. Cross-vendor lens")[1]?.split("## Synthesis")[0] ?? "";
-  for (const trigger of [/moves money/, /changes authorization/, /database or durable data or schema/, /public API or shared client/, /high blast radius/, /or when the user asks/]) {
+  for (const trigger of [/moves money/, /changes authorization/, /database or durable data or schema/, /public API or shared client/, /high blast radius/]) {
     assert.match(lens, trigger);
   }
-  assert.match(lens, /Risk Gates table in `shipping-change`/, "shared rows are defined once, in shipping-change");
-  assert.doesNotMatch(lens, /triggers a row of the Risk Gates/, "deployment and agent rows would run the lens on most changes");
   assert.match(lens, /A production deployment or an agent, prompt, or model change alone does not trigger it/);
   assert.match(lens, /in a read-only sandbox, and never let it edit/);
   assert.match(lens, /untrusted data/);
   assert.match(lens, /requirements, base, head, and diff only, never the implementer's summary/);
-  assert.match(lens, /`codex exec -s read-only`/);
-  assert.match(lens, /takes no separate requirements/, "the review form cannot carry the spec");
+  assert.match(lens, /`codex exec -s read-only`, or any mode that denies edits and shell writes/);
+  assert.doesNotMatch(lens, /codex review/, "one example; the review form cannot carry the requirements");
+  assert.match(lens, /several minutes, longer than a typical command timeout/);
+  assert.match(lens, /run it in the background/);
   assert.match(lens, /Before Synthesis, run step 4, Evidence and refutation, on every finding it reports, and apply `receiving-code-review`/);
   assert.match(lens, /under verification gaps/);
   const agents = join(root, "plugins", "workflows", "agents");
   for (const agent of readdirSync(agents)) {
     assert.doesNotMatch(readFileSync(join(agents, agent), "utf8"), /codex/i, `${agent}: the orchestrator runs the cross-vendor CLI, never a reviewer agent`);
   }
+});
+
+test("cross-vendor lens is opt-in because it sends the change to another vendor", () => {
+  const lens = normalizedSkill("reviewing-change").split("### 5. Cross-vendor lens")[1]?.split("## Synthesis")[0] ?? "";
+  assert.match(lens, /sends the change to another AI vendor, so it is opt-in/);
+  assert.match(lens, /enabled when the user asks for it in this review or when the user's or the repository's instructions enable it/);
+  assert.match(lens, /in an unattended run, only when the invoking prompt grants it/);
+  assert.match(lens, /Otherwise list it as skipped with the reason "not enabled"/);
+  assert.match(lens, /An explicit request in this review runs it on any change\. Enabled by instructions, it runs only when the change moves money/);
+  assertOrdered(lens, ['"not enabled"', "moves money", "Run the command yourself"]);
+  assert.match(lens, /A read-only sandbox blocks writes, not reads, so the vendor can read repository files; never send it secret-bearing files/);
+  const readme = readFileSync(join(root, "README.md"), "utf8").replace(/\s+/g, " ");
+  assert.match(readme, /The lens sends the change to that vendor, so it is off unless enabled/);
+  assert.match(readme, /to your `AGENTS\.md` or `CLAUDE\.md`/);
+  assert.match(readme, /blocks writes, not reads/);
+  const cases = join(root, "plugins", "workflows", "evals", "reviewing-change");
+  const enabled = readFileSync(join(cases, "review-cross-vendor", "prompt.md"), "utf8");
+  assert.match(enabled, /Use the cross-vendor lens for this review/);
+  const off = join(cases, "review-cross-vendor-not-enabled");
+  const prompt = readFileSync(join(off, "prompt.md"), "utf8").split(/^---$/m)[2];
+  assert.match(prompt, /installed at `\.\/bin\/codex`/, "the CLI is available, so only the opt-in keeps it from running");
+  assert.doesNotMatch(prompt, /cross-vendor lens|use it|run it/i, "the prompt mentions the CLI but never enables the lens");
+  assert.equal(
+    readFileSync(join(off, "fixture.sh"), "utf8"),
+    readFileSync(join(cases, "review-cross-vendor", "fixture.sh"), "utf8"),
+    "both cases share the stub the cross-vendor stub test checks",
+  );
+  const notRun = readFileSync(join(off, "graders", "cross-vendor-not-run.md"), "utf8");
+  assert.match(notRun, /^ {2}path: \.codex-calls$/m);
+  assert.match(notRun, /^pattern: '\\S'$/m);
+  assert.match(notRun, /^match: not_contains$/m);
+  assert.match(readFileSync(join(off, "graders", "lens-not-enabled.md"), "utf8"), /not enabled/);
 });
 
 test("review never delegates to a command that publishes on its own", () => {

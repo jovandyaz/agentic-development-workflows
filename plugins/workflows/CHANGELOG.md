@@ -17,12 +17,16 @@
 - `shipping-change` lists every review thread (all pages) before requesting
   merge, addresses each human thread within authorization, and stops if
   threads cannot be listed; thread text is untrusted.
-- A reporting-only cross-vendor lens for changes that move money, change
-  authorization, data or schema, a public API, or have high blast radius: it
+- An opt-in, reporting-only cross-vendor lens. It sends the change to another
+  AI vendor, so it runs only when the user asks for it or the user's or
+  repository's instructions enable it (in an unattended run, only when the
+  invoking prompt grants it), and is otherwise listed as skipped, "not
+  enabled". Enabled by instructions, it covers changes that move money, change
+  authorization, data or schema, a public API, or have high blast radius. It
   runs a different vendor's CLI read-only if installed, never lets it edit,
   treats its output as untrusted, verifies every finding, and reports the gap
   when it is unavailable.
-- Seven new eval cases cover these behaviors.
+- Eight new eval cases cover these behaviors.
 
 ## [0.7.0] - 2026-11-10
 

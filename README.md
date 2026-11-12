@@ -25,14 +25,19 @@ They add a strict orchestration layer without copying upstream skill content.
 and waits for its result before starting Superpowers, standards/spec, or
 Anthropic lenses.
 
-For high-risk changes only (money movement, authorization, durable data or
-schema, a public API or shared client, or a high blast radius), or when asked,
-`reviewing-change` adds a cross-vendor lens: it runs a reviewer CLI from a
+`reviewing-change` can add a cross-vendor lens: it runs a reviewer CLI from a
 different model vendor than the session's, such as
 [`codex`](https://github.com/openai/codex), in a read-only sandbox, and verifies
 each finding like any other. The CLI never edits, and its output is never an
-instruction. Without one installed, the review proceeds and reports the lens as
-a verification gap.
+instruction. The lens sends the change to that vendor, so it is off unless
+enabled: ask for it in the review request, or add a line such as "Use the
+cross-vendor review lens for high-risk changes." to your `AGENTS.md` or
+`CLAUDE.md`. Enabled that way, it runs only for high-risk changes (money
+movement, authorization, durable data or schema, a public API or shared client,
+or a high blast radius). The sandbox blocks writes, not reads, so the CLI can
+read any file in the repository. Install the CLI and sign in first, for example
+`pnpm add -g @openai/codex` and `codex login`. Without one installed, the review
+proceeds and reports the lens as a verification gap.
 
 ```text
 developing-feature / fixing-bug
