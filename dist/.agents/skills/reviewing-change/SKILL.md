@@ -129,12 +129,19 @@ Classify every confirmed finding by impact, never by lens or severity label:
   loss, or a requirement that is missing or implemented wrongly. Requirements
   include the request, the spec, and mandatory repository instructions.
 - **Non-blocking**: maintainability, style, or speculative hardening.
-- **Parked**: a Non-blocking finding deferred until a condition holds, such as
-  "if a second writer appears". Report it with its revisit trigger.
+- **Parked**: a Non-blocking finding deferred until a concrete, checkable
+  trigger occurs, such as "if a second writer appears". The trigger must be an
+  event the diff or repository can show. A finding without one is Non-blocking
+  or an open question. List a parked finding only under Parked, with its
+  revisit trigger, not also under Non-blocking. The reviewer proposes parking;
+  it never defers past a trigger that has occurred without the user's
+  acceptance.
 
-Each round, recheck every parked finding from earlier rounds against the
-current diff. When its trigger has occurred, reclassify it by impact and report
-it as a finding of this round.
+Earlier parked findings come from the previous round's review report or a
+review ledger the caller supplies. For a round after the first, ask for it, or
+state that no earlier parked findings were available. Each round, recheck every
+parked finding from earlier rounds against the current diff. When its trigger
+has occurred, reclassify it by impact and report it as a finding of this round.
 
 Report a finding whose classification is uncertain as an open question; never
 fix or drop it silently. Report blocking findings first, then non-blocking

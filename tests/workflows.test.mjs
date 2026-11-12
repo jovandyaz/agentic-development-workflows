@@ -822,3 +822,12 @@ test("parked findings carry a trigger and are rechecked", () => {
   assert.match(review, /recheck every parked finding from earlier rounds/);
   assert.match(normalizedSkill("shipping-change"), /parked finding whose trigger has occurred/);
 });
+
+test("parked findings have a source, one home, and a checkable trigger", () => {
+  const review = normalizedSkill("reviewing-change");
+  assert.match(review, /concrete, checkable trigger/);
+  assert.match(review, /only under Parked/);
+  assert.match(review, /previous round's review report or a review ledger the caller supplies/);
+  assert.match(review, /never defers past a trigger that has occurred without the user's acceptance/);
+  assert.match(normalizedSkill("shipping-change"), /parked-finding recheck against the current head/);
+});

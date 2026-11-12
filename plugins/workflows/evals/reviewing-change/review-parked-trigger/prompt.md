@@ -1,0 +1,8 @@
+---
+description: Round 2 review reclassifies a parked finding once its revisit trigger has occurred.
+max_turns: 40
+plugins: [../../.., superpowers-stub]
+allowed_tools: [Read, Glob, Grep, Skill, Bash, Edit, Write, Agent]
+---
+
+Run round 2 of the review on branch `feat/profile-backfill` against `main`. Round 1 is recorded in `REVIEW-LEDGER.md`; use it.

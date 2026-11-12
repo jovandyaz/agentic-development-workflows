@@ -20,10 +20,10 @@
       "integrity": "sha256-1970f9230c5efdba7b99b40aab9a6612dc5dae5ee815633c01e0f22d820d7d69"
     },
     "reviewing-change": {
-      "integrity": "sha256-ed0e6897b57af8a44d53f3fe7ece1471577532618ffb1ac19adc2d07bd20520d"
+      "integrity": "sha256-be9c1a708135cc8e8b8c29e273592b4f46670cdf665b2c0166633d72ac193c94"
     },
     "shipping-change": {
-      "integrity": "sha256-04e35f3214192f82e9e78d47aea97aea78e027a349da92a655a8c1e2ddef839c"
+      "integrity": "sha256-6f7c7b883754a074337c70274f120134a8f1bc4dfec8c48c085762229fd3e93d"
     },
     "verifying-change": {
       "integrity": "sha256-5a382a08cf3509f45d8fffbc3ce3d67c15e04be21fd88491bca396e188cd39d4"
