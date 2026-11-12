@@ -84,7 +84,7 @@ target.
 Report the two axes separately and never merge or rerank them: code that
 follows every standard can still build the wrong thing, and the right behavior
 can still break the repository's conventions. Treat each finding as a
-hypothesis until `receiving-code-review` confirms it against the codebase.
+hypothesis until Evidence and refutation confirms it.
 
 ### 4. Evidence and refutation
 
@@ -101,15 +101,16 @@ documentation URL for the installed version, found through
 `applying-engineering-standards`.
 
 A premise without evidence is an open question, or Blocking when the change
-depends on it, even if the gap predates the change. Drop a finding the evidence
+depends on it, even if the gap predates the change. A premise the evidence
+refutes becomes a finding; classify it by impact. Drop a finding the evidence
 refutes and list it as refuted.
 
 ## Synthesis
 
 Start from what Evidence and refutation produced: confirmed findings, open
 questions, and refuted findings. Deduplicate only findings with the same cause
-and impact. Validate file and line references, exclude pre-existing issues, and
-retain the strongest evidence.
+and impact. Validate file and line references, exclude pre-existing issues the
+change does not rely on, and retain the strongest evidence.
 
 Classify every confirmed finding by impact, never by lens or severity label:
 
