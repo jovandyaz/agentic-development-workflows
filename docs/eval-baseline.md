@@ -3,15 +3,32 @@
 The latest full `claude plugin eval` run, kept so a later run can be compared
 case by case. Replace it when a release changes skill behavior.
 
-## 0.8.0 (not yet run)
+## 0.8.0
 
-The suite now has 60 cases. The nine added for 0.8.0
-(`review-unverified-premise`, `review-invariant-write-paths`,
-`review-tool-coverage`, `review-parked-trigger`, `review-cross-vendor`,
-`review-cross-vendor-not-enabled`, `review-cross-vendor-self-enabled`,
-`ship-human-threads`,
-`ship-threads-unlisted`) have not yet been run against a live model; the 0.6.1
-tables below cover the 51 earlier cases.
+The suite now has 60 cases. The nine added for 0.8.0 were run on 2026-11-12
+with Claude Code 2.1.300, model `claude-opus-5-5`, judge `claude-haiku-5-5`,
+one run per arm, with a `codex` that fails placed first on `PATH` so the
+installed Codex CLI could not answer; $8.13 at list price. The 0.6.1 tables
+below cover the 51 earlier cases.
+
+| Case | With | Without | Δ |
+| --- | ---: | ---: | ---: |
+| review-cross-vendor | 1.00 | 0.88 | +0.12 |
+| review-cross-vendor-not-enabled | 1.00 | 0.83 | +0.17 |
+| review-cross-vendor-self-enabled | 1.00 | 1.00 | 0.00 |
+| review-invariant-write-paths | 1.00 | 1.00 | 0.00 |
+| review-parked-trigger | 1.00 | 0.80 | +0.20 |
+| review-tool-coverage | 1.00 | 1.00 | 0.00 |
+| review-unverified-premise * | 1.00 | 1.00 | 0.00 |
+| ship-human-threads | 1.00 | 1.00 | 0.00 |
+| ship-threads-unlisted | 1.00 | 0.50 | +0.50 |
+
+`*` The first run scored 0.83 with the plugin: `ignores-author-claim` failed a
+review that quoted the commit's "email is unique" claim in order to refute it
+with the non-unique index. The grader now says quoting a claim to refute it
+passes; a rerun of the with-plugin arm scored 1.00 ($0.97). The four cases at
+Δ 0.00 with full scores are regression checks the baseline already passes. One
+run per arm cannot separate a small gain from noise.
 
 ## 0.6.1
 
