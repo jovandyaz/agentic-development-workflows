@@ -78,6 +78,19 @@ test("reviewing-change runs assessing-code-quality before every other review len
   assert.match(text, /No other review lens starts until assessing-code-quality returns/);
 });
 
+test("reviewing-change requires evidence for every finding and premise", () => {
+  const review = normalizedSkill("reviewing-change");
+  assert.match(review, /Evidence and refutation/);
+  assert.match(review, /try to refute/);
+  assert.match(review, /premise/);
+  assert.match(review, /official documentation URL/);
+  assertOrdered(skill("reviewing-change"), [
+    "### 3. Spec and standards axes",
+    "### 4. Evidence and refutation",
+    "## Synthesis",
+  ]);
+});
+
 test("review never delegates to a command that publishes on its own", () => {
   const review = normalizedSkill("reviewing-change");
   assert.doesNotMatch(review, /Anthropic review|`code-review` plugin/);
