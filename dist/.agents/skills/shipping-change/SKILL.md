@@ -98,10 +98,10 @@ publication and ask; never resolve an open question by assumption.
 4. Use a concise Conventional Commit-style title. The PR body records summary,
    linked requirement, exact verification evidence, risks, compatibility and
    migration impact, rollback and rollout plan, screenshots for UI, known gaps,
-   and a `Lessons` section with each lesson proposed or applied, or `None` when
-   no lesson qualified. Redact secrets,
-   tokens, PII, internal URLs, customer data, and sensitive screenshots from
-   commits, transcripts, comments, and PR evidence.
+   parked findings with their revisit triggers, and a `Lessons` section with
+   each lesson proposed or applied, or `None` when no lesson qualified. Redact
+   secrets, tokens, PII, internal URLs, customer data, and sensitive screenshots
+   from commits, transcripts, comments, and PR evidence.
 5. When organization or repository policy requires AI disclosure, add the model
    and harness, materially assisted areas, and human verification. Never encode
    that disclosure as Git co-authorship.
@@ -142,8 +142,9 @@ to the user instead of fixing them:
 5. Run `reviewing-change`, resolve confirmed blocking findings and rerun it
    until none remain, for at most three review rounds. If a blocking finding
    remains after the third round, stop and report it with the fixes attempted.
-   Report non-blocking findings and open questions to the user; then run the
-   complete `verifying-change` matrix.
+   Report non-blocking findings, parked findings, and open questions to the
+   user, and record parked findings with their triggers in the PR body; then
+   run the complete `verifying-change` matrix.
 6. Use `committing-change`, push once every open question is answered, and wait
    for review and CI on the new SHA.
 7. Before requesting merge, curate the history again so review-round fixes are
@@ -161,9 +162,9 @@ pre-authorize rollback. Without a valid authorization record, stop and ask
 rather than acting.
 
 Before requesting merge, run reviewing-change's parked-finding recheck against
-the current head. A parked finding
-whose trigger has occurred blocks the merge request until it is resolved or the
-user accepts it.
+the current head, using the parked findings recorded in the PR body. A parked
+finding whose trigger has occurred blocks the merge request until it is
+resolved or the user accepts it.
 
 Before requesting merge, list the reviews and review comments on the PR and
 page through all `reviewThreads` with `isResolved` (for example `gh api
