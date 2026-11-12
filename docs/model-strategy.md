@@ -66,24 +66,32 @@ takes neither. No skill, agent, or setting in this plugin needs to change.
 
 Measured 2026-11-10 with the loop below on 11 merged pull requests from one
 TypeScript repository: 62 headless runs, one or two per configuration and
-task. A run counts as solved when a blind reviewer finds every requirement met
-and the project's test suites stay green.
+task. Each run was graded twice, blind: by a Claude Fable 5.2 reviewer and by
+an OpenAI Codex reviewer (`codex exec -s read-only`, high reasoning effort). A
+run counts as solved when the reviewer finds every requirement met and the
+project's test suites stay green.
 
-| Configuration | Solved | Cost per run | Cost per solved task | Minutes per run |
-| --- | --- | --- | --- | --- |
-| Claude Opus 5.5 `medium` | 9 of 13 | $1.28 | $1.84 | 3 |
-| Claude Opus 5.5 `high` | 9 of 13 | $1.62 | $2.34 | 5 |
-| Claude Fable 5.2 `low` | 9 of 12 | $1.74 | $2.32 | 2 |
-| Claude Opus 5.5 `xhigh` | 10 of 12 | $3.44 | $4.12 | 10 |
-| Claude Opus 5.5 `high` with a Claude Fable 5.2 advisor | 10 of 12 | $4.11 | $4.93 | 8 |
+| Configuration | Solved (Claude judge) | Solved (Codex judge) | Cost per run | Cost per solved task (Codex) | Minutes per run |
+| --- | --- | --- | --- | --- | --- |
+| Claude Opus 5.5 `medium` | 9 of 13 | 6 of 13 | $1.28 | $2.77 | 3 |
+| Claude Opus 5.5 `high` | 9 of 13 | 5 of 13 | $1.62 | $4.21 | 5 |
+| Claude Fable 5.2 `low` | 9 of 12 | 6 of 12 | $1.74 | $3.48 | 2 |
+| Claude Opus 5.5 `xhigh` | 10 of 12 | 7 of 12 | $3.44 | $5.90 | 10 |
+| Claude Opus 5.5 `high` with a Claude Fable 5.2 advisor | 10 of 12 | 6 of 12 | $4.11 | $8.22 | 8 |
 
-Every configuration solved eight tasks and none solved one, so the
-configurations differ on two tasks, within run-to-run noise. The advisor cost
-3.2 times a `medium` run and solved no more than `xhigh`, which cost less.
+The two judges disagreed on 17 runs, every time with the Claude judge passing
+a run the Codex judge failed. The ranking held under both: the configurations
+differ by one or two tasks, within run-to-run noise, and the advisor cost 3.2
+times a `medium` run without solving more. A second repository (a pnpm and Nx
+monorepo, three tasks, ten runs, eight graded) agreed: every graded
+configuration solved both graded tasks, and `medium` was the cheapest at $1.26
+per run against $4.08 with the advisor.
+
 Outcome for this pairing: keep `medium` as the default effort, raise effort for
 hard tasks, and attach no advisor while Claude Opus 5.5 is the default model.
-Claude Fable 5.2 at `low` is a candidate for well-specified tasks and needs a
-larger sample before it changes the default.
+Claude Fable 5.2 at `low` solved as many as `medium` at about 35% more cost per
+run, so it does not replace the default. The sample is small: it settles the
+advisor question and the default on cost, not the order between effort levels.
 
 Sources, read 2026-11-10:
 [optimizing for cost and intelligence](https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence),
@@ -104,5 +112,8 @@ work instead, following Anthropic's loop:
    alone at `low`.
 3. Record pass rate, cost per completed task, advisor consult rate, cache read
    share, and wall-clock time. Run each configuration at least twice.
+   Grade with a judge from a different vendor than the models compared, blind
+   to the configuration, and include the pull request's own tests: a
+   same-vendor judge passed runs a different-vendor judge failed.
 4. Adopt a pairing only if it beats every single-model point at equal or lower
    cost, then repeat at the next model release.
