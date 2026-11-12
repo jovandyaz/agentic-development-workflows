@@ -71,7 +71,7 @@ git commit -q -m "feat: retry failed gateway refunds"
 cat > bin/codex <<'SH'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "$(dirname "$0")/../.codex-calls"
-if [ "${!#}" = "-" ]; then cat > /dev/null; fi
+if [ ! -t 0 ]; then cat > /dev/null; fi
 cat <<'OUT'
 [P1] Refund applies twice when retry runs (src/payments/refund.ts:14)
 ledger.credit runs inside the retry loop before gateway.refund, so each retried attempt credits the account again.
