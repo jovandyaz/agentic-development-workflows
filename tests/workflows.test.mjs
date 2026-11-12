@@ -99,7 +99,7 @@ test("reviewing-change requires evidence for every finding and premise", () => {
 
 test("cross-vendor lens reports only and is verified", () => {
   const review = normalizedSkill("reviewing-change");
-  for (const rule of [/different model vendor/, /read-only/, /never let it edit/, /untrusted data/, /cross-vendor lens unavailable/, /skipped for low-risk/]) {
+  for (const rule of [/different model vendor/, /read-only/, /never let it edit/, /untrusted data/, /cross-vendor lens unavailable/, /Enabled only by instructions, it is skipped for low-risk changes/]) {
     assert.match(review, rule);
   }
   assertOrdered(skill("reviewing-change"), ["### 4. Evidence and refutation", "### 5. Cross-vendor lens", "## Synthesis"]);
@@ -135,6 +135,7 @@ test("cross-vendor lens is opt-in because it sends the change to another vendor"
   assert.match(lens, /A read-only sandbox blocks writes, not reads, so the vendor can read repository files; never send it secret-bearing files/);
   const readme = readFileSync(join(root, "README.md"), "utf8").replace(/\s+/g, " ");
   assert.match(readme, /The lens sends the change to that vendor, so it is off unless enabled/);
+  assert.match(readme, /A request in the review runs it on any change; enabled only by such a line, it runs only for high-risk changes/);
   assert.match(readme, /to your `AGENTS\.md` or `CLAUDE\.md`/);
   assert.match(readme, /blocks writes, not reads/);
   const cases = join(root, "plugins", "workflows", "evals", "reviewing-change");
