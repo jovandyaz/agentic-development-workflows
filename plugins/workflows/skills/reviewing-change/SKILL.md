@@ -130,8 +130,9 @@ An explicit request in this review runs it on any change. Enabled by
 instructions, it runs only when the change moves money, changes authorization,
 changes database or durable data or schema, changes a public API or shared
 client, or has a high blast radius. A production deployment or an agent,
-prompt, or model change alone does not trigger it. It is skipped for low-risk
-changes; list it as skipped, with the reason.
+prompt, or model change alone does not trigger it. Enabled only by
+instructions, it is skipped for low-risk changes; list it as skipped, with the
+reason.
 
 Run the command yourself, not through a reviewer agent; the review happens in
 that separate process. Use a CLI from a different model vendor than the
