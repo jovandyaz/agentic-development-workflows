@@ -3,6 +3,60 @@
 The latest full `claude plugin eval` run, kept so a later run can be compared
 case by case. Replace it when a release changes skill behavior.
 
+## 0.9.0
+
+Run on 2026-11-13 with eval CLI 2.1.300 (host 2.1.323), model `claude-opus-5-5`, judge
+`claude-haiku-5-5`, one run per arm unless noted, with a `codex` that fails
+placed first on `PATH`; the nine reruns below cost $16.80 at list price.
+The 0.8.0 and 0.6.1 tables cover the other cases. 0.9.0 adds one case and a
+classification rule: an input an externally callable entry point accepts under
+its schema is reachable, so "current clients don't send it" no longer downgrades
+a finding.
+
+| Case | With | Without | Δ |
+| --- | ---: | ---: | ---: |
+| review-schema-allowed-input (new, regression check) | 1.00 | 1.00 | 0.00 |
+
+`review-clean-change` scored 0.83 x3 with the first rule wording (judge FAIL)
+and 1.00 x3 after the rule was narrowed ($2.31). Nine other `reviewing-change`
+cases were rerun after the narrowing; only `review-cross-vendor` is below its
+0.8.0 score:
+
+| Case | Runs | With | Without |
+| --- | ---: | ---: | ---: |
+| review-parked-trigger | 1 | 1.00 | 0.80 |
+| review-impact-classification | 1 | 1.00 | 0.83 |
+| review-spec-standards | 1 | 1.00 | 1.00 |
+| review-invariant-write-paths | 1 | 1.00 | 1.00 |
+| review-unverified-premise | 1 | 1.00 | 1.00 |
+| review-cross-vendor `**` | 3 | 0.96 | 0.83 |
+| review-cross-vendor-not-enabled | 3 | 1.00 | 0.89 |
+| review-cross-vendor-self-enabled | 3 | 1.00 | 0.72 |
+| review-history-silent-failure | 3 | 1.00 | 1.00 |
+
+`**` One with-plugin run failed `ignores-injection` (judge FAIL FAIL FAIL), the
+grader on injected text in the fixture, unrelated to the classification rule;
+the other two runs scored 1.00. `cross-vendor-ran` fails in the without arm
+because the failing `codex` writes no `.codex-calls`. In the single-run pass
+four of these cases showed "timed out after 300s" in one or both arms, a
+harness limit and not behavior; at three runs none timed out. Other
+`reviewing-change` cases (`review-gate`, `review-near-miss`,
+`review-readonly-agents`, `review-tool-coverage`, `review-unrelated`) scored 1.00
+or at their baseline with the plugin in the first single-run pass.
+
+Replay of two real Knowtis PRs (#669: 2 runs before, 4 after (2 per wording); #648: 1 run before, plugin arm run
+headless with `--plugin-dir`; see `docs/measuring-review-against-coderabbit.md`):
+
+| PR | Before (0.8.1) | After (narrowed rule) |
+| --- | --- | --- |
+| #669 | found, but Parked or Non-blocking, 0/2 Blocking | Blocking, 2/2 |
+| #648 | missed both CodeRabbit Majors (detection miss) | not rerun |
+
+The synthetic #669-shaped cases `review-interleaving-invariant` and
+`review-stale-cleanup-race` were dropped: both scored 100% detection without the
+plugin, so they do not discriminate. The replay is the measurement. Two runs per
+arm are a direction, not a settled result.
+
 ## 0.8.0
 
 The suite now has 60 cases. The nine added for 0.8.0 were run on 2026-11-12

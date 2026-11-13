@@ -20,6 +20,10 @@ mapping, migrations, backfills, imports) and report each path that does not
 enforce it, quoting the invariant. If no requirements or spec were supplied,
 report that and stop; never invent one.
 
-Label every finding Blocking or Non-blocking. Blocking means incorrect
-behavior, a security or authorization breach, data loss, or a requirement that
-is missing or implemented wrongly. Everything else is Non-blocking. Skip style.
+Label every finding Blocking or Non-blocking. Blocking means incorrect behavior,
+a security or authorization breach, data loss, or a requirement that is missing
+or implemented wrongly. An input that an externally callable entry point (an
+HTTP or RPC API, socket, queue, or webhook) accepts under its schema is
+reachable: that current clients do not send it never downgrades, parks, or
+dismisses a finding about it. This removes only that argument; it never raises a
+finding's impact by itself. Everything else is Non-blocking. Skip style.
