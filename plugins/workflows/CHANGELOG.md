@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.0] - 2026-11-13
+
+- `reviewing-change` applies a reachability rule only to inputs an externally
+  callable entry point (HTTP or RPC API, socket, queue, webhook) accepts under
+  its schema: current clients not sending such an input never downgrades,
+  parks, or dismisses a finding, and the rule never raises impact by itself.
+- A parked trigger that waits for a new client or caller to send an input the
+  entry point already accepts is not valid.
+- New eval case `review-schema-allowed-input` guards the classification.
+
 ## [0.8.1] - 2026-11-12
 
 - `reviewing-change` and the README no longer read as skipping an explicitly
