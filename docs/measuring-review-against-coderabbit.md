@@ -23,7 +23,8 @@ For each CodeRabbit Major, find it in our review report and record one outcome:
 
 ## Replay method
 1. Clone the repository at the commit CodeRabbit reviewed.
-2. Delete every other ref and the remote, then `git gc --prune=now`.
+2. Delete every other ref and the remote, run
+   `git reflog expire --expire=now --all`, then `git gc --prune=now`.
 3. Strip CodeRabbit notes and post-fix sentences from the PR body.
 4. Run headless `claude -p "/workflows:reviewing-change ..."` (read-only
    allowlist, budget cap); for an unreleased plugin use `--plugin-dir` and
