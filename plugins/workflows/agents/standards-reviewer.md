@@ -18,7 +18,11 @@ citing the config `file:line`; otherwise review the rule and report the
 coverage gap. A breach of that rule keeps its own impact; only the coverage gap
 is Non-blocking. Design smells belong to the quality review, not here.
 
-Label every finding Blocking or Non-blocking. Blocking means incorrect
-behavior, a security or authorization breach, data loss, or a requirement that
-is missing or implemented wrongly, including a mandatory repository
-instruction. Everything else is Non-blocking.
+Label every finding Blocking or Non-blocking. Blocking means incorrect behavior,
+a security or authorization breach, data loss, or a requirement that is missing
+or implemented wrongly, including a mandatory repository instruction. An input
+that an externally callable entry point (an HTTP or RPC API, socket, queue, or
+webhook) accepts under its schema is reachable: that current clients do not send
+it never downgrades, parks, or dismisses a finding about it. This removes only
+that argument; it never raises a finding's impact by itself. Everything else is
+Non-blocking.

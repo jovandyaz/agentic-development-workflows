@@ -471,7 +471,7 @@ test("all published versions stay synchronized", () => {
       "utf8",
     ),
   ).version;
-  assert.equal(packageVersion, "0.8.1");
+  assert.equal(packageVersion, "0.9.0");
   assert.equal(marketplaceVersion, packageVersion);
   assert.equal(pluginVersion, packageVersion);
   for (const name of [
@@ -976,4 +976,16 @@ test("shipping-change resolves human review threads before requesting merge", ()
   assert.match(section, /could not be listed/);
   assert.match(section, /require conversation resolution/);
   assertOrdered(section, ["each human review thread", "Report when the PR is ready"]);
+});
+
+test("findings about schema-accepted inputs are classified as reachable", () => {
+  const sentence = "An input that an externally callable entry point (an HTTP or RPC API, socket, queue, or webhook) accepts under its schema is reachable: that current clients do not send it never downgrades, parks, or dismisses a finding about it. This removes only that argument; it never raises a finding's impact by itself.";
+  const rule = new RegExp(sentence.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const synthesis = normalizedSkill("reviewing-change").split("## Synthesis")[1] ?? "";
+  assert.match(synthesis, rule);
+  assert.match(synthesis, /not a valid trigger; classify that finding now/);
+  for (const agent of ["quality-reviewer", "spec-reviewer", "standards-reviewer"]) {
+    const text = readFileSync(join(root, "plugins", "workflows", "agents", `${agent}.md`), "utf8").replace(/\s+/g, " ");
+    assert.match(text, rule, agent);
+  }
 });
