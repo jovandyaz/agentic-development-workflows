@@ -6,12 +6,16 @@
   from its size. A change to documentation or code comments only runs at Low
   depth and skips the Superpowers code review; the three reviewer lenses still
   run. Every other change, test-only changes included, runs at Full depth.
+  Skills, prompts, instruction files, and comments tools act on are not
+  documentation or comments.
 - A Blocking finding with the same cause as one the previous round fixed is a
   recurring class: its fix covers the whole class with one rule, or the loop
   stops and reports the residual risk. The three-round cap is counted across
   the whole workflow in every skill that loops on review.
 - Reviewers get no diff text for lockfiles or files `.gitattributes` marks
   `linguist-generated` or `linguist-vendored`; the review lists them by path.
+  Attributes come from the base revision, so a change cannot mark its own
+  files, and a lockfile change no manifest change explains stays in the diff.
 - New eval cases `review-low-depth`, `review-recurring-class`, and
   `review-lockfile-excluded`; `review-clean-change` checks that a money change
   still runs the Superpowers code review.

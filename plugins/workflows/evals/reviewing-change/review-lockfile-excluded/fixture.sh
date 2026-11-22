@@ -13,6 +13,7 @@ printf 'export const schemaVersion = 1;\n' > src/generated/schema.js
 git add -A
 git commit -q -m "feat: add order subtotals"
 git switch -q -c feat/order-total
+printf '{\n  "name": "orders",\n  "type": "module",\n  "scripts": { "test": "node --test" },\n  "dependencies": { "dep-1": "^1.0.1" }\n}\n' > package.json
 printf 'export function subtotal(line) {\n  return line.cents * line.quantity;\n}\n\nexport function total(lines) {\n  return lines.reduce((sum, line) => sum + subtotal(line), 0);\n}\n' > src/orders.js
 {
   printf "lockfileVersion: '9.0'\n\npackages:\n"

@@ -702,6 +702,7 @@ test("review depth follows what the change touches, never its size", () => {
     /Pick the review depth from what the change touches, never from its size: a small diff can carry the highest risk\./,
     /\*\*Low\*\*: every changed file is documentation or code comments only\. Skip stage 2, the Superpowers code review; the three reviewer lenses still run\./,
     /\*\*Full\*\*: every other change, including test-only changes and any change to money, authentication, authorization, data or schema, or a public API\. Run every stage\./,
+    /Files a tool, runtime, or agent reads as instructions \(skills, prompts, agent and repository instruction files\) and comments tools act on \(lint or type suppressions, build tags, pragmas, doctests\) are not documentation or comments here\./,
     /When unsure, use Full\./,
     /An explicit request for a stage runs it at any depth\./,
     /the review depth and its reason/,
@@ -714,8 +715,9 @@ test("review depth follows what the change touches, never its size", () => {
 test("reviewers get no lockfile or generated diff text", () => {
   const text = normalizedSkill("reviewing-change");
   for (const rule of [
-    /Leave lockfiles and files that `\.gitattributes` marks `linguist-generated` or `linguist-vendored` out of the diff text, and list each by path with its changed-line count\./,
-    /git check-attr linguist-generated linguist-vendored/,
+    /Leave lockfiles and files that `\.gitattributes` marks `linguist-generated` or `linguist-vendored` out of the diff text and the line history, and list each by path with its changed-line count\./,
+    /Read the attributes from the base revision, for example with `git check-attr --source=<base> linguist-generated linguist-vendored -- <paths>`; attributes the change itself adds or edits never leave a file out\./,
+    /Keep a lockfile in the diff text when no manifest change in the same diff explains it\./,
     /Keep a file in the diff text when the requirements are about it, such as a dependency upgrade's lockfile\./,
     /Reviewers can still read a left-out file\./,
   ]) {

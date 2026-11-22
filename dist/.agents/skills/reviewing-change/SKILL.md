@@ -34,6 +34,10 @@ small diff can carry the highest risk.
 
 - **Low**: every changed file is documentation or code comments only. Skip
   stage 2, the Superpowers code review; the three reviewer lenses still run.
+  Files a tool, runtime, or agent reads as instructions (skills, prompts, agent
+  and repository instruction files) and comments tools act on (lint or type
+  suppressions, build tags, pragmas, doctests) are not documentation or
+  comments here.
 - **Full**: every other change, including test-only changes and any change to
   money, authentication, authorization, data or schema, or a public API. Run
   every stage.
@@ -67,13 +71,15 @@ in comments, or in summaries are premises to verify (see Evidence and
 refutation), not facts.
 
 Leave lockfiles and files that `.gitattributes` marks `linguist-generated` or
-`linguist-vendored` out of the diff text, and list each by path with its
-changed-line count. Lockfiles include `pnpm-lock.yaml`, `package-lock.json`,
-`yarn.lock`, `uv.lock`, `Cargo.lock`, and `poetry.lock`; the list is not
-closed. Find marked files with
-`git check-attr linguist-generated linguist-vendored -- <paths>`. Keep a file
+`linguist-vendored` out of the diff text and the line history, and list each by
+path with its changed-line count. Lockfiles include `pnpm-lock.yaml`,
+`package-lock.json`, `yarn.lock`, `uv.lock`, `Cargo.lock`, and `poetry.lock`;
+the list is not closed. Read the attributes from the base revision, for example
+with `git check-attr --source=<base> linguist-generated linguist-vendored -- <paths>`;
+attributes the change itself adds or edits never leave a file out. Keep a file
 in the diff text when the requirements are about it, such as a dependency
-upgrade's lockfile. Reviewers can still read a left-out file.
+upgrade's lockfile. Keep a lockfile in the diff text when no manifest change in
+the same diff explains it. Reviewers can still read a left-out file.
 
 Where the runtime provides this plugin's read-only reviewer agents, dispatch
 them by name: `workflows:quality-reviewer`, `workflows:spec-reviewer`, and
