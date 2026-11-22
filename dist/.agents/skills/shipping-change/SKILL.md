@@ -140,11 +140,12 @@ to the user instead of fixing them:
    section.
 4. Make a test-backed fix.
 5. Run `reviewing-change`, resolve confirmed blocking findings and rerun it
-   until none remain, for at most three review rounds. If a blocking finding
-   remains after the third round, stop and report it with the fixes attempted.
-   Report non-blocking findings, parked findings, and open questions to the
-   user, and record parked findings with their triggers in the PR body; then
-   run the complete `verifying-change` matrix.
+   until none remain, for at most three review rounds counted across the whole
+   workflow. If a blocking finding remains after the third round, stop and
+   report it with the fixes attempted. Report non-blocking findings, parked
+   findings, and open questions to the user, and record parked findings with
+   their triggers in the PR body; then run the complete `verifying-change`
+   matrix.
 6. Use `committing-change`, push once every open question is answered, and wait
    for review and CI on the new SHA.
 7. Before requesting merge, curate the history again so review-round fixes are

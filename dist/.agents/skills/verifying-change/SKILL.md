@@ -76,10 +76,10 @@ If any check fails:
    produced.
 4. Make the smallest test-backed fix.
 5. Run reviewing-change on the resulting diff, resolve confirmed blocking
-   findings and rerun it until none remain, for at most three review rounds,
-   and report non-blocking findings, parked findings, and open questions to
-   the user. If a blocking finding remains after the third round, stop and
-   report it with the fixes attempted.
+   findings and rerun it until none remain, for at most three review rounds
+   counted across the whole workflow, and report non-blocking findings, parked
+   findings, and open questions to the user. If a blocking finding remains after
+   the third round, stop and report it with the fixes attempted.
 6. Run verifying-change again from the full matrix; do not resume from the
    failed check or reuse stale evidence.
 

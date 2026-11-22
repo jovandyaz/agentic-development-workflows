@@ -187,12 +187,23 @@ test("workflows never hand off to the unguarded branch-finishing skill", () => {
 test("review-fix loops stop after three rounds and report", () => {
   for (const name of ["developing-feature", "fixing-bug", "verifying-change", "shipping-change"]) {
     const text = normalizedSkill(name);
-    assert.match(text, /for at most three review rounds/, name);
+    assert.match(text, /for at most three review rounds counted across the whole workflow/, name);
     assert.match(
       text,
       /If a blocking finding remains after the third round, stop and report it with the fixes attempted\./,
       name,
     );
+  }
+});
+
+test("a finding that recurs in consecutive rounds is fixed as a class", () => {
+  const text = normalizedSkill("reviewing-change");
+  for (const rule of [
+    /When a round confirms a Blocking finding with the same cause as one the previous round fixed, such as another input that bypasses the same check, report it as a recurring class\./,
+    /Its smallest safe fix covers the whole class with one rule, not the new instance\./,
+    /If no fix covers the class, stop the loop and report the class, the fixes attempted, and the residual risk\./,
+  ]) {
+    assert.match(text, rule);
   }
 });
 
@@ -594,15 +605,15 @@ test("review callers repeat only for blocking findings", () => {
   assert.match(developing, /Run `verifying-change` only after no blocking findings remain/);
   assert.match(
     developing,
-    /fix confirmed blocking findings one at a time and rerun `reviewing-change` until no blocking findings remain, for at most three review rounds\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. Report non-blocking findings, parked findings, and open questions and leave them to the user\. \d+\. Run `verifying-change` only after no blocking findings remain/,
+    /fix confirmed blocking findings one at a time and rerun `reviewing-change` until no blocking findings remain, for at most three review rounds counted across the whole workflow\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. Report non-blocking findings, parked findings, and open questions and leave them to the user\. \d+\. Run `verifying-change` only after no blocking findings remain/,
   );
   assert.match(
     normalizedSkill("fixing-bug"),
-    /fix each confirmed blocking finding, and repeat review until no blocking findings remain, for at most three review rounds\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. Report non-blocking findings, parked findings, and open questions and leave them to the user\. \d+\. Run `verifying-change`/,
+    /fix each confirmed blocking finding, and repeat review until no blocking findings remain, for at most three review rounds counted across the whole workflow\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. Report non-blocking findings, parked findings, and open questions and leave them to the user\. \d+\. Run `verifying-change`/,
   );
   assert.match(
     normalizedSkill("verifying-change"),
-    /Run reviewing-change on the resulting diff, resolve confirmed blocking findings and rerun it until none remain, for at most three review rounds, and report non-blocking findings, parked findings, and open questions to the user\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. \d+\. Run verifying-change again/,
+    /Run reviewing-change on the resulting diff, resolve confirmed blocking findings and rerun it until none remain, for at most three review rounds counted across the whole workflow, and report non-blocking findings, parked findings, and open questions to the user\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. \d+\. Run verifying-change again/,
   );
   const shipping = normalizedSkill("shipping-change");
   assert.match(
@@ -611,7 +622,7 @@ test("review callers repeat only for blocking findings", () => {
   );
   assert.match(
     shipping,
-    /Run `reviewing-change`, resolve confirmed blocking findings and rerun it until none remain, for at most three review rounds\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. Report non-blocking findings, parked findings, and open questions to the user, and record parked findings with their triggers in the PR body; then run the complete `verifying-change` matrix/,
+    /Run `reviewing-change`, resolve confirmed blocking findings and rerun it until none remain, for at most three review rounds counted across the whole workflow\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. Report non-blocking findings, parked findings, and open questions to the user, and record parked findings with their triggers in the PR body; then run the complete `verifying-change` matrix/,
   );
   assert.doesNotMatch(shipping, /For any confirmed finding or CI failure/);
 });

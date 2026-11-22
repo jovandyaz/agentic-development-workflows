@@ -40,10 +40,10 @@ Claude Code may use `/plugin install frontend-design@claude-plugins-official`.
    `reviewing-change` already produced.
 6. Run `reviewing-change`. Validate feedback with `receiving-code-review`, fix
    each confirmed blocking finding, and repeat review until no blocking findings
-   remain, for at most three review rounds. If a blocking finding remains after
-   the third round, stop and report it with the fixes attempted. Report
-   non-blocking findings, parked findings, and open questions and leave them
-   to the user.
+   remain, for at most three review rounds counted across the whole workflow. If
+   a blocking finding remains after the third round, stop and report it with the
+   fixes attempted. Report non-blocking findings, parked findings, and open
+   questions and leave them to the user.
 7. Run `verifying-change` to reproduce the original path and execute the broader
    checks justified by the affected surface.
 

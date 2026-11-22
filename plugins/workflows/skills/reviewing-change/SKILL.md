@@ -48,6 +48,12 @@ Each run of this review is one round, starting at 1. The count spans the whole
 workflow, including nested `verifying-change` loops, and resets only when the
 user explicitly asks for more rounds after the stop report.
 
+When a round confirms a Blocking finding with the same cause as one the
+previous round fixed, such as another input that bypasses the same check,
+report it as a recurring class. Its smallest safe fix covers the whole class
+with one rule, not the new instance. If no fix covers the class, stop the loop
+and report the class, the fixes attempted, and the residual risk.
+
 ## Ordered Review Pipeline
 
 Tell every reviewer subagent to label each finding Blocking or Non-blocking
