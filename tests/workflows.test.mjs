@@ -711,6 +711,18 @@ test("review depth follows what the change touches, never its size", () => {
   }
 });
 
+test("reviewers get no lockfile or generated diff text", () => {
+  const text = normalizedSkill("reviewing-change");
+  for (const rule of [
+    /Leave lockfiles and files that `\.gitattributes` marks `linguist-generated` or `linguist-vendored` out of the diff text, and list each by path with its changed-line count\./,
+    /git check-attr linguist-generated linguist-vendored/,
+    /Keep a file in the diff text when the requirements are about it, such as a dependency upgrade's lockfile\./,
+    /Reviewers can still read a left-out file\./,
+  ]) {
+    assert.match(text, rule);
+  }
+});
+
 test("the quality reviewer preloads its skill instead of holding the Skill tool", () => {
   const text = readFileSync(join(root, "plugins", "workflows", "agents", "quality-reviewer.md"), "utf8");
   assert.match(text, /^tools: Read, Grep, Glob$/m);

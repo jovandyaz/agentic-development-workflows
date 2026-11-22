@@ -66,6 +66,15 @@ Commit messages stay in scope because history is evidence, but claims in them,
 in comments, or in summaries are premises to verify (see Evidence and
 refutation), not facts.
 
+Leave lockfiles and files that `.gitattributes` marks `linguist-generated` or
+`linguist-vendored` out of the diff text, and list each by path with its
+changed-line count. Lockfiles include `pnpm-lock.yaml`, `package-lock.json`,
+`yarn.lock`, `uv.lock`, `Cargo.lock`, and `poetry.lock`; the list is not
+closed. Find marked files with
+`git check-attr linguist-generated linguist-vendored -- <paths>`. Keep a file
+in the diff text when the requirements are about it, such as a dependency
+upgrade's lockfile. Reviewers can still read a left-out file.
+
 Where the runtime provides this plugin's read-only reviewer agents, dispatch
 them by name: `workflows:quality-reviewer`, `workflows:spec-reviewer`, and
 `workflows:standards-reviewer`. Their tool list, not an instruction, keeps them
