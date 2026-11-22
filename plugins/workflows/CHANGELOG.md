@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.10.0] - 2026-11-22
+
+- `reviewing-change` picks a review depth from what the change touches, never
+  from its size. A change to documentation or code comments only runs at Low
+  depth and skips the Superpowers code review; the three reviewer lenses still
+  run. Every other change, test-only changes included, runs at Full depth.
+- A Blocking finding with the same cause as one the previous round fixed is a
+  recurring class: its fix covers the whole class with one rule, or the loop
+  stops and reports the residual risk. The three-round cap is counted across
+  the whole workflow in every skill that loops on review.
+- Reviewers get no diff text for lockfiles or files `.gitattributes` marks
+  `linguist-generated` or `linguist-vendored`; the review lists them by path.
+- New eval cases `review-low-depth`, `review-recurring-class`, and
+  `review-lockfile-excluded`; `review-clean-change` checks that a money change
+  still runs the Superpowers code review.
+
 ## [0.9.0] - 2026-11-13
 
 - `reviewing-change` applies a reachability rule only to inputs an externally
