@@ -685,6 +685,21 @@ test("review dispatches the read-only reviewer agents and keeps a portable fallb
   assert.match(text, /Dispatch them for every diff, whatever its size; never run a lens inline/);
 });
 
+test("review depth follows what the change touches, never its size", () => {
+  const text = normalizedSkill("reviewing-change");
+  for (const rule of [
+    /Pick the review depth from what the change touches, never from its size: a small diff can carry the highest risk\./,
+    /\*\*Low\*\*: every changed file is documentation or code comments only\. Skip stage 2, the Superpowers code review; the three reviewer lenses still run\./,
+    /\*\*Full\*\*: every other change, including test-only changes and any change to money, authentication, authorization, data or schema, or a public API\. Run every stage\./,
+    /When unsure, use Full\./,
+    /An explicit request for a stage runs it at any depth\./,
+    /the review depth and its reason/,
+    /Dispatch them for every diff, whatever its size; never run a lens inline/,
+  ]) {
+    assert.match(text, rule);
+  }
+});
+
 test("the quality reviewer preloads its skill instead of holding the Skill tool", () => {
   const text = readFileSync(join(root, "plugins", "workflows", "agents", "quality-reviewer.md"), "utf8");
   assert.match(text, /^tools: Read, Grep, Glob$/m);

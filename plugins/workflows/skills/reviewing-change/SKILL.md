@@ -27,6 +27,20 @@ revision, and complete diff. Confirm both revisions and reject an empty diff.
 For local work without a supplied base, ask rather than guessing. Never edit
 code, post comments, approve, merge, or change pull-request state.
 
+## Review Depth
+
+Pick the review depth from what the change touches, never from its size: a
+small diff can carry the highest risk.
+
+- **Low**: every changed file is documentation or code comments only. Skip
+  stage 2, the Superpowers code review; the three reviewer lenses still run.
+- **Full**: every other change, including test-only changes and any change to
+  money, authentication, authorization, data or schema, or a public API. Run
+  every stage.
+
+When unsure, use Full. An explicit request for a stage runs it at any depth.
+The cross-vendor lens keeps its own rules at either depth.
+
 ## Review Rounds
 
 Workflows that fix findings and rerun this review stop after three rounds.
@@ -63,7 +77,8 @@ maintainability findings and grade before starting the next stage.
 
 ### 2. Superpowers review
 
-Use `requesting-code-review` with a fresh subagent. Give it the requirements,
+At Low depth, skip this stage and list it as skipped with the reason "Low
+depth". Otherwise, use `requesting-code-review` with a fresh subagent. Give it the requirements,
 base, head, and diff, and describe the change by what it must do, never the
 implementer's summary or reasoning. Apply `receiving-code-review` to verify every
 reported issue against the actual codebase; do not accept feedback blindly.
@@ -187,8 +202,8 @@ Report a finding whose classification is uncertain as an open question; never
 fix or drop it silently. Report blocking findings first, then non-blocking
 findings, each by severity with location, impact, evidence, and smallest safe
 fix. Follow with parked findings and their triggers, open questions, refuted
-findings with their refuting evidence, the assessing-code-quality grade, lenses
-executed and any skipped with the reason, and verification gaps. If no findings
+findings with their refuting evidence, the assessing-code-quality grade, the
+review depth and its reason, lenses executed and any skipped with the reason, and verification gaps. If no findings
 remain, state that explicitly.
 
 Use `capturing-lessons` for each confirmed blocking finding that reveals a
