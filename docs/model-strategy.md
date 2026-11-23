@@ -40,7 +40,11 @@ takes neither. No skill, agent, or setting in this plugin needs to change.
 3. **No model names in this plugin.** Skills and reviewer agents set no
    `model:`. They inherit the session model and its advisor, so the person
    running the session decides, and a release that reorders the models needs
-   no plugin change.
+   no plugin change. To run reviewers on a cheaper model, run the review in its
+   own session on that model, or set
+   [`CLAUDE_CODE_SUBAGENT_MODEL`](https://code.claude.com/docs/en/model-config#environment-variables)
+   for that one session; it applies to every subagent dispatched without a
+   model. Never set it globally: it also moves implementer subagents.
 4. **Re-measure at every model release.** Anthropic: "Recheck at every model
    release, because releases move both the capability gap and the price
    ratio." Keep a pairing only if it beats the single model's whole curve of
