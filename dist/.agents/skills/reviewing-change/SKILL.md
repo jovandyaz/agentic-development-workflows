@@ -99,9 +99,11 @@ maintainability findings and grade before starting the next stage.
 ### 2. Superpowers review
 
 At Low depth, skip this stage and list it as skipped with the reason "Low
-depth". Otherwise, use `requesting-code-review` with a fresh subagent. Give it the requirements,
-base, head, and diff, and describe the change by what it must do, never the
-implementer's summary or reasoning. Apply `receiving-code-review` to verify every
+depth". Otherwise, invoke the `requesting-code-review` skill with the Skill
+tool, or your runtime's equivalent; never dispatch its reviewer without loading
+the skill first. Give its fresh reviewer subagent the requirements, base, head,
+and diff, and describe the change by what it must do, never the implementer's
+summary or reasoning. Apply `receiving-code-review` to verify every
 reported issue against the actual codebase; do not accept feedback blindly.
 
 ### 3. Spec and standards axes

@@ -712,6 +712,14 @@ test("review depth follows what the change touches, never its size", () => {
   }
 });
 
+test("stage 2 runs through the requesting-code-review skill", () => {
+  const text = normalizedSkill("reviewing-change");
+  assert.match(
+    text,
+    /Otherwise, invoke the `requesting-code-review` skill with the Skill tool, or your runtime's equivalent; never dispatch its reviewer without loading the skill first\./,
+  );
+});
+
 test("reviewers get no lockfile or generated diff text", () => {
   const text = normalizedSkill("reviewing-change");
   for (const rule of [
