@@ -16,6 +16,8 @@
   `linguist-generated` or `linguist-vendored`; the review lists them by path.
   Attributes come from the base revision, so a change cannot mark its own
   files, and a lockfile change no manifest change explains stays in the diff.
+- Stage 2 loads `requesting-code-review` through the Skill tool, or the
+  runtime's equivalent, before dispatching its reviewer.
 - New eval cases `review-low-depth`, `review-recurring-class`, and
   `review-lockfile-excluded`; `review-clean-change` checks that a money change
   still runs the Superpowers code review.
