@@ -8,7 +8,7 @@
   run. Every other change, test-only changes included, runs at Full depth.
   Skills, prompts, instruction files, and comments tools act on are not
   documentation or comments.
-- A Blocking finding with the same cause as one the previous round fixed is a
+- A Blocking finding with the same cause as one an earlier round fixed is a
   recurring class: its fix covers the whole class with one rule, or the loop
   stops and reports the residual risk. The three-round cap is counted across
   the whole workflow in every skill that loops on review.

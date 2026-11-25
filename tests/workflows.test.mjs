@@ -199,7 +199,7 @@ test("review-fix loops stop after three rounds and report", () => {
 test("a finding that recurs in consecutive rounds is fixed as a class", () => {
   const text = normalizedSkill("reviewing-change");
   for (const rule of [
-    /When a round confirms a Blocking finding with the same cause as one the previous round fixed, such as another input that bypasses the same check, report it as a recurring class\./,
+    /When a round confirms a Blocking finding with the same cause as one an earlier round fixed, such as another input that bypasses the same check, report it as a recurring class\./,
     /Its smallest safe fix covers the whole class with one rule, not the new instance\./,
     /If no fix covers the class, stop the loop and report the class, the fixes attempted, and the residual risk\./,
   ]) {
