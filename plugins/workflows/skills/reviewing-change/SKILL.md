@@ -226,8 +226,8 @@ fix or drop it silently. Report blocking findings first, then non-blocking
 findings, each by severity with location, impact, evidence, and smallest safe
 fix. Follow with parked findings and their triggers, open questions, refuted
 findings with their refuting evidence, the assessing-code-quality grade, the
-review depth and its reason, lenses executed and any skipped with the reason, and verification gaps. If no findings
-remain, state that explicitly.
+review depth and its reason, lenses executed and any skipped with the reason,
+and verification gaps. If no findings remain, state that explicitly.
 
 Use `capturing-lessons` for each confirmed blocking finding that reveals a
 mistake likely to recur, and include its report.
