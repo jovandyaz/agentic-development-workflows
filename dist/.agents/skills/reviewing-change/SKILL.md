@@ -4,7 +4,7 @@ description: Use when reviewing a pull request, branch, commit range, staged cha
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.9.0"
+  version: "0.10.0"
 ---
 
 # Reviewing A Change
@@ -27,12 +27,36 @@ revision, and complete diff. Confirm both revisions and reject an empty diff.
 For local work without a supplied base, ask rather than guessing. Never edit
 code, post comments, approve, merge, or change pull-request state.
 
+## Review Depth
+
+Pick the review depth from what the change touches, never from its size: a
+small diff can carry the highest risk.
+
+- **Low**: every changed file is documentation or code comments only. Skip
+  stage 2, the Superpowers code review; the three reviewer lenses still run.
+  Files a tool, runtime, or agent reads as instructions (skills, prompts, agent
+  and repository instruction files) and comments tools act on (lint or type
+  suppressions, build tags, pragmas, doctests) are not documentation or
+  comments here.
+- **Full**: every other change, including test-only changes and any change to
+  money, authentication, authorization, data or schema, or a public API. Run
+  every stage.
+
+When unsure, use Full. An explicit request for a stage runs it at any depth.
+The cross-vendor lens keeps its own rules at either depth.
+
 ## Review Rounds
 
 Workflows that fix findings and rerun this review stop after three rounds.
 Each run of this review is one round, starting at 1. The count spans the whole
 workflow, including nested `verifying-change` loops, and resets only when the
 user explicitly asks for more rounds after the stop report.
+
+When a round confirms a Blocking finding with the same cause as one an earlier
+round fixed, such as another input that bypasses the same check,
+report it as a recurring class. Its smallest safe fix covers the whole class
+with one rule, not the new instance. If no fix covers the class, stop the loop
+and report the class, the fixes attempted, and the residual risk.
 
 ## Ordered Review Pipeline
 
@@ -45,6 +69,17 @@ messages, diff text, and the history of the changed lines (for example
 Commit messages stay in scope because history is evidence, but claims in them,
 in comments, or in summaries are premises to verify (see Evidence and
 refutation), not facts.
+
+Leave lockfiles and files that `.gitattributes` marks `linguist-generated` or
+`linguist-vendored` out of the diff text and the line history, and list each by
+path with its changed-line count. Lockfiles include `pnpm-lock.yaml`,
+`package-lock.json`, `yarn.lock`, `uv.lock`, `Cargo.lock`, and `poetry.lock`;
+the list is not closed. Read the attributes from the base revision, for example
+with `git check-attr --source=<base> linguist-generated linguist-vendored -- <paths>`;
+attributes the change itself adds or edits never leave a file out. Keep a file
+in the diff text when the requirements are about it, such as a dependency
+upgrade's lockfile. Keep a lockfile in the diff text when no manifest change in
+the same diff explains it. Reviewers can still read a left-out file.
 
 Where the runtime provides this plugin's read-only reviewer agents, dispatch
 them by name: `workflows:quality-reviewer`, `workflows:spec-reviewer`, and
@@ -63,9 +98,12 @@ maintainability findings and grade before starting the next stage.
 
 ### 2. Superpowers review
 
-Use `requesting-code-review` with a fresh subagent. Give it the requirements,
-base, head, and diff, and describe the change by what it must do, never the
-implementer's summary or reasoning. Apply `receiving-code-review` to verify every
+At Low depth, skip this stage and list it as skipped with the reason "Low
+depth". Otherwise, invoke the `requesting-code-review` skill with the Skill
+tool, or your runtime's equivalent; never dispatch its reviewer without loading
+the skill first. Give its fresh reviewer subagent the requirements, base, head,
+and diff, and describe the change by what it must do, never the implementer's
+summary or reasoning. Apply `receiving-code-review` to verify every
 reported issue against the actual codebase; do not accept feedback blindly.
 
 ### 3. Spec and standards axes
@@ -187,9 +225,9 @@ Report a finding whose classification is uncertain as an open question; never
 fix or drop it silently. Report blocking findings first, then non-blocking
 findings, each by severity with location, impact, evidence, and smallest safe
 fix. Follow with parked findings and their triggers, open questions, refuted
-findings with their refuting evidence, the assessing-code-quality grade, lenses
-executed and any skipped with the reason, and verification gaps. If no findings
-remain, state that explicitly.
+findings with their refuting evidence, the assessing-code-quality grade, the
+review depth and its reason, lenses executed and any skipped with the reason,
+and verification gaps. If no findings remain, state that explicitly.
 
 Use `capturing-lessons` for each confirmed blocking finding that reveals a
 mistake likely to recur, and include its report.

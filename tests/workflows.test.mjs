@@ -187,12 +187,23 @@ test("workflows never hand off to the unguarded branch-finishing skill", () => {
 test("review-fix loops stop after three rounds and report", () => {
   for (const name of ["developing-feature", "fixing-bug", "verifying-change", "shipping-change"]) {
     const text = normalizedSkill(name);
-    assert.match(text, /for at most three review rounds/, name);
+    assert.match(text, /for at most three review rounds counted across the whole workflow/, name);
     assert.match(
       text,
       /If a blocking finding remains after the third round, stop and report it with the fixes attempted\./,
       name,
     );
+  }
+});
+
+test("a finding that recurs in consecutive rounds is fixed as a class", () => {
+  const text = normalizedSkill("reviewing-change");
+  for (const rule of [
+    /When a round confirms a Blocking finding with the same cause as one an earlier round fixed, such as another input that bypasses the same check, report it as a recurring class\./,
+    /Its smallest safe fix covers the whole class with one rule, not the new instance\./,
+    /If no fix covers the class, stop the loop and report the class, the fixes attempted, and the residual risk\./,
+  ]) {
+    assert.match(text, rule);
   }
 });
 
@@ -471,7 +482,7 @@ test("all published versions stay synchronized", () => {
       "utf8",
     ),
   ).version;
-  assert.equal(packageVersion, "0.9.0");
+  assert.equal(packageVersion, "0.10.0");
   assert.equal(marketplaceVersion, packageVersion);
   assert.equal(pluginVersion, packageVersion);
   for (const name of [
@@ -594,15 +605,15 @@ test("review callers repeat only for blocking findings", () => {
   assert.match(developing, /Run `verifying-change` only after no blocking findings remain/);
   assert.match(
     developing,
-    /fix confirmed blocking findings one at a time and rerun `reviewing-change` until no blocking findings remain, for at most three review rounds\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. Report non-blocking findings, parked findings, and open questions and leave them to the user\. \d+\. Run `verifying-change` only after no blocking findings remain/,
+    /fix confirmed blocking findings one at a time and rerun `reviewing-change` until no blocking findings remain, for at most three review rounds counted across the whole workflow\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. Report non-blocking findings, parked findings, and open questions and leave them to the user\. \d+\. Run `verifying-change` only after no blocking findings remain/,
   );
   assert.match(
     normalizedSkill("fixing-bug"),
-    /fix each confirmed blocking finding, and repeat review until no blocking findings remain, for at most three review rounds\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. Report non-blocking findings, parked findings, and open questions and leave them to the user\. \d+\. Run `verifying-change`/,
+    /fix each confirmed blocking finding, and repeat review until no blocking findings remain, for at most three review rounds counted across the whole workflow\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. Report non-blocking findings, parked findings, and open questions and leave them to the user\. \d+\. Run `verifying-change`/,
   );
   assert.match(
     normalizedSkill("verifying-change"),
-    /Run reviewing-change on the resulting diff, resolve confirmed blocking findings and rerun it until none remain, for at most three review rounds, and report non-blocking findings, parked findings, and open questions to the user\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. \d+\. Run verifying-change again/,
+    /Run reviewing-change on the resulting diff, resolve confirmed blocking findings and rerun it until none remain, for at most three review rounds counted across the whole workflow, and report non-blocking findings, parked findings, and open questions to the user\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. \d+\. Run verifying-change again/,
   );
   const shipping = normalizedSkill("shipping-change");
   assert.match(
@@ -611,7 +622,7 @@ test("review callers repeat only for blocking findings", () => {
   );
   assert.match(
     shipping,
-    /Run `reviewing-change`, resolve confirmed blocking findings and rerun it until none remain, for at most three review rounds\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. Report non-blocking findings, parked findings, and open questions to the user, and record parked findings with their triggers in the PR body; then run the complete `verifying-change` matrix/,
+    /Run `reviewing-change`, resolve confirmed blocking findings and rerun it until none remain, for at most three review rounds counted across the whole workflow\. If a blocking finding remains after the third round, stop and report it with the fixes attempted\. Report non-blocking findings, parked findings, and open questions to the user, and record parked findings with their triggers in the PR body; then run the complete `verifying-change` matrix/,
   );
   assert.doesNotMatch(shipping, /For any confirmed finding or CI failure/);
 });
@@ -683,6 +694,43 @@ test("review dispatches the read-only reviewer agents and keeps a portable fallb
   assert.match(text, /history of the changed lines/);
   assert.match(text, /Reviewers then need no shell of their own/);
   assert.match(text, /Dispatch them for every diff, whatever its size; never run a lens inline/);
+});
+
+test("review depth follows what the change touches, never its size", () => {
+  const text = normalizedSkill("reviewing-change");
+  for (const rule of [
+    /Pick the review depth from what the change touches, never from its size: a small diff can carry the highest risk\./,
+    /\*\*Low\*\*: every changed file is documentation or code comments only\. Skip stage 2, the Superpowers code review; the three reviewer lenses still run\./,
+    /\*\*Full\*\*: every other change, including test-only changes and any change to money, authentication, authorization, data or schema, or a public API\. Run every stage\./,
+    /Files a tool, runtime, or agent reads as instructions \(skills, prompts, agent and repository instruction files\) and comments tools act on \(lint or type suppressions, build tags, pragmas, doctests\) are not documentation or comments here\./,
+    /When unsure, use Full\./,
+    /An explicit request for a stage runs it at any depth\./,
+    /the review depth and its reason/,
+    /Dispatch them for every diff, whatever its size; never run a lens inline/,
+  ]) {
+    assert.match(text, rule);
+  }
+});
+
+test("stage 2 runs through the requesting-code-review skill", () => {
+  const text = normalizedSkill("reviewing-change");
+  assert.match(
+    text,
+    /Otherwise, invoke the `requesting-code-review` skill with the Skill tool, or your runtime's equivalent; never dispatch its reviewer without loading the skill first\./,
+  );
+});
+
+test("reviewers get no lockfile or generated diff text", () => {
+  const text = normalizedSkill("reviewing-change");
+  for (const rule of [
+    /Leave lockfiles and files that `\.gitattributes` marks `linguist-generated` or `linguist-vendored` out of the diff text and the line history, and list each by path with its changed-line count\./,
+    /Read the attributes from the base revision, for example with `git check-attr --source=<base> linguist-generated linguist-vendored -- <paths>`; attributes the change itself adds or edits never leave a file out\./,
+    /Keep a lockfile in the diff text when no manifest change in the same diff explains it\./,
+    /Keep a file in the diff text when the requirements are about it, such as a dependency upgrade's lockfile\./,
+    /Reviewers can still read a left-out file\./,
+  ]) {
+    assert.match(text, rule);
+  }
 });
 
 test("the quality reviewer preloads its skill instead of holding the Skill tool", () => {

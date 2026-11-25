@@ -4,7 +4,7 @@ description: Use when implementing a new capability, changing product behavior, 
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.9.0"
+  version: "0.10.0"
 ---
 
 # Developing A Feature
@@ -51,10 +51,11 @@ Missing required dependencies are blockers, not reasons to approximate them.
    to `finishing-a-development-branch`, skip that skill and continue with step 6.
 6. After implementation, run `reviewing-change`. Validate every finding with
    `receiving-code-review`; fix confirmed blocking findings one at a time and
-   rerun `reviewing-change` until no blocking findings remain, for at most
-   three review rounds. If a blocking finding remains after the third round,
-   stop and report it with the fixes attempted. Report non-blocking findings,
-   parked findings, and open questions and leave them to the user.
+   rerun `reviewing-change` until no blocking findings remain, for at most three
+   review rounds counted across the whole workflow. If a blocking finding
+   remains after the third round, stop and report it with the fixes attempted.
+   Report non-blocking findings, parked findings, and open questions and leave
+   them to the user.
 7. Run `verifying-change` only after no blocking findings remain.
 
 Use `committing-change` for every authorized commit. Let `verifying-change`
