@@ -4,7 +4,7 @@ description: Use when behavior is broken, a test fails, an error is reported, a 
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.10.0"
+  version: "0.11.0"
 ---
 
 # Fixing A Bug
@@ -32,6 +32,18 @@ Claude Code may use `/plugin install frontend-design@claude-plugins-official`.
 2. Use `systematic-debugging` to prove the cause before any fix.
 3. Use `test-driven-development` to add the smallest regression test. Observe
    it fail for the expected reason before changing production code.
+   Derive each test from a requirement, never from the implementation: it
+   must fail if that requirement were implemented wrongly. Mock only system
+   boundaries, such as the network, the clock, or external services, never the
+   unit under test, and do not repeat coverage an existing test already gives.
+   Never weaken, delete, or change the expected value of an existing test to
+   make it pass unless the requirement changes that behavior or the test
+   asserted the defect being fixed. When a requirement is an invariant over a
+   range of inputs, such as a serialization round trip or a money calculation,
+   write a property test with the property-based testing library the repository
+   already uses; without one, use examples and add no dependency. For a refactor
+   or migration, prefer a differential test that runs the old and new
+   implementations on the same inputs.
 4. Implement one minimal cause-level fix. Run the regression test, then relevant
    neighboring tests. For UI fixes, apply `frontend-design` without replacing
    an established design system. Do not combine unrelated cleanup with the fix.

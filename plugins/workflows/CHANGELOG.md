@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.11.0] - 2026-11-26
+
+- `developing-feature` and `fixing-bug` derive each test from a requirement, so
+  it fails when that requirement is implemented wrongly. They mock only system
+  boundaries, never repeat existing coverage, and never weaken, delete, or
+  change the expected value of an existing test unless the requirement changes
+  that behavior. An invariant gets a property test with the repository's
+  existing library, and a refactor or migration prefers a differential test.
+- `reviewing-change` has the spec reviewer judge every added or edited test: a
+  test that would pass against a wrong implementation is Non-blocking, and an
+  existing test weakened, deleted, or given a new expected value the
+  requirements do not call for is Blocking.
+- New eval cases `review-agent-tests`, `bugfix-test-integrity`, and
+  `feature-test-integrity`.
+
 ## [0.10.0] - 2026-11-22
 
 - `reviewing-change` picks a review depth from what the change touches, never

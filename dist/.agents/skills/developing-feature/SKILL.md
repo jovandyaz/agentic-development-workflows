@@ -4,7 +4,7 @@ description: Use when implementing a new capability, changing product behavior, 
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.10.0"
+  version: "0.11.0"
 ---
 
 # Developing A Feature
@@ -49,6 +49,18 @@ Missing required dependencies are blockers, not reasons to approximate them.
    Unless the user authorized commits, pass a no-commit constraint to every
    subskill and subagent and omit their commit steps. When a subskill hands off
    to `finishing-a-development-branch`, skip that skill and continue with step 6.
+   Derive each test from a requirement, never from the implementation: it
+   must fail if that requirement were implemented wrongly. Mock only system
+   boundaries, such as the network, the clock, or external services, never the
+   unit under test, and do not repeat coverage an existing test already gives.
+   Never weaken, delete, or change the expected value of an existing test to
+   make it pass unless the requirement changes that behavior or the test
+   asserted the defect being fixed. When a requirement is an invariant over a
+   range of inputs, such as a serialization round trip or a money calculation,
+   write a property test with the property-based testing library the repository
+   already uses; without one, use examples and add no dependency. For a refactor
+   or migration, prefer a differential test that runs the old and new
+   implementations on the same inputs.
 6. After implementation, run `reviewing-change`. Validate every finding with
    `receiving-code-review`; fix confirmed blocking findings one at a time and
    rerun `reviewing-change` until no blocking findings remain, for at most three

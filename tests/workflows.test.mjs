@@ -482,7 +482,7 @@ test("all published versions stay synchronized", () => {
       "utf8",
     ),
   ).version;
-  assert.equal(packageVersion, "0.10.0");
+  assert.equal(packageVersion, "0.11.0");
   assert.equal(marketplaceVersion, packageVersion);
   assert.equal(pluginVersion, packageVersion);
   for (const name of [
@@ -571,7 +571,7 @@ test("review blocks only on correctness and requirement findings", () => {
   assert.match(review, /Classify every confirmed finding by impact, never by lens or severity label/);
   assert.match(
     review,
-    /\*\*Blocking\*\*: incorrect behavior, a security or authorization breach, data loss, or a requirement that is missing or implemented wrongly/,
+    /\*\*Blocking\*\*: incorrect behavior, a security or authorization breach, data loss, a requirement that is missing or implemented wrongly, or an existing test weakened/,
   );
   assert.match(review, /\*\*Non-blocking\*\*: maintainability, style, or speculative hardening/);
   assert.match(
@@ -718,6 +718,33 @@ test("stage 2 runs through the requesting-code-review skill", () => {
     text,
     /Otherwise, invoke the `requesting-code-review` skill with the Skill tool, or your runtime's equivalent; never dispatch its reviewer without loading the skill first\./,
   );
+});
+
+test("implementation workflows write tests that would catch a wrong implementation", () => {
+  for (const name of ["developing-feature", "fixing-bug"]) {
+    const text = normalizedSkill(name);
+    for (const rule of [
+      /Derive each test from a requirement, never from the implementation: it must fail if that requirement were implemented wrongly\./,
+      /Mock only system boundaries, such as the network, the clock, or external services, never the unit under test, and do not repeat coverage an existing test already gives\./,
+      /Never weaken, delete, or change the expected value of an existing test to make it pass unless the requirement changes that behavior or the test asserted the defect being fixed\./,
+      /When a requirement is an invariant over a range of inputs, such as a serialization round trip or a money calculation, write a property test with the property-based testing library the repository already uses; without one, use examples and add no dependency\./,
+      /For a refactor or migration, prefer a differential test that runs the old and new implementations on the same inputs\./,
+    ]) {
+      assert.match(text, rule, name);
+    }
+  }
+});
+
+test("spec review judges every added or edited test against the spec", () => {
+  const spec = readFileSync(join(root, "plugins", "workflows", "agents", "spec-reviewer.md"), "utf8").replace(/\s+/g, " ");
+  for (const text of [normalizedSkill("reviewing-change"), spec]) {
+    assert.match(text, /(?:checks|check) every test the change adds or edits against the spec/);
+    assert.match(text, /a test that would still pass if the requirement it covers were implemented wrongly, such as one that restates the implementation, mocks the unit under test, asserts nothing, or repeats existing coverage, is Non-blocking unless a requirement or mandatory repository instruction demands that test, and so is an invariant tested with a single example\./);
+    assert.match(text, /An existing test the change weakens, deletes without equivalent coverage elsewhere, or gives a new expected value is Blocking unless the requirements change that behavior or the test asserted the defect being fixed\./);
+  }
+  assert.match(normalizedSkill("reviewing-change"), /\*\*Blocking\*\*: incorrect behavior, a security or authorization breach, data loss, a requirement that is missing or implemented wrongly, or an existing test weakened, deleted, or given a new expected value the requirements do not call for\./);
+  assert.match(spec, /You also check every test the change adds or edits against the spec, even when no spec was supplied for the rest of the review/);
+  assert.match(spec, /Blocking means incorrect behavior, a security or authorization breach, data loss, a requirement that is missing or implemented wrongly, or an existing test weakened/);
 });
 
 test("reviewers get no lockfile or generated diff text", () => {
