@@ -742,9 +742,9 @@ test("spec review judges every added or edited test against the spec", () => {
     assert.match(text, /a test that would still pass if the requirement it covers were implemented wrongly, such as one that restates the implementation, mocks the unit under test, asserts nothing, or repeats existing coverage, is Non-blocking unless a requirement or mandatory repository instruction demands that test, and so is an invariant tested with a single example\./);
     assert.match(text, /An existing test the change weakens, deletes without equivalent coverage elsewhere, or gives a new expected value is Blocking unless the requirements change that behavior or the test asserted the defect being fixed\./);
   }
-  assert.match(normalizedSkill("reviewing-change"), /\*\*Blocking\*\*: incorrect behavior, a security or authorization breach, data loss, a requirement that is missing or implemented wrongly, or an existing test weakened, deleted, or given a new expected value the requirements do not call for\./);
+  assert.match(normalizedSkill("reviewing-change"), /\*\*Blocking\*\*: incorrect behavior, a security or authorization breach, data loss, a requirement that is missing or implemented wrongly, or an existing test weakened, deleted without equivalent coverage elsewhere, or given a new expected value the requirements do not call for\./);
   assert.match(spec, /You also check every test the change adds or edits against the spec, even when no spec was supplied for the rest of the review/);
-  assert.match(spec, /Blocking means incorrect behavior, a security or authorization breach, data loss, a requirement that is missing or implemented wrongly, or an existing test weakened/);
+  assert.match(spec, /Blocking means incorrect behavior, a security or authorization breach, data loss, a requirement that is missing or implemented wrongly, or an existing test weakened, deleted without equivalent coverage elsewhere, or given a new expected value/);
 });
 
 test("reviewers get no lockfile or generated diff text", () => {

@@ -10,8 +10,8 @@
   existing library, and a refactor or migration prefers a differential test.
 - `reviewing-change` has the spec reviewer judge every added or edited test: a
   test that would pass against a wrong implementation is Non-blocking, and an
-  existing test weakened, deleted, or given a new expected value the
-  requirements do not call for is Blocking.
+  existing test weakened, deleted without equivalent coverage, or given a new
+  expected value the requirements do not call for is Blocking.
 - New eval cases `review-agent-tests`, `bugfix-test-integrity`, and
   `feature-test-integrity`.
 

@@ -33,8 +33,9 @@ being fixed.
 
 Label every finding Blocking or Non-blocking. Blocking means incorrect behavior,
 a security or authorization breach, data loss, a requirement that is missing or
-implemented wrongly, or an existing test weakened, deleted, or given a new
-expected value the requirements do not call for. An input that an externally
+implemented wrongly, or an existing test weakened, deleted without equivalent
+coverage elsewhere, or given a new expected value the requirements do not call
+for. An input that an externally
 callable entry point (an HTTP or RPC API, socket, queue, or webhook) accepts
 under its schema is reachable: that current clients do not send it never
 downgrades, parks, or dismisses a finding about it. This removes only that

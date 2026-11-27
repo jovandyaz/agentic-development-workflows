@@ -207,8 +207,8 @@ Classify every confirmed finding by impact, never by lens or severity label:
 
 - **Blocking**: incorrect behavior, a security or authorization breach, data
   loss, a requirement that is missing or implemented wrongly, or an existing
-  test weakened, deleted, or given a new expected value the requirements do not
-  call for. Requirements
+  test weakened, deleted without equivalent coverage elsewhere, or given a new
+  expected value the requirements do not call for. Requirements
   include the request, the spec, and mandatory repository instructions.
   An input that an externally callable entry point (an HTTP or RPC API, socket,
   queue, or webhook) accepts under its schema is reachable: that current clients
