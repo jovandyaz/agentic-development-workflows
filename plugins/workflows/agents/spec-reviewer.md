@@ -18,12 +18,26 @@ ruling states ("never deleted", "never null", "unique per tenant"), list every
 write path that can break it (domain, application, repository or persistence
 mapping, migrations, backfills, imports) and report each path that does not
 enforce it, quoting the invariant. If no requirements or spec were supplied,
-report that and stop; never invent one.
+report that, check only the tests as below, and stop; never invent one.
+
+You also check every test the change adds or edits against the spec, even
+when no spec was supplied for the rest of the review: a test that would still
+pass if the requirement it covers were implemented wrongly, such as one that
+restates the implementation, mocks the unit under test, asserts nothing, or
+repeats existing coverage, is Non-blocking unless a requirement or mandatory
+repository instruction demands that test, and so is an invariant tested with
+a single example. An existing test the change weakens, deletes without
+equivalent coverage elsewhere, or gives a new expected value is Blocking
+unless the requirements change that behavior or the test asserted the defect
+being fixed.
 
 Label every finding Blocking or Non-blocking. Blocking means incorrect behavior,
-a security or authorization breach, data loss, or a requirement that is missing
-or implemented wrongly. An input that an externally callable entry point (an
-HTTP or RPC API, socket, queue, or webhook) accepts under its schema is
-reachable: that current clients do not send it never downgrades, parks, or
-dismisses a finding about it. This removes only that argument; it never raises a
-finding's impact by itself. Everything else is Non-blocking. Skip style.
+a security or authorization breach, data loss, a requirement that is missing or
+implemented wrongly, or an existing test weakened, deleted without equivalent
+coverage elsewhere, or given a new expected value the requirements do not call
+for. An input that an externally
+callable entry point (an HTTP or RPC API, socket, queue, or webhook) accepts
+under its schema is reachable: that current clients do not send it never
+downgrades, parks, or dismisses a finding about it. This removes only that
+argument; it never raises a finding's impact by itself. Everything else is
+Non-blocking. Skip style.

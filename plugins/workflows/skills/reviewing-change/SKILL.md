@@ -4,7 +4,7 @@ description: Use when reviewing a pull request, branch, commit range, staged cha
 license: MIT
 metadata:
   author: jovandyaz
-  version: "0.10.0"
+  version: "0.11.0"
 ---
 
 # Reviewing A Change
@@ -122,7 +122,15 @@ target.
   path that can break it (domain, application, repository or persistence
   mapping, migrations, backfills, imports) and reports each path that does not
   enforce it, quoting the invariant. A missing spec must be reported, never
-  invented.
+  invented. It also checks every test the change adds or edits against the
+  spec: a test that would still pass if the requirement it covers were
+  implemented wrongly, such as one that restates the implementation, mocks the
+  unit under test, asserts nothing, or repeats existing coverage, is
+  Non-blocking unless a requirement or mandatory repository instruction
+  demands that test, and so is an invariant tested with a single example. An
+  existing test the change weakens, deletes without equivalent coverage
+  elsewhere, or gives a new expected value is Blocking unless the requirements
+  change that behavior or the test asserted the defect being fixed.
 - **Standards**: give it the repository instructions and documented standards
   it must read (contribution guides, architecture records, agent instructions,
   rule files). It reports each breach with the file and rule it violates. It
@@ -198,7 +206,9 @@ change does not rely on, and retain the strongest evidence.
 Classify every confirmed finding by impact, never by lens or severity label:
 
 - **Blocking**: incorrect behavior, a security or authorization breach, data
-  loss, or a requirement that is missing or implemented wrongly. Requirements
+  loss, a requirement that is missing or implemented wrongly, or an existing
+  test weakened, deleted without equivalent coverage elsewhere, or given a new
+  expected value the requirements do not call for. Requirements
   include the request, the spec, and mandatory repository instructions.
   An input that an externally callable entry point (an HTTP or RPC API, socket,
   queue, or webhook) accepts under its schema is reachable: that current clients
